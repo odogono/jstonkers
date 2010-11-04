@@ -1,3 +1,21 @@
 [submodule "vendor/backbone"]
 	path = vendor/backbone
 	url = git://github.com/documentcloud/backbone.git
+[submodule "vendor/express"]
+	path = vendor/express
+	url = git://github.com/visionmedia/express.git
+[submodule "vendor/connect"]
+	path = vendor/connect
+	url = git://github.com/senchalabs/connect.git
+[submodule "vendor/haml.js"]
+	path = vendor/haml.js
+	url = git://github.com/visionmedia/haml.js.git
+[submodule "vendor/ext.js"]
+	path = vendor/ext.js
+	url = git://github.com/visionmedia/ext.js.git
+[submodule "vendor/nodeunit"]
+	path = vendor/nodeunit
+	url = git://github.com/caolan/nodeunit.git
+[submodule "vendor/sass.js"]
+	path = vendor/sass.js
+	url = git://github.com/visionmedia/sass.js.git
