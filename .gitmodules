@@ -4,9 +4,6 @@
 [submodule "vendor/connect"]
 	path = vendor/connect
 	url = git://github.com/senchalabs/connect.git
-[submodule "vendor/haml.js"]
-	path = vendor/haml.js
-	url = git://github.com/visionmedia/haml.js.git
 [submodule "vendor/ext.js"]
 	path = vendor/ext.js
 	url = git://github.com/visionmedia/ext.js.git
@@ -16,3 +13,9 @@
 [submodule "vendor/sass.js"]
 	path = vendor/sass.js
 	url = git://github.com/visionmedia/sass.js.git
+[submodule "vendor/Socket.IO-node"]
+	path = vendor/Socket.IO-node
+	url = git://github.com/LearnBoost/Socket.IO-node.git
+[submodule "vendor/haml-js"]
+	path = vendor/haml-js
+	url = git://github.com/creationix/haml-js.git
