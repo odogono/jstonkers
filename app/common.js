@@ -1,6 +1,7 @@
 var path = require("path");
 
 exports.root = path.join( path.dirname(__filename), '../' );
+exports.dir_app = path.join( exports.root, 'app' );
 exports.dir_var = path.join( exports.root, 'var' );
 exports.dir_lib = path.join( exports.root, 'lib' );
 exports.dir_src = path.join( exports.root, 'src' );
@@ -8,6 +9,17 @@ exports.dir_vendor = path.join( exports.root, 'vendor' );
 exports.dir_public = path.join( exports.root, 'public' );
 
 require.paths.push( exports.dir_src )
+
+require.paths.push( path.join( exports.dir_vendor, 'underscore') );
+exports.underscore = require('underscore');
+
+// extensions to underscore
+// TODO : move to own file
+_.mixin({
+    is_array : function( input ) {
+        return (input.constructor.toString().indexOf("Array") != -1);
+    }
+});
 
 require.paths.push( path.join( exports.dir_vendor, 'connect/lib') );
 exports.connect = require( path.join( exports.dir_vendor, 'connect/lib/connect') );

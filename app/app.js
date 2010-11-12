@@ -26,14 +26,20 @@ app.helpers({
     {
         return "<link rel='stylesheet' href='/css/main.css' type='text/css' media='screen, projection'>";
     },
-    include_js: function(js) {
-        return "<script type='text/javascript' src='/js/" + js + ".js'></script>";
+    include_js: function( js ) {
+        if( _(js).is_array() )
+            return _.map( js, function( name ){ return "<script type='text/javascript' src='/js/" + name + ".js'></script>" } ).join("\n");
+        else
+            return "<script type='text/javascript' src='/js/" + js + ".js'></script>";
     },
     gather_javascripts : function() {
-        return  this.include_js('vendor/json2.min') + 
-                this.include_js('vendor/jquery-1.4.3.min') + 
-                this.include_js('vendor/underscore-min') + 
-                this.include_js('vendor/backbone-min');
+        return this.include_js([
+            'vendor/json2.min',
+            'vendor/jquery-1.4.4.min',
+            'vendor/underscore-min',
+            'vendor/backbone-min',
+            'vendor/jquery.tmpl.min',
+        ]);
     },
     app_name: "Stonkers!"
 });
