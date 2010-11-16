@@ -63,10 +63,9 @@ var MapView = ScrollView.extend({ // Backbone.View.extend({
             this.tileArray.push( colTiles );
         }
         
+        // listen to change of bounds from model
         this.window.bind('change:bounds', function(model,bounds){
-            self.moveTiles( bounds );
-            // console.log("model player changed bounds ");
-        //     console.log( bounds );
+            self.placeTiles( bounds );
         });
     },
     
@@ -79,88 +78,58 @@ var MapView = ScrollView.extend({ // Backbone.View.extend({
         return img;
     },
     
-    // addTile: function() {
-    //     var view = new MapTileView();
-    //     $(this.surface).before( imagetile );
-    //     
-    //     var view = new TodoView({model: todo});
-    //     this.$("#todo-list").append(view.render().el);
-    // },
-    
-    // onScrollMove: function(window, window_bounds ) { //px,py,pw,ph,mx,my) {
-    //     // var window_bounds = this.window.get("bounds");
-    //     // console.log("onScrollMove");
-    //     // console.log( arguments );
-    //     // console.log( window_bounds );
-    //     
-    // },
-    
-    moveTiles: function( window_bounds ) {
+    placeTiles: function( window_bounds ) {
         var imgtile = null;
-        var xx = 0;
-        var yy = 0;
-        var changed = false;
         
+        // find the starting tile positions
+        var sx = ((window_bounds.x / this.TILE_SIZE)|0);
+        var sy = ((window_bounds.y / this.TILE_SIZE)|0);  
+        var xx = -(window_bounds.x % this.TILE_SIZE);
+        var yy = -(window_bounds.y % this.TILE_SIZE);
+        
+        // console.log("start: " + window_bounds.x + "," + window_bounds.y + " " + xx + "," + yy );
+          
         for( var y = 0;y<this.rows;y++ )
         {
             for( var x = 0;x<this.cols;x++ )
             {
-                // console.log("move tile " + window_bounds.cx + "," + window_bounds.cy );
                 imgtile = this.tileArray[y][x];
-                xx = imgtile.xpos - (window_bounds.cx);
-                yy = imgtile.ypos - (window_bounds.cy);
-                changed = false;
-                
-                if( xx > window_bounds.width )
-                {
-                    xx -= (this.cols*256);
-                    this.updateImageTile( imgtile, imgtile.col-this.cols, imgtile.row, this.zoom );
-                }
-                if( (xx+256) < 0 )
-                {
-                    xx += (this.cols*256);
-                    this.updateImageTile( imgtile, imgtile.col+this.cols, imgtile.row, this.zoom );
-                }
-                if( yy > window_bounds.height )
-                {
-                    yy -= (this.rows*256);
-                    this.updateImageTile( imgtile, imgtile.col, imgtile.row-this.rows, this.zoom );
-                }
-                if( (yy+256) < 0 )
-                {
-                    yy += (this.rows*256);
-                    this.updateImageTile( imgtile, imgtile.col, imgtile.row+this.rows, this.zoom );
-                }
-                
-                imgtile.style.left = xx + "px";
-                imgtile.style.top = yy + "px";
-                imgtile.xpos = xx; imgtile.ypos = yy;
+
+                this.updateImageTile( imgtile, 
+                    xx + (this.TILE_SIZE*x), 
+                    yy + (this.TILE_SIZE*y), 
+                    sx + x, sy + y, this.zoom );
             }
         }
     },
     
-    updateImageTile : function( imgtile, gx, gy, zoom ) {
+    updateImageTile : function( imgtile, px, py, gx, gy, zoom ) {
         var buffer = [];
+        
+        imgtile.style.left = px + "px";
+        imgtile.style.top = py + "px";
+        imgtile.xpos = px; 
+        imgtile.ypos = py;
+        
+        if( imgtile.col != gx || imgtile.row != gy ) {        
+            imgtile.col = gx;  imgtile.row = gy;
+            buffer[buffer.length] = "/img/tiles/";
 
-        imgtile.col = gx;  imgtile.row = gy;
-        buffer[buffer.length] = "/img/tiles/";
-
-        if( gx >= 0 && gy >= 0 && gx <= this.worldCols && gy <= this.worldRows )
-        {
-            // buffer[buffer.length] = zoom;
-            // buffer[buffer.length] = "/";
-            buffer[buffer.length] = gx;
-            buffer[buffer.length] = "-";
-            buffer[buffer.length] = gy;
-            buffer[buffer.length] = ".png";
+            if( gx >= 0 && gy >= 0 && gx <= this.worldCols && gy <= this.worldRows ) {
+                // buffer[buffer.length] = zoom;
+                // buffer[buffer.length] = "/";
+                buffer[buffer.length] = gx;
+                buffer[buffer.length] = "-";
+                buffer[buffer.length] = gy;
+                buffer[buffer.length] = ".png";
+            }
+            else {
+                // console.log( gx + "," + gy + " " + this.worldCols + " " + this.worldRows );
+                // console.log( this );
+                buffer[buffer.length] = "n-n.png";
+            }
+            imgtile.src = buffer.join("");
         }
-        else
-        {
-            // console.log( gx + "," + gy + " " + this.worldCols + " " + this.worldRows );
-            // console.log( this );
-            buffer[buffer.length] = "n-n.png";
-        }
-        imgtile.src = buffer.join("");
     },
     
     

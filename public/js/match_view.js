@@ -29,40 +29,32 @@ $(function(){
         // collection, when items are added or changed. Kick things off by
         // loading any preexisting todos that might be saved in *localStorage*.
         initialize: function() {
-            // _.bindAll(this, 'addOne', 'addAll', 'render');
             console.log("app initialised");
             var self = this;
+            
             this.world = new Match();
             this.world.set({bounds:{x:0,y:0,width:2560,height:1536}});
             
             this.player = new Player();
-            this.player.set({bounds:{x:0,y:0,width:0,height:0}});
-
+            
+            // set initial window dimensions based on the size of the element
+            var position = $(this.el).position();
+            this.player.set({ bounds:{ x:0, y:0, width:$(this.el).width(), height:$(this.el).height(), cx:0, cy:0 } });
+            
             this.player.bind('change:bounds', function(model,bounds){
-                // console.log("model player changed bounds ");
-                // console.log( bounds );
+                $("#debug_position").html(bounds.x + "," + bounds.y);
             });
-            
-            this.player.bind('change', function(model,bounds){
-                // console.log("model changed");
-                // console.log( bounds );
-            });
-            
-            this.world.bind('change:bounds', function(model,bounds){
-                console.log("model world changed bounds ");
-                console.log(bounds );
-            });
+            // 
+            // this.player.bind('change', function(model,bounds){
+            // });
+            // 
+            // this.world.bind('change:bounds', function(model,bounds){
+            //     console.log("model world changed bounds ");
+            //     console.log(bounds );
+            // });
             
             // pass the scroll view models for the world and for the view
             this.mapView = new MapView( {el:this.el, world:this.world, window:this.player} );
-
-            // this.mapView.bind('move', function(x,y){ //this.onScrollMove );
-            //     // var win = self.player.get("bounds");
-            //     // console.log( "player win: " + win.x + "," + win.y );
-            //     $("#debug_position").html(x + "," + y);
-            // });
-            
-            // this.player.set({bounds:{x:0,y:0,width:0,height:0}});
         },
         
         
