@@ -1,8 +1,9 @@
-var MapTileModel = Backbone.Model.extend({
+
+stonkers.model.MapTileModel = Backbone.Model.extend({
 
 });
 
-var MapTileView = Backbone.View.extend({
+stonkers.ui.MapTileView = Backbone.View.extend({
     
     //... is a image tag.
     tagName:  "img",
@@ -23,84 +24,95 @@ var MapTileView = Backbone.View.extend({
 });
 
 
-var MapView = ScrollView.extend({ // Backbone.View.extend({
+stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
     
-    TILE_SIZE: 256,
-    
+    tileSize: 256,
     tileArray:[],
-
+    tilesInitialised:false,
+    
     initialize: function() {
-        // call superclass initialiser
-        ScrollView.prototype.initialize.call(this, this.options);
         
-        // this.bind('move', this.onScrollMove );
-        var self = this;
-        var window_bounds = this.window.get("bounds");
-        var world_bounds = this.world.get("bounds");
-        
-        // console.log(this.window.cid);
-        // 
-        
-        this.zoom = 1;
-        this.cols = Math.ceil( window_bounds.width / this.TILE_SIZE )+1;
-        this.rows = Math.ceil( window_bounds.height / this.TILE_SIZE )+1;
-        this.worldCols = Math.ceil( world_bounds.width / this.TILE_SIZE );
-        this.worldRows = Math.ceil( world_bounds.height / this.TILE_SIZE );
-        
+        // define the template used for tiles
         $.template( "template-map_tile", $("#template-map_tile") );
         
+        // call superclass initialiser - this will in turn end up calling
+        // setZoom and initialiseTiles (in that order)
+        stonkers.ui.ScrollView.prototype.initialize.call(this, this.options);
+    },
+    
+    initialiseTiles: function() {
+        var x = 0, y = 0, imagetile = null;
         var colTiles = [];
         
-        for( var y = 0;y<this.rows;y++ )
+        console.log("position: " + JSON.stringify(this.window.bounds) );
+        console.log("rows: " + this.rows + " cols: " + this.cols );
+        
+        for( y = 0;y<this.rows;y++ )
         {
             colTiles = [];
-            for( var x = 0;x<this.cols;x++ )
+            for( x = 0;x<this.cols;x++ )
             {
-                var imagetile = this.generateImageTag( x*this.TILE_SIZE, y*this.TILE_SIZE, x, y, this.layerIndex, this.zoom );        
-                $(imagetile).insertAfter(this.el);//.insertBefore( this.el );
+                imagetile = this.generateImageTag( x*this.level.tilesize, y*this.level.tilesize, x, y, this.zoom );        
+                $(imagetile).insertAfter(this.el);
                 colTiles.push( imagetile );
             }
             this.tileArray.push( colTiles );
         }
         
-        // listen to change of bounds from model
-        this.window.bind('change:bounds', function(model,bounds){
-            self.placeTiles( bounds );
-        });
+        this.tilesInitialised = true;
     },
     
-    generateImageTag: function( left, top, gx, gy, layerIndex, zoom )
-    {
-        var img = $.tmpl( "template-map_tile", { top: top, left: left } )[0];
-        img.col = gx; img.row = gy;
-        img.src = '/img/tiles/' + gx + '-' + gy + '.png';
-        img.ypos = top; img.xpos = left;
-        return img;
+    setZoom: function( z ) {
+        stonkers.ui.ScrollView.prototype.setZoom.call(this, z);
+        console.log("map zoom called " + JSON.stringify(this.level) );
+        
+        var bounds = this.window.bounds;
+        var worldBounds = this.level.bounds;
+        this.cols = Math.ceil( bounds.width / this.level.tilesize )+1;
+        this.rows = Math.ceil( bounds.height / this.level.tilesize )+1;
+        this.worldCols = Math.ceil( worldBounds.width / this.level.tilesize );
+        this.worldRows = Math.ceil( worldBounds.height / this.level.tilesize );
     },
     
-    placeTiles: function( window_bounds ) {
+
+    
+    setWorldPosition: function( wx, wy ) {
+        // call the superclass to set bounds etc
+        stonkers.ui.ScrollView.prototype.setWorldPosition.call(this, wx,wy);
+        
+        if( !this.tilesInitialised )
+            this.initialiseTiles();
+        
+        // var colTiles = [];
         var imgtile = null;
-        
+        var tilesize = this.level.tilesize;
+        var bounds = this.window.bounds;
+        var x = 0, y = 0;
         // find the starting tile positions
-        var sx = ((window_bounds.x / this.TILE_SIZE)|0);
-        var sy = ((window_bounds.y / this.TILE_SIZE)|0);  
-        var xx = -(window_bounds.x % this.TILE_SIZE);
-        var yy = -(window_bounds.y % this.TILE_SIZE);
+        var sx = ((bounds.x / tilesize)|0);
+        var sy = ((bounds.y / tilesize)|0);  
+        var xx = -(bounds.x % tilesize);
+        var yy = -(bounds.y % tilesize);
         
-        // console.log("start: " + window_bounds.x + "," + window_bounds.y + " " + xx + "," + yy );
-          
-        for( var y = 0;y<this.rows;y++ )
+        for( y = 0;y<this.rows;y++ )
         {
-            for( var x = 0;x<this.cols;x++ )
+            for( x = 0;x<this.cols;x++ )
             {
                 imgtile = this.tileArray[y][x];
-
                 this.updateImageTile( imgtile, 
-                    xx + (this.TILE_SIZE*x), 
-                    yy + (this.TILE_SIZE*y), 
+                    xx + (tilesize*x), yy + (tilesize*y), 
                     sx + x, sy + y, this.zoom );
             }
         }
+    },
+
+    generateImageTag: function( px, py, gx, gy, zoom )
+    {
+        var img = $.tmpl( "template-map_tile", { top: py, left: px } )[0];
+        img.col = gx; img.row = gy;
+        img.src = '/img/tiles/' + zoom + '/' + gx + '-' + gy + '.png';
+        img.xpos = px; img.ypos = py;
+        return img;
     },
     
     updateImageTile : function( imgtile, px, py, gx, gy, zoom ) {
@@ -116,16 +128,14 @@ var MapView = ScrollView.extend({ // Backbone.View.extend({
             buffer[buffer.length] = "/img/tiles/";
 
             if( gx >= 0 && gy >= 0 && gx <= this.worldCols && gy <= this.worldRows ) {
-                // buffer[buffer.length] = zoom;
-                // buffer[buffer.length] = "/";
+                buffer[buffer.length] = zoom;
+                buffer[buffer.length] = "/";
                 buffer[buffer.length] = gx;
                 buffer[buffer.length] = "-";
                 buffer[buffer.length] = gy;
                 buffer[buffer.length] = ".png";
             }
             else {
-                // console.log( gx + "," + gy + " " + this.worldCols + " " + this.worldRows );
-                // console.log( this );
                 buffer[buffer.length] = "n-n.png";
             }
             imgtile.src = buffer.join("");

@@ -9,6 +9,9 @@ var app = express.createServer(
     connect.session()
 );
 
+// for spark2 compatibility
+module.exports = app;
+
 log("using " + dir_public );
 
 app.use( connect.staticProvider(dir_public) );
@@ -39,6 +42,7 @@ app.helpers({
             'vendor/underscore-min',
             'vendor/backbone-min',
             'vendor/jquery.tmpl.min',
+            'stonkers'
         ]);
     },
     app_name: "Stonkers!"

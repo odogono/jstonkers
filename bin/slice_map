@@ -10,8 +10,8 @@ require 'fileutils'
 DEFAULT_BI_TYPE = java.awt.image.BufferedImage::TYPE_INT_ARGB
 
 TILE_SIZE = 256
-SOURCE_IMAGE = File.join( File.dirname(__FILE__), "../var/maps/map.png" )
-DEST_DIR = File.join( File.dirname(__FILE__) , "../var/tiles" )
+SOURCE_IMAGE = File.join( File.dirname(__FILE__), "../var/maps/a.2.png" )
+DEST_DIR = File.join( File.dirname(__FILE__) , "../var/tiles/2" )
 
 
 def create_buffered_image( width, height, type = DEFAULT_BI_TYPE )
