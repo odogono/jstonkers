@@ -1,0 +1,12 @@
+= include_js('scroll_view')
+= include_js('map_view')
+= include_js('match_view')
+.stonkers_view
+  %form{ action: "/match/001/commands/", method: "post" }
+    .world_view{  }
+      %canvas{ class: "surface" }
+        
+  %p{id:"debug_position"} 0, 0
+
+  %script{ id: "template-map_tile", type: "text/x-jquery-tmpl" }
+    %img{ class: "tile", src:"/img/tiles/n-n.png", style:"top:${top}; left:${left}"}
