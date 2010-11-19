@@ -44,8 +44,8 @@ stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
         var x = 0, y = 0, imagetile = null;
         var colTiles = [];
         
-        console.log("position: " + JSON.stringify(this.window.bounds) );
-        console.log("rows: " + this.rows + " cols: " + this.cols );
+        // console.log("position: " + JSON.stringify(this.window.bounds) );
+        // console.log("rows: " + this.rows + " cols: " + this.cols );
         
         for( y = 0;y<this.rows;y++ )
         {
@@ -64,7 +64,7 @@ stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
     
     setZoom: function( z ) {
         stonkers.ui.ScrollView.prototype.setZoom.call(this, z);
-        console.log("map zoom called " + JSON.stringify(this.level) );
+        // console.log("map zoom called " + JSON.stringify(this.level) );
         
         var bounds = this.window.bounds;
         var worldBounds = this.level.bounds;
@@ -72,27 +72,35 @@ stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
         this.rows = Math.ceil( bounds.height / this.level.tilesize )+1;
         this.worldCols = Math.ceil( worldBounds.width / this.level.tilesize );
         this.worldRows = Math.ceil( worldBounds.height / this.level.tilesize );
+        
+        this.setWorldPosition();
     },
     
 
     
     setWorldPosition: function( wx, wy ) {
+        if( arguments.length <= 0 ){
+            var currentPosition = this.model.get('position');
+            wx = currentPosition.x; wy = currentPosition.y;
+        }
         // call the superclass to set bounds etc
         stonkers.ui.ScrollView.prototype.setWorldPosition.call(this, wx,wy);
         
         if( !this.tilesInitialised )
             this.initialiseTiles();
         
-        // var colTiles = [];
         var imgtile = null;
         var tilesize = this.level.tilesize;
         var bounds = this.window.bounds;
         var x = 0, y = 0;
         // find the starting tile positions
-        var sx = ((bounds.x / tilesize)|0);
-        var sy = ((bounds.y / tilesize)|0);  
+        var sx = ((bounds.x / tilesize) | 0);
+        var sy = ((bounds.y / tilesize) | 0);  
         var xx = -(bounds.x % tilesize);
         var yy = -(bounds.y % tilesize);
+        // console.log("window.bounds: " + JSON.stringify(this.window.bounds) );
+        // console.log("bounds.x " + bounds.x + " " + tilesize );
+        // console.log( "sx: " + (bounds.x / tilesize) + " - " + ((bounds.x / tilesize) | 0) );
         
         for( y = 0;y<this.rows;y++ )
         {
@@ -102,6 +110,8 @@ stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
                 this.updateImageTile( imgtile, 
                     xx + (tilesize*x), yy + (tilesize*y), 
                     sx + x, sy + y, this.zoom );
+                // if( y == 0 )
+                //     console.log("tile: " + (xx + (tilesize*x)) + "," + (yy + (tilesize*y)) );
             }
         }
     },

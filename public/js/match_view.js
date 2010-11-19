@@ -28,21 +28,21 @@ $(function(){
 	    
         // Delegated events for creating new items, and clearing completed ones.
         events: {
-            
+            "click #debug_zoom": "onToggleZoom",
         },
         
         // At initialization we bind to the relevant events on the `Todos`
         // collection, when items are added or changed. Kick things off by
         // loading any preexisting todos that might be saved in *localStorage*.
         initialize: function() {
-            console.log("app initialised");
+            // console.log("app initialised");
             var self = this;
             
             this.world = new stonkers.model.Match();
             this.world.set({bounds:{x:0,y:0,width:2560,height:1536}});
             
             this.player = new stonkers.model.Player();
-            // this.player.set({ position:{ x:0, y:0 }});
+            this.player.set({ position:{ x:0, y:0 }});
             
             this.player.bind('change:position', function(model,position){
                 $("#debug_position").html(position.x + "," + position.y);
@@ -50,7 +50,7 @@ $(function(){
             
             // pass the scroll view models for the world and for the view
             this.mapView = new stonkers.ui.MapView( {
-                el:this.el,
+                el:$(".world_view .surface"),
                 world:this.world,
                 // window:this.player,
                 model:this.player,
@@ -61,21 +61,36 @@ $(function(){
                 ],
             });
             
-            this.player.set({ position:{ x:1280, y:768 }});
+            this.player.set({ position:{ x:1200, y:768 }});
+            // this.player.set({ position:{ x:0, y:0 }});
         },
         
         
         onScrollMove: function(x,y) {
             $("#debug_position").html(x + "," + y);
         },
-    });
-    
-    stonkers.controllers.Match = Backbone.Controller.extend({
-        initialize : function() {
-            this.el = $('.stonkers_view')[0];
+        
+        onToggleZoom: function(e){
+            if( this.mapView.zoom == 1 ){
+                this.mapView.setZoom(2);
+            }else{
+                this.mapView.setZoom(1);
+            }
+            return false;
         },
     });
     
+    stonkers.controllers.Match = Backbone.Controller.extend({
+
+        initialize : function() {
+            this.el = $('.stonkers_view')[0];
+            
+            stonkers.ui.App = new stonkers.ui.App({ el:this.el});
+        },
+        
+        
+    });
+    
     // Finally, we kick things off by creating the **App**.
-    window.App = new stonkers.ui.App({ el:$(".world_view .surface")});
+    window.Match = new stonkers.controllers.Match();
 });
