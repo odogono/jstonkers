@@ -1,9 +1,9 @@
 
-stonkers.model.MapTileModel = Backbone.Model.extend({
+jstonkers.model.MapTileModel = Backbone.Model.extend({
 
 });
 
-stonkers.ui.MapTileView = Backbone.View.extend({
+jstonkers.ui.MapTileView = Backbone.View.extend({
     
     //... is a image tag.
     tagName:  "img",
@@ -24,7 +24,7 @@ stonkers.ui.MapTileView = Backbone.View.extend({
 });
 
 
-stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
+jstonkers.ui.MapView = jstonkers.ui.ScrollView.extend({ // Backbone.View.extend({
     
     tileSize: 256,
     tileArray:[],
@@ -37,7 +37,7 @@ stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
         
         // call superclass initialiser - this will in turn end up calling
         // setZoom and initialiseTiles (in that order)
-        stonkers.ui.ScrollView.prototype.initialize.call(this, this.options);
+        jstonkers.ui.ScrollView.prototype.initialize.call(this, this.options);
     },
     
     initialiseTiles: function() {
@@ -63,7 +63,7 @@ stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
     },
     
     setZoom: function( z ) {
-        stonkers.ui.ScrollView.prototype.setZoom.call(this, z);
+        jstonkers.ui.ScrollView.prototype.setZoom.call(this, z);
         // console.log("map zoom called " + JSON.stringify(this.level) );
         
         var bounds = this.window.bounds;
@@ -84,7 +84,7 @@ stonkers.ui.MapView = stonkers.ui.ScrollView.extend({ // Backbone.View.extend({
             wx = currentPosition.x; wy = currentPosition.y;
         }
         // call the superclass to set bounds etc
-        stonkers.ui.ScrollView.prototype.setWorldPosition.call(this, wx,wy);
+        jstonkers.ui.ScrollView.prototype.setWorldPosition.call(this, wx,wy);
         
         if( !this.tilesInitialised )
             this.initialiseTiles();

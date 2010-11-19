@@ -42,7 +42,7 @@ app.helpers({
             'vendor/underscore-min',
             'vendor/backbone-min',
             'vendor/jquery.tmpl.min',
-            'stonkers'
+            'jstonkers'
         ]);
     },
     app_name: "Stonkers!"
