@@ -1,5 +1,5 @@
 
-jstonkers.ui.ScrollView = Backbone.View.extend({
+jstonkers.view.ScrollView = Backbone.View.extend({
     
     control:this,
     

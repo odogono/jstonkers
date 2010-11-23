@@ -7,8 +7,12 @@
       %canvas{ class: "surface" }
         
   %p{id:"debug_position"} 0, 0
+  %p{id:"debug_cursor"} 0, 0
   %p
     %a{id:"debug_zoom", href:'#'} zoom
 
-  %script{ id: "template-map_tile", type: "text/x-jquery-tmpl" }
-    %img{ class: "tile", src:"/img/tiles/n-n.png", style:"top:${top}; left:${left}"}
+%script{ id: "template-map_tile", type: "text/x-jquery-tmpl" }
+  %img{ class: "tile", src:"/img/tiles/n-n.png", style:"top:${top}; left:${left}"}
+
+%script{ id: "template-map_division", type: "text/x-jquery-tmpl" }
+  %div{ class: "sprite division", src:"/img/sprites.2.png", style:"top:${screen.top}; left:${screen.left}"}

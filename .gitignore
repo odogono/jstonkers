@@ -1,4 +1,4 @@
 .DS_Store
 var/tiles/*
-stonkers.js.tmproj
+jstonkers.tmproj
 public/css/*.css

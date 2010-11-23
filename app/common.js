@@ -8,10 +8,15 @@ exports.dir_src = path.join( exports.root, 'src' );
 exports.dir_vendor = path.join( exports.root, 'vendor' );
 exports.dir_public = path.join( exports.root, 'public' );
 
-require.paths.push( exports.dir_src )
+
+require.paths.push( exports.dir_lib );
+
+exports.jstonkers = require( path.join(exports.dir_lib,'jstonkers') );
 
 require.paths.push( path.join( exports.dir_vendor, 'underscore') );
 exports.underscore = require('underscore');
+
+require.paths.push( path.join( exports.dir_vendor, 'backbone') );
 
 // extensions to underscore
 // TODO : move to own file
@@ -35,6 +40,8 @@ exports.haml = require('haml');
 
 require.paths.push( path.join( exports.dir_vendor, 'sass.js/lib'))
 require.paths.push( exports.dir_src );
+
+require.paths.push( path.join( exports.dir_vendor, 'nodeunit/lib'))
 
 // require.paths.push( path.join(exports.dir_vendor, 'vendor/node-amqp') );
 // exports.amqp = require( path.join( exports.dir_vendor, 'node-amqp/amqp')  );

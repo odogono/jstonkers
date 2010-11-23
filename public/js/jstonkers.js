@@ -1,4 +1,4 @@
 // Provide top-level namespaces for our javascript.
 (function() {
-  window.jstonkers = { controllers:{}, model:{}, app:{}, ui:{} };
+  window.jstonkers = { controllers:{}, model:{}, app:{}, view:{}, ui:{} };
 })();

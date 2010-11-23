@@ -39,8 +39,8 @@ app.helpers({
         return this.include_js([
             'vendor/json2.min',
             'vendor/jquery-1.4.4.min',
-            'vendor/underscore-min',
-            'vendor/backbone-min',
+            'vendor/underscore',
+            'vendor/backbone',
             'vendor/jquery.tmpl.min',
             'jstonkers'
         ]);

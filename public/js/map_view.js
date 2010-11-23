@@ -3,7 +3,7 @@ jstonkers.model.MapTileModel = Backbone.Model.extend({
 
 });
 
-jstonkers.ui.MapTileView = Backbone.View.extend({
+jstonkers.view.MapTileView = Backbone.View.extend({
     
     //... is a image tag.
     tagName:  "img",
@@ -24,7 +24,7 @@ jstonkers.ui.MapTileView = Backbone.View.extend({
 });
 
 
-jstonkers.ui.MapView = jstonkers.ui.ScrollView.extend({ // Backbone.View.extend({
+jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
     
     tileSize: 256,
     tileArray:[],
@@ -37,15 +37,15 @@ jstonkers.ui.MapView = jstonkers.ui.ScrollView.extend({ // Backbone.View.extend(
         
         // call superclass initialiser - this will in turn end up calling
         // setZoom and initialiseTiles (in that order)
-        jstonkers.ui.ScrollView.prototype.initialize.call(this, this.options);
+        jstonkers.view.ScrollView.prototype.initialize.call(this, this.options);
     },
     
     initialiseTiles: function() {
         var x = 0, y = 0, imagetile = null;
         var colTiles = [];
         
-        // console.log("position: " + JSON.stringify(this.window.bounds) );
-        // console.log("rows: " + this.rows + " cols: " + this.cols );
+        console.log("position: " + JSON.stringify(this.window.bounds) );
+        console.log("rows: " + this.rows + " cols: " + this.cols );
         
         for( y = 0;y<this.rows;y++ )
         {
@@ -63,7 +63,7 @@ jstonkers.ui.MapView = jstonkers.ui.ScrollView.extend({ // Backbone.View.extend(
     },
     
     setZoom: function( z ) {
-        jstonkers.ui.ScrollView.prototype.setZoom.call(this, z);
+        jstonkers.view.ScrollView.prototype.setZoom.call(this, z);
         // console.log("map zoom called " + JSON.stringify(this.level) );
         
         var bounds = this.window.bounds;
@@ -79,12 +79,14 @@ jstonkers.ui.MapView = jstonkers.ui.ScrollView.extend({ // Backbone.View.extend(
 
     
     setWorldPosition: function( wx, wy ) {
-        if( arguments.length <= 0 ){
+        
+        if( arguments.length <= 0 || wx === undefined){
             var currentPosition = this.model.get('position');
             wx = currentPosition.x; wy = currentPosition.y;
         }
+        
         // call the superclass to set bounds etc
-        jstonkers.ui.ScrollView.prototype.setWorldPosition.call(this, wx,wy);
+        jstonkers.view.ScrollView.prototype.setWorldPosition.call(this, wx,wy);
         
         if( !this.tilesInitialised )
             this.initialiseTiles();
