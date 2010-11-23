@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+
+// unit test runner
+// takes as an argument: 
+//  a directory path - will process all test files within and below
+//  a unit test name - only this file will be executed
+
+var path = require("path"),
+    fs = require('fs');
+
+var dir_root = path.join( path.dirname(__filename), '../' );
+var args = process.argv.slice(2);
+var initial_directory = __dirname;
+var initial_file = null;
+
+var common = require( path.join( dir_root, './app/common') );
+
+// to include common
+// require.paths.push( path.join(dir_root, 'lib') );
+// var jstonkers = require('jstonkers');
+
+// console.log("jstonkers: " + JSON.stringify(jstonkers));
+// var v2f = jstonkers.utils.Vector2f.create( [9,-10] );
+// console.log("RESULT " + dir_vendor );
+
+// require.paths.push( path.join(dir_root, 'vendor/nodeunit/lib') );
+var testrunner = require('nodeunit').reporters.default;
+
+console.log( "cwd " + process.cwd() );
+console.log( "dirname " + __dirname );
+console.log( "dir_root " + dir_root );
+
+// determine whether the first argument is a directory - if it is, then
+// begin scanning for test files from there
+if( args[0] )
+{
+    initial_file = args[0];
+    var dir = path.join( dir_root, args[0] );
+
+    if( path.existsSync(dir) && fs.statSync(dir).isDirectory() )
+    {
+        initial_directory = dir;
+        initial_file = null;
+        // console.log("start directory changed to " + dir );
+    }
+}
+
+// recursively scans directories for potential test files
+function scan_directory( dir, result ) {
+    return fs.readdirSync(dir).reduce(function(a,filename)
+    {
+        var fullpath = path.join( dir, filename );
+        var stat = fs.statSync(fullpath);
+    
+        if( stat.isFile() )
+        {
+            if( initial_file && filename.indexOf(initial_file) === 0 )
+                initial_file = fullpath;
+            if( /^test_.*\.js$/.exec(filename) )
+                return a.concat( fullpath );
+        }
+        if( stat.isDirectory() )
+            return a.concat( scan_directory( fullpath ) );
+        return a;
+    }, []);
+}
+
+// compile a list of test files
+var files = scan_directory( initial_directory, [] );
+
+// remove current working dir from each path
+files = files.map(function (f) {
+    if( f.indexOf(process.cwd()) > -1 )
+        return f.substring( process.cwd().length );
+    return f;
+});
+
+// console.log( "files: " + files );
+//files = ['/Volumes/HD2/Dropbox/work/jstonkers/test/lib/util/test_vector2f.js'];
+
+// determine whether a specific file that was
+if( path.existsSync(initial_file) ) {
+    testrunner.run([ initial_file ]);
+}
+else {
+    testrunner.run( files );
+}
