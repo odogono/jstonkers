@@ -35,4 +35,24 @@
             cursor_supply:[48,112,16,16],
         }
     ];
+    
+    window.jstonkers.data = {
+        
+        divisions:[
+            { id:"tnk001", type:"tank", position:[1000,1000] },
+            { id:"tnk002", type:"tank", position:[1200,1000] },
+        ],
+        
+        teams:[
+            { id:"tem001", divisions:[ "tnk001", "tnk002"] },
+        ],
+        
+        players:[
+            { id:"ply001", team:"tem001", position:[0,0], zoom:1 },
+        ],
+        
+        match:{
+            bounds:[0,0,2560,1536],
+        },
+    };
 // });
