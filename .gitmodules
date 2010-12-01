@@ -25,3 +25,6 @@
 [submodule "vendor/backbone"]
 	path = vendor/backbone
 	url = git://github.com/documentcloud/backbone.git
+[submodule "vendor/jade"]
+	path = vendor/jade
+	url = https://github.com/visionmedia/jade.git
