@@ -7,16 +7,20 @@ jstonkers.view.ScrollView = Backbone.View.extend({
     ignoreWorldPositionUpdate: false,
     dragStart:{ x:0, y:0 },
     zoom:1,
+    touchDown: false,
     
     events: {
         "mousedown": "onMouseDown",
-        "touchstart": "onMouseDown",
-        "touchend": "onMouseUp",
-        "touchmove": "onMouseDrag",
+        "mousemove": "onMouseMove",
+        
+        // "touchstart": "onMouseDown",
+        // "touchend": "onMouseUp",
+        // "touchmove": "onMouseDrag",
     },
     
     initialize: function() {
         
+        var self = this;
         // console.log("scroll view initialised");
         // console.log( this.options );
         // console.log(this.el);
@@ -25,6 +29,8 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         // this.window = this.options.window;
         // this.zoom = this.options.zoom || this.zoom;
         this.levels = this.options.levels;
+        
+        this.elOffset = $(this.el).offset();
         
         // initialise with placeholder values
         this.window = {
@@ -38,12 +44,11 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         
         this.setZoom( this.model.get('zoom') );
         
-        var self = this;
-        
         this.model.bind('change:position', function(model,position){
             if( !self.ignoreWorldPositionUpdate )
                 self.setWorldPosition( position.x, position.y );
         });
+        
         this.model.bind('change:zoom', function(model,zoom){
             self.setZoom( zoom ); 
         });
@@ -55,11 +60,7 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         });
     },
     
-    onMouseUp: function(e){
-        // dragging has finished, remove the move handler
-        delete this.events.mousemove;
-        this.delegateEvents();
-    },
+
     
     setZoom: function( z ) {
         if( (z-1) >= 0 || (z-1) < this.levels.length )
@@ -75,46 +76,46 @@ jstonkers.view.ScrollView = Backbone.View.extend({
     setWorldPosition: function( wx, wy ) {
         var worldBounds = this.world.get("bounds");
         var worldBoundsChanged = false;
+        var wwbWidth, wwbHeight;
         
         // compute the new window world bounds
-        this.window.worldBounds.width = this.window.bounds.width * this.window.mul.x;
-        this.window.worldBounds.height = this.window.bounds.height * this.window.mul.y;
+        wwbWidth = this.window.worldBounds.width = this.window.bounds.width * this.window.mul.x;
+        wwbHeight = this.window.worldBounds.height = this.window.bounds.height * this.window.mul.y;
         
-        this.window.worldBounds.x = wx - (this.window.worldBounds.width/2);
-        this.window.worldBounds.y = wy - (this.window.worldBounds.height/2);
-        
+        this.window.worldBounds.x = wx - (wwbWidth/2);
+        this.window.worldBounds.y = wy - (wwbHeight/2);
         
         // console.log("A world.bounds: " + JSON.stringify(this.window.worldBounds) );
         if( this.limitBounds ) {
             // console.log("WB: " + JSON.stringify(this.window.worldBounds) );
-            if( this.window.worldBounds.width >= worldBounds.width ){
-                this.window.worldBounds.x = ((worldBounds.x+worldBounds.width)/2) - (this.window.worldBounds.width/2); worldBoundsChanged = true;
+            if( wwbWidth >= worldBounds.width ){
+                this.window.worldBounds.x = ((worldBounds.x+worldBounds.width)/2) - (wwbWidth/2); worldBoundsChanged = true;
             }
-            // else if( this.window.worldBounds.x < worldBounds.x && this.window.worldBounds.x + this.window.worldBounds.width > worldBounds.x+worldBounds.width ){
-                // this.window.worldBounds.x = ((worldBounds.x+worldBounds.width)/2) - (this.window.worldBounds.width/2);
+            // else if( this.window.worldBounds.x < worldBounds.x && this.window.worldBounds.x + wwbWidth > worldBounds.x+worldBounds.width ){
+                // this.window.worldBounds.x = ((worldBounds.x+worldBounds.width)/2) - (wwbWidth/2);
             // }
             else {
                 if( this.window.worldBounds.x < worldBounds.x ){
                     this.window.worldBounds.x = worldBounds.x; worldBoundsChanged = true; }
-                else if( this.window.worldBounds.x + this.window.worldBounds.width > worldBounds.x+worldBounds.width ){
-                    this.window.worldBounds.x = worldBounds.x+worldBounds.width - this.window.worldBounds.width; worldBoundsChanged = true;}
+                else if( this.window.worldBounds.x + wwbWidth > worldBounds.x+worldBounds.width ){
+                    this.window.worldBounds.x = worldBounds.x+worldBounds.width - wwbWidth; worldBoundsChanged = true;}
             }
-            //if( this.window.worldBounds.y < worldBounds.y && this.window.worldBounds.y + this.window.worldBounds.height > worldBounds.y+worldBounds.height ){
-            if( this.window.worldBounds.height >= worldBounds.height ) {
-                this.window.worldBounds.y = ((worldBounds.y+worldBounds.height)/2) - (this.window.worldBounds.height/2);worldBoundsChanged = true;
+            //if( this.window.worldBounds.y < worldBounds.y && this.window.worldBounds.y + wwbHeight > worldBounds.y+worldBounds.height ){
+            if( wwbHeight >= worldBounds.height ) {
+                this.window.worldBounds.y = ((worldBounds.y+worldBounds.height)/2) - (wwbHeight/2);worldBoundsChanged = true;
             }
             else{
                 if( this.window.worldBounds.y < worldBounds.y ){
                     this.window.worldBounds.y = worldBounds.y; worldBoundsChanged = true; }
-                else if( this.window.worldBounds.y + this.window.worldBounds.height > worldBounds.y+worldBounds.height ){
-                    this.window.worldBounds.y = worldBounds.y+worldBounds.height - this.window.worldBounds.height; worldBoundsChanged = true; }
+                else if( this.window.worldBounds.y + wwbHeight > worldBounds.y+worldBounds.height ){
+                    this.window.worldBounds.y = worldBounds.y+worldBounds.height - wwbHeight; worldBoundsChanged = true; }
             }
             
         }
         
         // reupdate the centre position
-        this.window.worldPosition.x = this.window.worldBounds.x + (this.window.worldBounds.width/2);
-        this.window.worldPosition.y = this.window.worldBounds.y + (this.window.worldBounds.height/2);
+        this.window.worldPosition.x = this.window.worldBounds.x + (wwbWidth/2);
+        this.window.worldPosition.y = this.window.worldBounds.y + (wwbHeight/2);
         
         // set the real position of the window based on the model position
         this.window.bounds.x = this.window.worldBounds.x / this.window.mul.x;//  (wx / this.window.mul.x) - (bounds.width/2)
@@ -129,27 +130,54 @@ jstonkers.view.ScrollView = Backbone.View.extend({
             this.model.set({position: _.clone(this.window.worldPosition) });
             this.ignoreWorldPositionUpdate = false;
         }
+        
+        this.trigger('move');
+    },
+    
+    onMouseUp: function(e){
+        this.touchDown = false;
+        // dragging has finished, remove the move handler
+        // delete this.events.mousemove;
+        // this.delegateEvents();
     },
     
     onMouseDown: function( evt ) {
         // record the initial position of the drag
         this.moved = false;
+        this.touchDown = true;
         this.dragStart = { x:evt.pageX, y:evt.pageY };
         this.dragPosition = { x:evt.pageX, y:evt.pageY };
         
         // TODO : fix IOS handling
-        if(evt.touches && evt.touches.length == 1) {
-            var touch = evt.touches[0];
-            this.dragStart = { x:touch.pageX, y:touch.pageY };
-            this.dragPosition = { x:touch.pageX, y:touch.pageY };
-        }
+        // if(evt.touches && evt.touches.length == 1) {
+        //     var touch = evt.touches[0];
+        //     this.dragStart = { x:touch.pageX, y:touch.pageY };
+        //     this.dragPosition = { x:touch.pageX, y:touch.pageY };
+        // }
         
         // since the mouse is down, move move is now a drag - 
         // add the new handler to the events
-        this.events.mousemove = "onMouseDrag";
-        this.delegateEvents();
+        // this.events.mousemove = "onMouseDrag";
+        // this.delegateEvents();
         return false;
     },
+    
+    
+    onMouseMove: function(evt) {
+        var x = evt.pageX - this.elOffset.left;
+        var y = evt.pageY - this.elOffset.top;
+
+        // convert screen position to world position
+        
+        $('#debug_cursor').html( x + ", " + y );
+
+        if( this.touchDown ){
+            this.onMouseDrag(evt);
+        }
+        return false;
+    },
+    
+    
     
     onMouseDrag: function(evt) {
         var position = _.clone(this.model.get("position"));
@@ -166,8 +194,6 @@ jstonkers.view.ScrollView = Backbone.View.extend({
             mx = start.x-evt.pageX;
             my = start.y-evt.pageY;
         }
-        
-        
         
         // update the world position on the model
         position.x += mx * this.window.mul.x;
