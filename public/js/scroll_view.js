@@ -2,16 +2,10 @@
 jstonkers.view.ScrollView = Backbone.View.extend({
     
     control:this,
-    
     moved:false,
-    
     limitBounds:true,
-    
     ignoreWorldPositionUpdate: false,
-    
-    // world:{ x:-1000, y:-1000, width:1000, height:1000 },
     dragStart:{ x:0, y:0 },
-    
     zoom:1,
     
     events: {
@@ -29,7 +23,7 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         
         this.world = this.options.world;
         // this.window = this.options.window;
-        this.zoom = this.options.zoom || this.zoom;
+        // this.zoom = this.options.zoom || this.zoom;
         this.levels = this.options.levels;
         
         // initialise with placeholder values
@@ -41,14 +35,17 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         };
         
         // call to initialise the this.window parameters
-        this.setZoom( this.zoom );
-        // this.setWorldPosition( 0,0 );
+        
+        this.setZoom( this.model.get('zoom') );
         
         var self = this;
         
         this.model.bind('change:position', function(model,position){
             if( !self.ignoreWorldPositionUpdate )
                 self.setWorldPosition( position.x, position.y );
+        });
+        this.model.bind('change:zoom', function(model,zoom){
+            self.setZoom( zoom ); 
         });
         
         // because the mouse may come up outside the view window, we
@@ -72,6 +69,7 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         // update the multiplier based on the bounds
         this.window.mul = {x: worldBounds.width / level.bounds.width, y:worldBounds.height / level.bounds.height};
         // console.log( "zoom: " + this.zoom + " muls: " + JSON.stringify(this.window.mul) );
+        this.trigger('zoom', this.zoom);
     },
     
     setWorldPosition: function( wx, wy ) {

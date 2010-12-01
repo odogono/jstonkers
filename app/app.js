@@ -16,12 +16,12 @@ log("using " + dir_public );
 
 app.use( connect.staticProvider(dir_public) );
 app.set('view engine', 'haml');
+// app.set('view engine', 'jade');
 app.set('views', path.join(__dirname,'views') );
 
 app.configure('development', function()
 {
     app.use(connect.errorHandler({ dumpExceptions: true, showStack: true }));
-    
 });
 
 app.helpers({
@@ -42,7 +42,12 @@ app.helpers({
             'vendor/underscore',
             'vendor/backbone',
             'vendor/jquery.tmpl.min',
-            'jstonkers'
+            'jstonkers',
+            'scroll_view',
+            'map_view',
+            'app/models',
+            'app/collections',
+            'app/views',
         ]);
     },
     app_name: "Stonkers!"
@@ -69,6 +74,8 @@ app.dynamicHelpers({
 
 app.get('/view', function(req, res)
 {
+    // res.render('string of jade', { options: 'here' });
+    // res.render('match/test', { locals: {} });
     res.render('match/view', { locals: {} });
 });
 

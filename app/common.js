@@ -36,6 +36,9 @@ exports.express = require('express');
 require.paths.push( path.join( exports.dir_vendor, 'haml-js/lib') );
 exports.haml = require('haml');
 
+require.paths.push( path.join( exports.dir_vendor, 'jade/lib') );
+exports.jade = require('jade');
+
 // exports.couchdb = require( path.join( exports.dir_vendor, 'node-couchdb/lib/couchdb') );
 
 require.paths.push( path.join( exports.dir_vendor, 'sass.js/lib'))

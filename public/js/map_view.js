@@ -1,7 +1,7 @@
 
-jstonkers.model.MapTileModel = Backbone.Model.extend({
-
-});
+// jstonkers.model.MapTileModel = Backbone.Model.extend({
+// 
+// });
 
 jstonkers.view.MapTileView = Backbone.View.extend({
     
