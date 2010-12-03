@@ -30,7 +30,7 @@ app.helpers({
         return "<link rel='stylesheet' href='/css/main.css' type='text/css' media='screen, projection'>";
     },
     include_js: function( js ) {
-        if( _(js).is_array() )
+        if( _.isArray(js) )
             return _.map( js, function( name ){ return "<script type='text/javascript' src='/js/" + name + ".js'></script>" } ).join("\n");
         else
             return "<script type='text/javascript' src='/js/" + js + ".js'></script>";

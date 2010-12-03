@@ -15,16 +15,9 @@ exports.jstonkers = require( path.join(exports.dir_lib,'jstonkers') );
 
 require.paths.push( path.join( exports.dir_vendor, 'underscore') );
 exports.underscore = require('underscore');
+exports._ = require('underscore');
 
 require.paths.push( path.join( exports.dir_vendor, 'backbone') );
-
-// extensions to underscore
-// TODO : move to own file
-_.mixin({
-    is_array : function( input ) {
-        return (input.constructor.toString().indexOf("Array") != -1);
-    }
-});
 
 require.paths.push( path.join( exports.dir_vendor, 'connect/lib') );
 exports.connect = require( path.join( exports.dir_vendor, 'connect/lib/connect') );
