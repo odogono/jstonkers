@@ -1,29 +1,4 @@
 
-// jstonkers.model.MapTileModel = Backbone.Model.extend({
-// 
-// });
-
-jstonkers.view.MapTileView = Backbone.View.extend({
-    
-    //... is a image tag.
-    tagName:  "img",
-    
-    // Cache the template function for a single item.
-    template: $.template( "template-map_tile", $("#template-map_tile") ),
-    
-    initialize: function() {
-        
-    },
-    
-    // Re-render the contents of the todo item.
-    render: function() {
-      $(this.el).html(this.template(this.model.toJSON()));
-      return this;
-    },
-     
-});
-
-
 jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
     
     tileSize: 256,
@@ -38,84 +13,94 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
         // call superclass initialiser - this will in turn end up calling
         // setZoom and initialiseTiles (in that order)
         jstonkers.view.ScrollView.prototype.initialize.call(this, this.options);
+        
+        this.imageSrc = this.model.get('image_src');
     },
     
-    initialiseTiles: function() {
-        var x = 0, y = 0, imagetile = null;
+    /**
+    *
+    */
+    render: function() {
+        jstonkers.view.ScrollView.prototype.render.call(this);
+        if( this.invalid ){
+            return this;
+        }
+        var x = 0, y = 0, imageTile = null;
         var colTiles = [];
+        var bounds = this.window;
+        // var worldBounds = this.level.bounds;
+        var levels = this.model.get("levels");
         
-        console.log("position: " + JSON.stringify(this.window.bounds) );
-        console.log("rows: " + this.rows + " cols: " + this.cols );
+        var levelBounds = levels[ this.zoom-1 ].bounds;
+        
+        this.tileSize = levels[ this.zoom-1 ].tile_size;
+        this.cols = Math.ceil( bounds[2] / this.tileSize )+1;
+        this.rows = Math.ceil( bounds[3] / this.tileSize )+1;
+        this.worldCols = Math.ceil( levelBounds[2] / this.tileSize );
+        this.worldRows = Math.ceil( levelBounds[3] / this.tileSize );
+        
+        $(this.el).empty();
+        this.tileArray = [];
         
         for( y = 0;y<this.rows;y++ )
         {
             colTiles = [];
             for( x = 0;x<this.cols;x++ )
             {
-                imagetile = this.generateImageTag( x*this.level.tilesize, y*this.level.tilesize, x, y, this.zoom );        
-                $(imagetile).insertAfter(this.el);
-                colTiles.push( imagetile );
+                imageTile = this.generateImageTag( x*this.tileSize, y*this.tileSize, x, y, this.zoom );        
+                $(imageTile).appendTo(this.el);
+                colTiles.push( imageTile );
             }
             this.tileArray.push( colTiles );
         }
         
         this.tilesInitialised = true;
-    },
-    
-    setZoom: function( z ) {
-        jstonkers.view.ScrollView.prototype.setZoom.call(this, z);
-        // console.log("map zoom called " + JSON.stringify(this.level) );
-        
-        var bounds = this.window.bounds;
-        var worldBounds = this.level.bounds;
-        this.cols = Math.ceil( bounds.width / this.level.tilesize )+1;
-        this.rows = Math.ceil( bounds.height / this.level.tilesize )+1;
-        this.worldCols = Math.ceil( worldBounds.width / this.level.tilesize );
-        this.worldRows = Math.ceil( worldBounds.height / this.level.tilesize );
         
         this.setWorldPosition();
+        
+        return this;
     },
-    
+
 
     
-    setWorldPosition: function( wx, wy ) {
+    setWorldPosition: function( pPosition ) {
         
-        if( arguments.length <= 0 || wx === undefined){
+        if( arguments.length <= 0 || pPosition === undefined){
             var currentPosition = this.model.get('position');
-            wx = currentPosition.x; wy = currentPosition.y;
+            pPosition = currentPosition;
+            // wx = currentPosition[0]; wy = currentPosition[1];
         }
         
         // call the superclass to set bounds etc
-        jstonkers.view.ScrollView.prototype.setWorldPosition.call(this, wx,wy);
+        // console.log("MV.SWP setting to " + wx + "," + wy );
+        jstonkers.view.ScrollView.prototype.setWorldPosition.call(this, pPosition);
         
-        if( !this.tilesInitialised )
-            this.initialiseTiles();
+        var imgTile = null;
+        var levels = this.model.get("levels");
+        var bounds = this.window;
         
-        var imgtile = null;
-        var tilesize = this.level.tilesize;
-        var bounds = this.window.bounds;
         var x = 0, y = 0;
         // find the starting tile positions
-        var sx = ((bounds.x / tilesize) | 0);
-        var sy = ((bounds.y / tilesize) | 0);  
-        var xx = -(bounds.x % tilesize);
-        var yy = -(bounds.y % tilesize);
-        // console.log("window.bounds: " + JSON.stringify(this.window.bounds) );
+        var sx = ((bounds[0] / this.tileSize) | 0);
+        var sy = ((bounds[1] / this.tileSize) | 0);  
+        var xx = -(bounds[0] % this.tileSize);
+        var yy = -(bounds[1] % this.tileSize);
+        // console.log("MV window.bounds: " + JSON.stringify(bounds) );
+        // console.log("x " + xx + ", y " + yy );
         // console.log("bounds.x " + bounds.x + " " + tilesize );
         // console.log( "sx: " + (bounds.x / tilesize) + " - " + ((bounds.x / tilesize) | 0) );
         
-        for( y = 0;y<this.rows;y++ )
-        {
-            for( x = 0;x<this.cols;x++ )
-            {
-                imgtile = this.tileArray[y][x];
-                this.updateImageTile( imgtile, 
-                    xx + (tilesize*x), yy + (tilesize*y), 
+        for( y = 0;y<this.rows;y++ ) {
+            for( x = 0;x<this.cols;x++ ) {
+                imgTile = this.tileArray[y][x];
+                this.updateImageTile( imgTile, 
+                    xx + (this.tileSize*x), yy + (this.tileSize*y), 
                     sx + x, sy + y, this.zoom );
-                // if( y == 0 )
-                //     console.log("tile: " + (xx + (tilesize*x)) + "," + (yy + (tilesize*y)) );
+                // console.log( imgTile );
+                // console.log( (xx + (tileSize*x)) + "," + (yy + (tileSize*y)) );
             }
         }
+        
     },
 
     generateImageTag: function( px, py, gx, gy, zoom )
@@ -127,16 +112,16 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
         return img;
     },
     
-    updateImageTile : function( imgtile, px, py, gx, gy, zoom ) {
+    updateImageTile : function( imgTile, px, py, gx, gy, zoom ) {
         var buffer = [];
         
-        imgtile.style.left = px + "px";
-        imgtile.style.top = py + "px";
-        imgtile.xpos = px; 
-        imgtile.ypos = py;
+        imgTile.style.left = px + "px";
+        imgTile.style.top = py + "px";
+        imgTile.xpos = px; 
+        imgTile.ypos = py;
         
-        if( imgtile.col != gx || imgtile.row != gy ) {        
-            imgtile.col = gx;  imgtile.row = gy;
+        if( imgTile.col != gx || imgTile.row != gy ) {        
+            imgTile.col = gx;  imgTile.row = gy;
             buffer[buffer.length] = "/img/tiles/";
 
             if( gx >= 0 && gy >= 0 && gx <= this.worldCols && gy <= this.worldRows ) {
@@ -150,7 +135,7 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
             else {
                 buffer[buffer.length] = "n-n.png";
             }
-            imgtile.src = buffer.join("");
+            imgTile.src = buffer.join("");
         }
     },
     

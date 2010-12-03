@@ -5,6 +5,23 @@
 // })();
 // });
 
+_.mixin({
+   format: function( string ){
+       var i = arguments.length-1;
+       while(i--){
+           string = string.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
+       }
+       return string;
+   } 
+});
+
+String.prototype.format = function() {
+    var s = this, i = arguments.length;
+    while (i--) {
+        s = s.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
+    }
+    return s;
+};
 
 // $(function(){
     window.jstonkers.sprite_data = [
@@ -51,8 +68,29 @@
             { id:"ply001", team:"tem001", position:[0,0], zoom:1 },
         ],
         
-        match:{
+        
+        world:{
+            // current world view position
+            position:[1174,842],
+            // position:[0,0],
+            // position and size of the window onto the world
+            window:[0,0,0,0],
+            // current world cursor position
+            // cursor:[0,0],
+            // current view zoom level
+            zoom:1,
+            // world bounds
             bounds:[0,0,2560,1536],
+            // view zoom levels
+            levels: [
+                { bounds:[0,0,1280,768], tile_size:256  },
+                { bounds:[0,0,2560,1536], tile_size:256 },
+            ],
+            image_src:'/img/tiles/{0}/{1}-{2}.png',
+        },
+        
+        match:{
+            state:"playing",
         },
     };
 // });
