@@ -21,11 +21,14 @@ $(function(){
         },
         
         createSubViews : function() {
+            // define the template used for tiles
+            $.template( "template-map_tile", $("#template-map_tile") );
             
             this.mapView = new jstonkers.view.SpriteView( {
                 el:$(".world_view")[0],
                 model:this.world,
                 sprites: this.divisions,
+                template:"template-map_tile",
             });
         },
         

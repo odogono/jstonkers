@@ -68,15 +68,11 @@ String.prototype.format = function() {
             { id:"ply001", team:"tem001", position:[0,0], zoom:1 },
         ],
         
-        
         world:{
             // current world view position
             position:[1174,842],
-            // position:[0,0],
             // position and size of the window onto the world
             window:[0,0,0,0],
-            // current world cursor position
-            // cursor:[0,0],
             // current view zoom level
             zoom:1,
             // world bounds

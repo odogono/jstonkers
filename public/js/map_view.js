@@ -3,18 +3,15 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
     
     tileSize: 256,
     tileArray:[],
-    tilesInitialised:false,
     
     initialize: function() {
-        
-        // define the template used for tiles
-        $.template( "template-map_tile", $("#template-map_tile") );
         
         // call superclass initialiser - this will in turn end up calling
         // setZoom and initialiseTiles (in that order)
         jstonkers.view.ScrollView.prototype.initialize.call(this, this.options);
         
         this.imageSrc = this.model.get('image_src');
+        this.template = this.options.template;
     },
     
     /**
@@ -25,11 +22,11 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
         if( this.invalid ){
             return this;
         }
-        var x = 0, y = 0, imageTile = null;
+        var x = 0, y = 0, sx = 0, sy = 0, imageTile = null;
         var colTiles = [];
         var bounds = this.window;
-        // var worldBounds = this.level.bounds;
-        var levels = this.model.get("levels");
+        var position = this.model.get('position');
+        var levels = this.model.get('levels');
         
         var levelBounds = levels[ this.zoom-1 ].bounds;
         
@@ -39,6 +36,15 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
         this.worldCols = Math.ceil( levelBounds[2] / this.tileSize );
         this.worldRows = Math.ceil( levelBounds[3] / this.tileSize );
         
+        // call superclass to determine correct positions and dimensions
+        jstonkers.view.ScrollView.prototype.setWorldPosition.call(this);
+        
+        sx = ((this.window[0] / this.tileSize) | 0);
+        sy = ((this.window[1] / this.tileSize) | 0);  
+        xx = -(this.window[0] % this.tileSize);
+        yy = -(this.window[1] % this.tileSize);
+        
+        // empty the contents of our container before beginning the repopulation
         $(this.el).empty();
         this.tileArray = [];
         
@@ -47,16 +53,12 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
             colTiles = [];
             for( x = 0;x<this.cols;x++ )
             {
-                imageTile = this.generateImageTag( x*this.tileSize, y*this.tileSize, x, y, this.zoom );        
+                imageTile = this.generateImageTag( xx + (x*this.tileSize), yy + (y*this.tileSize), sx + x, sy + y, this.zoom );        
                 $(imageTile).appendTo(this.el);
                 colTiles.push( imageTile );
             }
             this.tileArray.push( colTiles );
         }
-        
-        this.tilesInitialised = true;
-        
-        this.setWorldPosition();
         
         return this;
     },
@@ -65,30 +67,22 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
     
     setWorldPosition: function( pPosition ) {
         
-        if( arguments.length <= 0 || pPosition === undefined){
-            var currentPosition = this.model.get('position');
-            pPosition = currentPosition;
-            // wx = currentPosition[0]; wy = currentPosition[1];
+        if( !pPosition ){
+            pPosition = this.model.get('position');
         }
         
         // call the superclass to set bounds etc
-        // console.log("MV.SWP setting to " + wx + "," + wy );
         jstonkers.view.ScrollView.prototype.setWorldPosition.call(this, pPosition);
         
         var imgTile = null;
         var levels = this.model.get("levels");
-        var bounds = this.window;
         
         var x = 0, y = 0;
         // find the starting tile positions
-        var sx = ((bounds[0] / this.tileSize) | 0);
-        var sy = ((bounds[1] / this.tileSize) | 0);  
-        var xx = -(bounds[0] % this.tileSize);
-        var yy = -(bounds[1] % this.tileSize);
-        // console.log("MV window.bounds: " + JSON.stringify(bounds) );
-        // console.log("x " + xx + ", y " + yy );
-        // console.log("bounds.x " + bounds.x + " " + tilesize );
-        // console.log( "sx: " + (bounds.x / tilesize) + " - " + ((bounds.x / tilesize) | 0) );
+        var sx = ((this.window[0] / this.tileSize) | 0);
+        var sy = ((this.window[1] / this.tileSize) | 0);  
+        var xx = -(this.window[0] % this.tileSize);
+        var yy = -(this.window[1] % this.tileSize);
         
         for( y = 0;y<this.rows;y++ ) {
             for( x = 0;x<this.cols;x++ ) {
@@ -96,8 +90,6 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
                 this.updateImageTile( imgTile, 
                     xx + (this.tileSize*x), yy + (this.tileSize*y), 
                     sx + x, sy + y, this.zoom );
-                // console.log( imgTile );
-                // console.log( (xx + (tileSize*x)) + "," + (yy + (tileSize*y)) );
             }
         }
         
@@ -105,7 +97,7 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
 
     generateImageTag: function( px, py, gx, gy, zoom )
     {
-        var img = $.tmpl( "template-map_tile", { top: py, left: px } )[0];
+        var img = $.tmpl( this.template, { top: py, left: px } )[0];
         img.col = gx; img.row = gy;
         img.src = '/img/tiles/' + zoom + '/' + gx + '-' + gy + '.png';
         img.xpos = px; img.ypos = py;

@@ -42,8 +42,7 @@ jstonkers.view.Division = Backbone.View.extend({
             return this;
         }
         var type = this.model.get('type');
-        // var modelZoom = this.view.model.get('zoom');
-
+        
         $(this.el).addClass( type );
         
         // its necessary to remove the previous zoom class since this 
@@ -51,13 +50,10 @@ jstonkers.view.Division = Backbone.View.extend({
         $(this.el).removeClass('zoom_' + this.zoom).addClass( 'zoom_' + this.view.zoom );
         this.zoom = this.view.zoom;
         
-        // set the UVs of the sprite
-        // if( data ){
-            this.uvs = this.view.spriteData[ this.zoom-1 ][type];
-            this.el.style.backgroundPosition = -this.uvs[0] + 'px ' + -this.uvs[1] + 'px';
-            this.el.style.width = this.uvs[2];
-            this.el.style.height = this.uvs[3];
-        // }
+        this.uvs = this.view.spriteData[ this.zoom-1 ][type];
+        this.el.style.backgroundPosition = -this.uvs[0] + 'px ' + -this.uvs[1] + 'px';
+        this.el.style.width = this.uvs[2];
+        this.el.style.height = this.uvs[3];
         
         this.updatePosition();
         
@@ -71,25 +67,14 @@ jstonkers.view.Division = Backbone.View.extend({
         var position = model_position || this.model.get('position');
         var mul = this.view.mul;
         var bounds = this.view.window;
-        var x = position[0];
-        var y = position[1];
+        var x = (position[0]/mul[0]) - bounds[0];;
+        var y = (position[1]/mul[1]) - bounds[1];;
         
-        // console.log("updating position to " + x + "," + y + " - bounds - " + JSON.stringify(bounds) );
-        x = (x/mul[0]) - bounds[0];
-        y = (y/mul[1]) - bounds[1];
-        
-        // console.log("updating position to " + x + "," + y + " - " + mul[0] + "," + mul[1] );
-        
-        // console.log("updating " + JSON.stringify(this.uvs) );
         x -= (this.uvs[2]/2);
         y -= (this.uvs[3]/2);
-        // y -= (this.el.style.height/2);
-        
-        // console.log( "wid: " + this.el.style.width );
+
         this.el.style.left = x + 'px';
         this.el.style.top = y + 'px';
-        // console.log( JSON.stringify(position) );
-        // console.log(this.el);
     },
 
     
@@ -101,6 +86,8 @@ jstonkers.view.Division = Backbone.View.extend({
     
     onTouchMove: function(evt){
         if( this.touchDown ) {
+            // note - cursorWorld doesnt get set because this element consumes the event
+            // this.model.set({position:this.view.cursorWorld});
             this.model.set({position:this.view.convertPosition( [evt.pageX, evt.pageY] ) });
         }
         return false;
@@ -131,9 +118,6 @@ jstonkers.view.SpriteView = jstonkers.view.MapView.extend({
         this.spriteData = jstonkers.sprite_data;
         
         jstonkers.view.MapView.prototype.initialize.call(this, this.options);
-        // this.divisions.bind('all',     this.render);
-        
-        // this.delegateEvents();
     },
     
     
@@ -161,9 +145,6 @@ jstonkers.view.SpriteView = jstonkers.view.MapView.extend({
         
         // make sure the sprite is updated when the map is moved (screen pos)
         this.bind('move', divisionView.updatePosition);
-        
-        // make sure the sprite is updated when the zoom changes (css changes)
-        // this.bind('zoom', divisionView.render);
     },
     
     addAll: function(){

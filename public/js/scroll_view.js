@@ -1,39 +1,26 @@
 
 jstonkers.view.ScrollView = Backbone.View.extend({
     
-    control:this,
     moved:false,
     limitBounds:true,
-    ignoreWorldPositionUpdate: false,
     dragStart:[0,0],
     zoom:1,
     touchDown: false,
     mul:[1,1],
     cursor:[0,0],
-    worldCursor:[0,0],
+    cursorWorld:[0,0],
     window:[0,0,0,0],
     invalid: true,
     
     events: {
         "mousedown": "onMouseDown",
         "mousemove": "onMouseMove",
-        
-        // "touchstart": "onMouseDown",
-        // "touchend": "onMouseUp",
-        // "touchmove": "onMouseDrag",
     },
     
     initialize: function() {
-        
         var self = this;
-        // console.log("scroll view initialised");
-        // console.log( this.options );
-        // console.log(this.el);
-        
-        // this.world = this.options.world;
-        // this.levels = this.options.levels;
-        
         this.elOffset = $(this.el).offset();
+        this.elOffset = [this.elOffset.left, this.elOffset.top];
         
         this.window = [0,0,$(this.el).width(),$(this.el).height()];
         
@@ -51,15 +38,14 @@ jstonkers.view.ScrollView = Backbone.View.extend({
             self.touchDown = false;
             self.trigger('mouseup', e);
             // self.onMouseUp(e);
-            // console.log("scrollView MU");
         });
     },
     
     
     render: function() {
-        var levels = this.model.get("levels");
+        var levels = this.model.get('levels');
         
-        var worldBounds = this.model.get("bounds");
+        var worldBounds = this.model.get('bounds');
         this.zoom = this.model.get('zoom');
         
         if( !levels || !levels[this.zoom-1] ){
@@ -76,12 +62,13 @@ jstonkers.view.ScrollView = Backbone.View.extend({
     },
 
     setWorldPosition: function( pPosition ) {
-        var worldBounds = this.model.get("bounds");
-        var wWindow = _.clone(this.model.get("window"));
-        // var mul = this.model.get("mul");
+        var worldBounds = this.model.get('bounds');
+        var wWindow = _.clone(this.model.get('window'));
         var worldBoundsChanged = false;
         var wwbWidth, wwbHeight;
         var worldPos = [0,0];
+        
+        pPosition = pPosition || this.model.get('position');
         
         // compute the new window world bounds
         wwbWidth = wWindow[2] = this.window[2] * this.mul[0];
@@ -90,24 +77,16 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         wWindow[0] = pPosition[0] - (wwbWidth/2);
         wWindow[1] = pPosition[1] - (wwbHeight/2);
         
-        
-        // console.log("A world.bounds: " + JSON.stringify(wWindow) );
-        
         if( this.limitBounds ) {
-            // console.log("WB: " + JSON.stringify(wWindow) );
             if( wwbWidth >= worldBounds[2] ){
                 wWindow[0] = ((worldBounds[0]+worldBounds[2])/2) - (wwbWidth/2); worldBoundsChanged = true;
             }
-            // else if( wWindow.x < worldBounds.x && wWindow.x + wwbWidth > worldBounds.x+worldBounds.width ){
-                // wWindow.x = ((worldBounds.x+worldBounds.width)/2) - (wwbWidth/2);
-            // }
             else {
                 if( wWindow[0] < worldBounds[0] ){
                     wWindow[0] = worldBounds[0]; worldBoundsChanged = true; }
                 else if( wWindow[0] + wwbWidth > worldBounds[0]+worldBounds[2] ){
                     wWindow[0] = worldBounds[0]+worldBounds[2] - wwbWidth; worldBoundsChanged = true;}
             }
-            //if( wWindow.y < worldBounds.y && wWindow.y + wwbHeight > worldBounds.y+worldBounds.height ){
             if( wwbHeight >= worldBounds[3] ) {
                 wWindow[1] = ((worldBounds[1]+worldBounds[3])/2) - (wwbHeight/2); worldBoundsChanged = true;
             }
@@ -119,31 +98,14 @@ jstonkers.view.ScrollView = Backbone.View.extend({
             }
         }//*/
         
-        // console.log("A world.bounds: " + JSON.stringify(wWindow) );
-        
-        // reupdate the centre position
-        // worldPos[0] = wWindow[0] + (wwbWidth/2);
-        // worldPos[1] = wWindow[1] + (wwbHeight/2);
-        
         // set the real position of the window based on the model position
         this.window[0] = wWindow[0] / this.mul[0];
         this.window[1] = wWindow[1] / this.mul[1];
         
-        // console.log("A window: " + JSON.stringify(this.window) );
-        
         this.model.set({window:wWindow, silent:true});
         
-        // if we ended up altering the world position based on bounds, then reupdate
-        // the model - notice we have to set a flag to prevent recursion
-        // if( worldBoundsChanged ){
-            this.ignoreWorldPositionUpdate = true;
-            this.model.set({position:[wWindow[0] + (wwbWidth/2), wWindow[1] + (wwbHeight/2)]  });
-            // console.log("WBC - setting model position to " + JSON.stringify(this.model.get('position')) );
-            this.ignoreWorldPositionUpdate = false;
-        // }
-        
-        // console.log("A position: " + JSON.stringify(this.model.get('position')) );
-        // console.log("window position: " + JSON.stringify( this.window ) );
+        // reupdate the centre position
+        this.model.set({position:[wWindow[0] + (wwbWidth/2), wWindow[1] + (wwbHeight/2)]  });
         
         this.trigger('move');
     },
@@ -160,49 +122,28 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         this.moved = false;
         this.touchDown = true;
         this.dragStart = [ evt.pageX, evt.pageY ];
-        // this.dragPosition = [ evt.pageX, evt.pageY ];
         
-        // TODO : fix IOS handling
-        // if(evt.touches && evt.touches.length == 1) {
-        //     var touch = evt.touches[0];
-        //     this.dragStart = { x:touch.pageX, y:touch.pageY };
-        //     this.dragPosition = { x:touch.pageX, y:touch.pageY };
-        // }
-        
-        // since the mouse is down, move move is now a drag - 
-        // add the new handler to the events
-        // this.events.mousemove = "onMouseDrag";
-        // this.delegateEvents();
         return false;
     },
     
     
     onMouseMove: function(evt) {
+        cursorWorld = [ evt.pageX, evt.pageY ];
+        this.convertPosition( cursorWorld );
         
-        var x = this.cursor[0] = evt.pageX - this.elOffset.left;
-        var y = this.cursor[1] = evt.pageY - this.elOffset.top;
-        var wBounds = this.model.get("bounds");
-
-        // convert screen position to world position
-        x = this.worldCursor[0] = wBounds[0] + (x * this.mul[0]);
-        y = this.worldCursor[1] = wBounds[1] + (y * this.mul[1]);
-        // x = this.window.mul.x;
-        
-        $('#debug_cursor').html( x + ", " + y);// + " " + JSON.stringify(this.window.worldBounds));
+        $('#debug_cursor').html( cursorWorld[0] + ", " + cursorWorld[1] );
 
         if( this.touchDown ){
             this.onMouseDrag(evt);
         }
-        
-        this.trigger('cursor');
         return true;
     },
     
     
     convertPosition: function( position ){
-        var x = position[0] - this.elOffset.left;
-        var y = position[1] - this.elOffset.top;
-        var wBounds = this.model.get("bounds");
+        var x = position[0] - this.elOffset[0];
+        var y = position[1] - this.elOffset[1];
+        var wBounds = this.model.get("window");
         
         position[0] = wBounds[0] + (x * this.mul[0]);
         position[1] = wBounds[1] + (y * this.mul[1]);
@@ -232,16 +173,6 @@ jstonkers.view.ScrollView = Backbone.View.extend({
         position[1] += my * this.mul[1];
         
         this.setWorldPosition( position );
-        
-        // update the model with the new window location on the world
-        // notice that we had to clone the existing window bounds, since
-        // the update function will not work (its a reference)
-        // Also, we have to flag that the setWorldPosition should not be set
-        // again
-        // this.ignoreWorldPositionUpdate = true;
-        // this.model.set({position: position });
-        // console.log("setting model position to " + JSON.stringify(this.model.get('position')));
-        // this.ignoreWorldPositionUpdate = false;
         
         this.dragStart = [evt.pageX, evt.pageY];
         this.moved = true;
