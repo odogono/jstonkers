@@ -27,7 +27,7 @@ $(function(){
             this.mapView = new jstonkers.view.SpriteView( {
                 el:$(".world_view")[0],
                 model:this.world,
-                sprites: this.divisions,
+                collection: this.divisions,
                 template:"template-map_tile",
             });
         },
@@ -41,6 +41,13 @@ $(function(){
         toggleZoom: function(e){
             this.world.set( {zoom:this.world.get('zoom') == 1 ? 2 : 1} );
             return false;
+        },
+        
+        refresh: function( data ) {
+            // data.divisions
+            // data.teams
+            // data.players
+            // data.world
         },
     });
     

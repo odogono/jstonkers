@@ -14,7 +14,7 @@ jstonkers.view.Division = Backbone.View.extend({
         this.model.view = this;
         this.view = this.options.view;
         this.zoom = this.view.zoom;
-        this.uvs = this.view.spriteData[ this.view.zoom-1 ][type];// [0,0,0,0];
+        this.uvs = this.view.spriteData.uvs[ this.view.zoom-1 ][type];
         
         _.bindAll(this, "render", "updatePosition");
         
@@ -50,7 +50,7 @@ jstonkers.view.Division = Backbone.View.extend({
         $(this.el).removeClass('zoom_' + this.zoom).addClass( 'zoom_' + this.view.zoom );
         this.zoom = this.view.zoom;
         
-        this.uvs = this.view.spriteData[ this.zoom-1 ][type];
+        this.uvs = this.view.spriteData.uvs[ this.zoom-1 ][type];
         this.el.style.backgroundPosition = -this.uvs[0] + 'px ' + -this.uvs[1] + 'px';
         this.el.style.width = this.uvs[2];
         this.el.style.height = this.uvs[3];
@@ -67,8 +67,8 @@ jstonkers.view.Division = Backbone.View.extend({
         var position = model_position || this.model.get('position');
         var mul = this.view.mul;
         var bounds = this.view.window;
-        var x = (position[0]/mul[0]) - bounds[0];;
-        var y = (position[1]/mul[1]) - bounds[1];;
+        var x = (position[0]/mul[0]) - bounds[0];
+        var y = (position[1]/mul[1]) - bounds[1];
         
         x -= (this.uvs[2]/2);
         y -= (this.uvs[3]/2);
@@ -108,12 +108,12 @@ jstonkers.view.SpriteView = jstonkers.view.MapView.extend({
         // console.log( "events: " + JSON.stringify(this.events) );
         $.template( "template-map_division", $("#template-map_division") );
         
-        _.bindAll(this, "addOne", "addAll");
+        _.bindAll(this, "add", "addAll");
         
-        this.sprites = this.options.sprites;
+        // this.sprites = this.options.sprites;
         
-        this.sprites.bind('add', this.addOne);
-        this.sprites.bind('refresh', this.addAll);
+        this.collection.bind('add', this.addOne);
+        this.collection.bind('refresh', this.addAll);
         
         this.spriteData = jstonkers.sprite_data;
         
@@ -122,21 +122,16 @@ jstonkers.view.SpriteView = jstonkers.view.MapView.extend({
     
     
     render: function() {
-        var self = this;
         jstonkers.view.MapView.prototype.render.call(this);
-        
-        this.sprites.each( function(sprite){
-            self.addOne( sprite );
-        });
+        this.collection.each( this.add );
     },
     
-    
-    addOne: function(model_division){
-        var position = model_division.get('position');
+    add: function(model){
+        var position = model.get('position');
         
         var divisionView = new jstonkers.view.Division({
-            id: model_division.get('id'), 
-            model: model_division, 
+            id: 'v' + model.get('id'), 
+            model: model, 
             map: this,
             view: this,
         });
@@ -148,7 +143,7 @@ jstonkers.view.SpriteView = jstonkers.view.MapView.extend({
     },
     
     addAll: function(){
-        this.sprites.each(this.addOne);
+        this.collection.each(this.add);
     },
 
 });
