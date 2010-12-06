@@ -92,12 +92,14 @@
     trigger : function(ev) {
       var list, calls, i, l;
       if (!(calls = this._callbacks)) return this;
-      if (list = calls[ev]) {
+      if (calls[ev]) {
+        list = calls[ev].slice(0);
         for (i = 0, l = list.length; i < l; i++) {
           list[i].apply(this, Array.prototype.slice.call(arguments, 1));
         }
       }
-      if (list = calls['all']) {
+      if (calls['all']) {
+        list = calls['all'].slice(0);
         for (i = 0, l = list.length; i < l; i++) {
           list[i].apply(this, arguments);
         }
@@ -178,10 +180,8 @@
         if (!_.isEqual(now[attr], val)) {
           now[attr] = val;
           delete escaped[attr];
-          if (!options.silent) {
-            this._changed = true;
-            this.trigger('change:' + attr, this, val, options);
-          }
+          this._changed = true;
+          if (!options.silent) this.trigger('change:' + attr, this, val, options);
         }
       }
 
@@ -204,8 +204,8 @@
       // Remove the attribute.
       delete this.attributes[attr];
       delete this._escapedAttributes[attr];
+      this._changed = true;
       if (!options.silent) {
-        this._changed = true;
         this.trigger('change:' + attr, this, void 0, options);
         this.change(options);
       }
@@ -225,8 +225,8 @@
 
       this.attributes = {};
       this._escapedAttributes = {};
+      this._changed = true;
       if (!options.silent) {
-        this._changed = true;
         for (attr in old) {
           this.trigger('change:' + attr, this, void 0, options);
         }
@@ -564,8 +564,10 @@
 
     // Internal method called every time a model in the set fires an event.
     // Sets need to update their indexes when models change ids. All other
-    // events simply proxy through.
-    _onModelEvent : function(ev, model) {
+    // events simply proxy through. "add" and "remove" events that originate
+    // in other collections are ignored.
+    _onModelEvent : function(ev, model, collection) {
+      if ((ev == 'add' || ev == 'remove') && collection != this) return;
       if (ev === 'change:id') {
         delete this._byId[model.previous('id')];
         this._byId[model.id] = model;
