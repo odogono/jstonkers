@@ -4,7 +4,7 @@
 
 jstonkers.view.Unit = Backbone.View.extend({
     
-    className: 'sprite division',
+    className: 'sprite unit',
     
     events:{
         'mousedown': 'onTouchDown',
@@ -108,7 +108,7 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
     initialize: function() {
         _.bindAll(this, 'add', 'addAll');
 
-        $.template( 'template-map_division', $('#template-map_division') );
+        $.template( 'template-map_unit', $('#template-map_unit') );
         
         this.collection = new jstonkers.model.UnitList();
         this.collection.bind('add', this.addOne);
@@ -127,17 +127,17 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
     add: function(model){
         var position = model.get('position');
         
-        var divisionView = new jstonkers.view.Unit({
+        var unitView = new jstonkers.view.Unit({
             id: 'v' + model.get('id'), 
             model: model, 
             map: this,
             view: this,
         });
         
-        $(this.el).append(divisionView.render().el);
+        $(this.el).append(unitView.render().el);
         
         // make sure the sprite is updated when the map is moved (screen pos)
-        this.bind('move', divisionView.updatePosition);
+        this.bind('move', unitView.updatePosition);
     },
     
     addAll: function(){

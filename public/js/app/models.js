@@ -36,8 +36,8 @@ jstonkers.model.Team = Backbone.Model.extend({
         
         if( attrs.units && _.isArray(attrs.units)){
             units.refresh(
-                _.map( attrs.units, function(divisionID){
-                    return {id:divisionID, stub:true};
+                _.map( attrs.units, function(unitID){
+                    return {id:unitID, stub:true};
                 }), {silent:true} );
             delete attrs.units;
         }
@@ -127,7 +127,7 @@ jstonkers.model.Match = Backbone.Model.extend({
         var teams = this.get('teams');
         var players = this.get('players');
         
-        // units.each( function(division){ division.match = self; });
+        // units.each( function(unit){ unit.match = self; });
         // teams.each( function(team){ team.match = self; });
         
         players.each( function(player){
