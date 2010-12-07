@@ -67,7 +67,7 @@ String.prototype.format = function() {
     
     window.jstonkers.data = {
         
-        divisions:[
+        units:[
             { id:"tnk001", type:"tank", position:[2000,200] },
             { id:"tnk002", type:"tank", position:[2100,200] },
             { id:"tnk003", type:"tank", position:[2200,200] },
@@ -104,8 +104,8 @@ String.prototype.format = function() {
         ],
         
         teams:[
-            { id:"tem001", divisions:[ "tnk001","tnk002","tnk003","tnk004","art001","art002","art003","art004","sup001","sup002","sup003","sup004","inf001","inf002","inf003","inf004"] },
-            { id:"tem002", divisions:[ "tnk101","tnk102","tnk103","tnk104","art101","art102","art103","art104","sup101","sup102","sup103","sup104","inf101","inf102","inf103","inf104"] },
+            { id:"tem001", units:[ "tnk001","tnk002","tnk003","tnk004","art001","art002","art003","art004","sup001","sup002","sup003","sup004","inf001","inf002","inf003","inf004"] },
+            { id:"tem002", units:[ "tnk101","tnk102","tnk103","tnk104","art101","art102","art103","art104","sup101","sup102","sup103","sup104","inf101","inf102","inf103","inf104"] },
         ],
         
         players:[
@@ -114,8 +114,6 @@ String.prototype.format = function() {
         ],
         
         world:{
-            players:[ "ply001", "ply002" ],
-            
             // current world view position
             position:[2000,342],
             // position and size of the window onto the world

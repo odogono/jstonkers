@@ -1,10 +1,13 @@
-jstonkers.view.Division = Backbone.View.extend({
+// jstonkers.view.Sprite = Backbone.View.extend({
+//     
+// });
+
+jstonkers.view.Unit = Backbone.View.extend({
     
     className: 'sprite division',
     
     events:{
-        "mousedown": "onTouchDown",
-        // "mousemove": "onTouchMove",
+        'mousedown': 'onTouchDown',
     },
     
     
@@ -16,7 +19,7 @@ jstonkers.view.Division = Backbone.View.extend({
         this.zoom = this.view.zoom;
         this.uvs = this.view.spriteData.uvs[ this.view.zoom-1 ][type];
         
-        _.bindAll(this, "render", "updatePosition");
+        _.bindAll(this, 'render', 'updatePosition');
         
         // listen to changes in the models position and update our own
         this.model.bind('change:position', this.updatePosition);
@@ -100,18 +103,14 @@ jstonkers.view.Division = Backbone.View.extend({
 
 
 
-jstonkers.view.SpriteView = jstonkers.view.MapView.extend({
+jstonkers.view.MatchView = jstonkers.view.MapView.extend({
     
     initialize: function() {
-        // _.extend( this.events, jstonkers.view.MapView.prototype.events );
+        _.bindAll(this, 'add', 'addAll');
+
+        $.template( 'template-map_division', $('#template-map_division') );
         
-        // console.log( "events: " + JSON.stringify(this.events) );
-        $.template( "template-map_division", $("#template-map_division") );
-        
-        _.bindAll(this, "add", "addAll");
-        
-        // this.sprites = this.options.sprites;
-        
+        this.collection = new jstonkers.model.UnitList();
         this.collection.bind('add', this.addOne);
         this.collection.bind('refresh', this.addAll);
         
@@ -119,7 +118,6 @@ jstonkers.view.SpriteView = jstonkers.view.MapView.extend({
         
         jstonkers.view.MapView.prototype.initialize.call(this, this.options);
     },
-    
     
     render: function() {
         jstonkers.view.MapView.prototype.render.call(this);
@@ -129,7 +127,7 @@ jstonkers.view.SpriteView = jstonkers.view.MapView.extend({
     add: function(model){
         var position = model.get('position');
         
-        var divisionView = new jstonkers.view.Division({
+        var divisionView = new jstonkers.view.Unit({
             id: 'v' + model.get('id'), 
             model: model, 
             map: this,

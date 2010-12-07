@@ -14,20 +14,20 @@ exports.testCreate = function(test) {
     test.done();
 };
 
-exports.testNormaliseDivisions = function(test){
+exports.testNormaliseUnits = function(test){
     test.expect(5);
     
-    // setting divisions as an array should cause the team
-    // to normalise it into a DivisionList with stub objects
+    // setting units as an array should cause the team
+    // to normalise it into a UnitList with stub objects
     var team = new jstonkers.model.Team();
-    team.set({ divisions:[ 'tnk001', 'tnk002', 'tnk003' ]});
-    var divisions = team.get('divisions');
+    team.set({ units:[ 'tnk001', 'tnk002', 'tnk003' ]});
+    var units = team.get('units');
     
-    test.ok( !Array.isArray(divisions) );
-    test.equal(divisions.get('tnk001').id, 'tnk001');
-    test.ok(divisions.get('tnk001').get('stub') );
-    test.equal(divisions.get('tnk002').id, 'tnk002');
-    test.ok(divisions.get('tnk002').get('stub') );
+    test.ok( !Array.isArray(units) );
+    test.equal(units.get('tnk001').id, 'tnk001');
+    test.ok(units.get('tnk001').get('stub') );
+    test.equal(units.get('tnk002').id, 'tnk002');
+    test.ok(units.get('tnk002').get('stub') );
     
     test.done();
 }
@@ -35,9 +35,9 @@ exports.testNormaliseDivisions = function(test){
 exports.testToJSON = function(test){
     test.expect(1);
     
-    var expected =  { divisions: [ 'tnk001', 'tnk002', 'tnk003' ], id: 'tea001' };
+    var expected =  { units: [ 'tnk001', 'tnk002', 'tnk003' ], id: 'tea001' };
     var team = new jstonkers.model.Team();
-    team.set({ id:'tea001', divisions:[ 'tnk001', 'tnk002', 'tnk003' ]});
+    team.set({ id:'tea001', units:[ 'tnk001', 'tnk002', 'tnk003' ]});
     
     test.deepEqual( team.toJSON(), expected );
     
