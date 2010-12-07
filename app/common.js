@@ -9,15 +9,15 @@ exports.dir_vendor = path.join( exports.root, 'vendor' );
 exports.dir_public = path.join( exports.root, 'public' );
 
 
-require.paths.push( exports.dir_lib );
-
-exports.jstonkers = require( path.join(exports.dir_lib,'jstonkers') );
-
 require.paths.push( path.join( exports.dir_vendor, 'underscore') );
-exports.underscore = require('underscore');
-exports._ = require('underscore');
+exports._ = exports.underscore = require('underscore');
 
 require.paths.push( path.join( exports.dir_vendor, 'backbone') );
+global.Backbone = exports.Backbone = require('backbone');
+
+require.paths.push( exports.dir_lib );
+
+exports.jstonkers = require( path.join(exports.dir_lib,'jstonkers') ).jstonkers;
 
 require.paths.push( path.join( exports.dir_vendor, 'connect/lib') );
 exports.connect = require( path.join( exports.dir_vendor, 'connect/lib/connect') );

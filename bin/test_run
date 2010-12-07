@@ -10,7 +10,7 @@ var path = require("path"),
 
 var dir_root = path.join( path.dirname(__filename), '../' );
 var args = process.argv.slice(2);
-var initial_directory = __dirname;
+var initial_directory = path.join( dir_root, './test' );
 var initial_file = null;
 
 var common = require( path.join( dir_root, './app/common') );
@@ -26,9 +26,10 @@ var common = require( path.join( dir_root, './app/common') );
 // require.paths.push( path.join(dir_root, 'vendor/nodeunit/lib') );
 var testrunner = require('nodeunit').reporters.default;
 
-console.log( "cwd " + process.cwd() );
-console.log( "dirname " + __dirname );
-console.log( "dir_root " + dir_root );
+log( "cwd " + process.cwd() );
+log( "dirname " + __dirname );
+log( "dir_root " + dir_root );
+log( "initial dir " + initial_directory );
 
 // determine whether the first argument is a directory - if it is, then
 // begin scanning for test files from there
@@ -41,7 +42,7 @@ if( args[0] )
     {
         initial_directory = dir;
         initial_file = null;
-        // console.log("start directory changed to " + dir );
+        log("start directory changed to " + dir );
     }
 }
 
@@ -54,7 +55,9 @@ function scan_directory( dir, result ) {
     
         if( stat.isFile() )
         {
-            if( initial_file && filename.indexOf(initial_file) === 0 )
+            // if( initial_file && filename.indexOf(initial_file) === 0 )
+            //    initial_file = fullpath;
+            if( initial_file && filename.indexOf(initial_file) > -1 )
                 initial_file = fullpath;
             if( /^test_.*\.js$/.exec(filename) )
                 return a.concat( fullpath );
@@ -68,6 +71,9 @@ function scan_directory( dir, result ) {
 // compile a list of test files
 var files = scan_directory( initial_directory, [] );
 
+if( path.existsSync(initial_file) )
+    files = [ initial_file ];
+
 // remove current working dir from each path
 files = files.map(function (f) {
     if( f.indexOf(process.cwd()) > -1 )
@@ -75,13 +81,16 @@ files = files.map(function (f) {
     return f;
 });
 
-// console.log( "files: " + files );
-//files = ['/Volumes/HD2/Dropbox/work/jstonkers/test/lib/util/test_vector2f.js'];
+
+log("initial file: " + initial_file + " : " + path.existsSync(initial_file) );
+log( "files: " + files );
+// files = ['/Volumes/HD2/Dropbox/work/jstonkers/test/lib/util/test_vector2f.js'];
 
 // determine whether a specific file that was
-if( path.existsSync(initial_file) ) {
-    testrunner.run([ initial_file ]);
-}
-else {
+// if( path.existsSync(initial_file) ) {
+//     log('running initial file: ' + initial_file );
+//     testrunner.run( [initial_file] );
+// }
+// else {
     testrunner.run( files );
-}
+// }
