@@ -1,46 +1,74 @@
+var testCase = require('nodeunit').testCase;
+var fs = require('fs');
 
-exports.testCreate = function(test) {
-    test.expect(2);
+module.exports = testCase({
+    setUp: function (callback) {
+        this.team = new jstonkers.model.Team();
+        callback();
+    },
+    tearDown: function (callback) {
+        // clean up
+        callback();
+    },
     
-    var team = new jstonkers.model.Team();
+    testCreate: function(test) {
+        test.expect(2);
     
-    team.bind('change:msg', function(team,msg){
-        test.equal( msg, 'hi there'); 
-    });
+        var team = new jstonkers.model.Team();
     
-    team.set({msg:'hi there'});
-    test.equals( team.get('msg'), 'hi there');
+        team.bind('change:msg', function(team,msg){
+            test.equal( msg, 'hi there'); 
+        });
     
-    test.done();
-};
+        team.set({msg:'hi there'});
+        test.equals( team.get('msg'), 'hi there');
+    
+        test.done();
+    },
 
-exports.testNormaliseUnits = function(test){
-    test.expect(5);
+    testNormaliseUnits: function(test){
+        test.expect(5);
     
-    // setting units as an array should cause the team
-    // to normalise it into a UnitList with stub objects
-    var team = new jstonkers.model.Team();
-    team.set({ units:[ 'tnk001', 'tnk002', 'tnk003' ]});
-    var units = team.get('units');
+        // setting units as an array should cause the team
+        // to normalise it into a UnitList with stub objects
+        var team = new jstonkers.model.Team();
+        team.set({ units:[ 'tnk001', 'tnk002', 'tnk003' ]});
+        var units = team.get('units');
     
-    test.ok( !Array.isArray(units) );
-    test.equal(units.get('tnk001').id, 'tnk001');
-    test.ok(units.get('tnk001').get('stub') );
-    test.equal(units.get('tnk002').id, 'tnk002');
-    test.ok(units.get('tnk002').get('stub') );
+        test.ok( !Array.isArray(units) );
+        test.equal(units.get('tnk001').id, 'tnk001');
+        test.ok(units.get('tnk001').get('stub') );
+        test.equal(units.get('tnk002').id, 'tnk002');
+        test.ok(units.get('tnk002').get('stub') );
     
-    test.done();
-}
+        test.done();
+    },
+    
+    testSetRealUnits: function(test) {
+        
+        var units = [ {id:'unit001', test:true}, {id:'unit002', test:true} ];
+        
+        this.team.set( {units:units} );
+        
+        var teamUnits = this.team.get('units');
+        
+        test.ok( !Array.isArray(teamUnits) );
+        test.equal(teamUnits.get('unit001').id, 'unit001');
+        test.equal(teamUnits.get('unit001').get('stub'), undefined );
+        
+        test.done();
+    },
 
-exports.testToJSON = function(test){
-    test.expect(1);
+    testToJSON: function(test) {
+        test.expect(1);
     
-    var expected =  { units: [ 'tnk001', 'tnk002', 'tnk003' ], id: 'tea001' };
-    var team = new jstonkers.model.Team();
-    team.set({ id:'tea001', units:[ 'tnk001', 'tnk002', 'tnk003' ]});
+        var expected =  { units: [ 'tnk001', 'tnk002', 'tnk003' ], id: 'tea001' };
+        var team = new jstonkers.model.Team();
+        team.set({ id:'tea001', units:[ 'tnk001', 'tnk002', 'tnk003' ]});
     
-    test.deepEqual( team.toJSON(), expected );
+        test.deepEqual( team.toJSON(), expected );
     
-    test.done();
-}
+        test.done();
+    },
 
+});
