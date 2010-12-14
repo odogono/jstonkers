@@ -8,27 +8,27 @@
 var path = require("path"),
     fs = require('fs');
 
-var dir_root = path.join( path.dirname(__filename), '../' );
+var dirRoot = path.join( path.dirname(__filename), '../' );
 var args = process.argv.slice(2);
-var initial_directory = path.join( dir_root, './test' );
+var initial_directory = path.join( dirRoot, './test' );
 var initial_file = null;
 
-var common = require( path.join( dir_root, './app/common') );
+var common = require( path.join( dirRoot, './app/common') );
 
 // to include common
-// require.paths.push( path.join(dir_root, 'lib') );
+// require.paths.push( path.join(dirRoot, 'lib') );
 // var jstonkers = require('jstonkers');
 
 // console.log("jstonkers: " + JSON.stringify(jstonkers));
 // var v2f = jstonkers.utils.Vector2f.create( [9,-10] );
 // console.log("RESULT " + dir_vendor );
 
-// require.paths.push( path.join(dir_root, 'vendor/nodeunit/lib') );
+// require.paths.push( path.join(dirRoot, 'vendor/nodeunit/lib') );
 var testrunner = require('nodeunit').reporters.default;
 
 log( "cwd " + process.cwd() );
 log( "dirname " + __dirname );
-log( "dir_root " + dir_root );
+log( "dirRoot " + dirRoot );
 log( "initial dir " + initial_directory );
 
 // determine whether the first argument is a directory - if it is, then
@@ -36,7 +36,7 @@ log( "initial dir " + initial_directory );
 if( args[0] )
 {
     initial_file = args[0];
-    var dir = path.join( dir_root, args[0] );
+    var dir = path.join( dirRoot, args[0] );
 
     if( path.existsSync(dir) && fs.statSync(dir).isDirectory() )
     {
