@@ -1,0 +1,74 @@
+#!/usr/bin/env node
+
+var util = require('util'),
+    path = require('path'),
+    fs = require('fs');
+
+var dirRoot = path.join( path.dirname(__filename), '../' );
+var common = require( path.join( dirRoot, 'app', 'common' ) );
+
+var targets = { 
+    // 'public/js/app/models.js':['lib/model/'],
+    'public/js/app/models.js':[
+        'lib/model/sprite.js',
+        'lib/model/unit.js',
+        'lib/model/team.js',
+        'lib/model/player.js',
+        'lib/model/match.js'
+        ],
+};
+
+
+_.each(targets, function(source,target,list){
+    
+    var filesToWrite = [];
+    var targetPath = path.join( dirRoot, target );
+    
+    if( !path.existsSync(targetPath) ){
+        log( targetPath + ' not found' );
+        return;
+    }
+    
+    if( !_.isArray(source) ) source = [ source ];
+    
+    _.each(source, function(f){
+        var fullPath = path.join( dirRoot, f );
+        var stat = fs.statSync(fullPath);
+
+        if( stat.isFile() ){
+
+            filesToWrite.push( fullPath );
+
+        } else if( stat.isDirectory() ) {
+            
+            filesToWrite = filesToWrite.concat(fs.readdirSync(fullPath).reduce(function(a,filename){
+                var filePath = path.join( fullPath, filename );
+                stat = fs.statSync(filePath);
+                if( stat.isFile() ){
+                    log("adding " + filePath );
+                    return a.concat( filePath );
+                }
+                return a;
+            },[]) );
+        }
+        
+        if( !path.existsSync( path.join( dirRoot, source )) ){
+            log( source + " does not exist as a path");
+        }
+    });
+    
+    log('files to write ' + JSON.stringify(filesToWrite) );
+    
+    
+    fs.open( targetPath, 'w', function(err,fd){
+            
+        _.each( filesToWrite, function(filePath){
+            var buffer = fs.readFileSync(filePath);
+            fs.writeSync( fd, "//" + path.basename(filePath) + "\n\n\n" );
+            fs.writeSync( fd, buffer, 0, buffer.length );
+            fs.writeSync( fd, "\n\n\n" );
+        });
+        // fs.closeSync(fd);
+    });
+    
+});
