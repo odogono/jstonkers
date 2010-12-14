@@ -104,13 +104,15 @@ String.prototype.format = function() {
         ],
         
         teams:[
-            { id:"tem001", units:[ "tnk001","tnk002","tnk003","tnk004","art001","art002","art003","art004","sup001","sup002","sup003","sup004","inf001","inf002","inf003","inf004"] },
-            { id:"tem002", units:[ "tnk101","tnk102","tnk103","tnk104","art101","art102","art103","art104","sup101","sup102","sup103","sup104","inf101","inf102","inf103","inf104"] },
+            {   id:"tea001",
+                units:[ "tnk001","tnk002","tnk003","tnk004","art001","art002","art003","art004","sup001","sup002","sup003","sup004","inf001","inf002","inf003","inf004"] },
+            {   id:"tea002",
+                units:[ "tnk101","tnk102","tnk103","tnk104","art101","art102","art103","art104","sup101","sup102","sup103","sup104","inf101","inf102","inf103","inf104"] },
         ],
         
         players:[
-            { id:"ply001", team:"tem001", type:"hu" },
-            { id:"ply002", team:"tem002", type:"ai" },
+            { id:"ply001", team:"tea001", type:"hu" },
+            { id:"ply002", team:"tea002", type:"ai" },
         ],
         
         world:{

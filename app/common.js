@@ -1,4 +1,5 @@
 var path = require("path");
+var util = require("util");
 
 exports.root = path.join( path.dirname(__filename), '../' );
 exports.dir_app = path.join( exports.root, 'app' );
@@ -16,23 +17,19 @@ require.paths.push( path.join( exports.dir_vendor, 'backbone') );
 global.Backbone = exports.Backbone = require('backbone');
 
 require.paths.push( exports.dir_lib );
-
 exports.jstonkers = require( path.join(exports.dir_lib,'jstonkers') ).jstonkers;
 
 require.paths.push( path.join( exports.dir_vendor, 'connect/lib') );
-exports.connect = require( path.join( exports.dir_vendor, 'connect/lib/connect') );
+exports.connect = require('connect');
 
 require.paths.push( path.join( exports.dir_vendor, 'express/lib') );
 exports.express = require('express');
-// exports.express = require( path.join( exports.dir_vendor, 'express/lib/express') );
 
 require.paths.push( path.join( exports.dir_vendor, 'haml-js/lib') );
 exports.haml = require('haml');
 
-require.paths.push( path.join( exports.dir_vendor, 'jade/lib') );
-exports.jade = require('jade');
-
-// exports.couchdb = require( path.join( exports.dir_vendor, 'node-couchdb/lib/couchdb') );
+// require.paths.push( path.join( exports.dir_vendor, 'jade/lib') );
+// exports.jade = require('jade');
 
 require.paths.push( path.join( exports.dir_vendor, 'sass.js/lib'))
 require.paths.push( exports.dir_src );
@@ -45,6 +42,5 @@ require.paths.push( path.join( exports.dir_vendor, 'nodeunit/lib'))
 exports.assert = require('assert');
 exports.path = path;
 
-var util = require("util");
 for (var i in util) exports[i] = util[i];
 for (var i in exports) global[i] = exports[i];
