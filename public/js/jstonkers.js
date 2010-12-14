@@ -28,10 +28,10 @@ String.prototype.format = function() {
         offsets:[
             [
                 [ 0,0 ],
-                [ 32, 0 ]
+                [ 0, 0 ]
             ],
             [
-                [ 0,0 ],
+                [ 32, 0 ],
                 [ 64, 0 ]
             ]
         ],
@@ -104,9 +104,9 @@ String.prototype.format = function() {
         ],
         
         teams:[
-            {   id:"tea001",
+            {   id:"tea001", index:0,
                 units:[ "tnk001","tnk002","tnk003","tnk004","art001","art002","art003","art004","sup001","sup002","sup003","sup004","inf001","inf002","inf003","inf004"] },
-            {   id:"tea002",
+            {   id:"tea002", index:1,
                 units:[ "tnk101","tnk102","tnk103","tnk104","art101","art102","art103","art104","sup101","sup102","sup103","sup104","inf101","inf102","inf103","inf104"] },
         ],
         

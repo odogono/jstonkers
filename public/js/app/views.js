@@ -45,6 +45,7 @@ jstonkers.view.Unit = Backbone.View.extend({
             return this;
         }
         var type = this.model.get('type');
+        var team = this.model.get('team');
         
         $(this.el).addClass( type );
         
@@ -53,8 +54,11 @@ jstonkers.view.Unit = Backbone.View.extend({
         $(this.el).removeClass('zoom_' + this.zoom).addClass( 'zoom_' + this.view.zoom );
         this.zoom = this.view.zoom;
         
+        // offset depends on the team - we use the attribute index to select the right set
+        this.offset = this.view.spriteData.offsets[ team.get('index') ][ this.zoom-1 ];
         this.uvs = this.view.spriteData.uvs[ this.zoom-1 ][type];
-        this.el.style.backgroundPosition = -this.uvs[0] + 'px ' + -this.uvs[1] + 'px';
+
+        this.el.style.backgroundPosition = -(this.uvs[0]+this.offset[0]) + 'px ' + -(this.uvs[1]+this.offset[1]) + 'px';
         this.el.style.width = this.uvs[2];
         this.el.style.height = this.uvs[3];
         
@@ -106,6 +110,7 @@ jstonkers.view.Unit = Backbone.View.extend({
 jstonkers.view.MatchView = jstonkers.view.MapView.extend({
     
     initialize: function() {
+        var self = this;
         _.bindAll(this, 'add', 'addAll');
 
         $.template( 'template-map_unit', $('#template-map_unit') );
@@ -116,12 +121,19 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         
         this.spriteData = jstonkers.sprite_data;
         
+        this.model.bind('change:teams', function(teams){
+            self.model.get('units').each( self.add );
+           // units.each( self.add );
+           // console.log(units);
+        });
+        
         jstonkers.view.MapView.prototype.initialize.call(this, this.options);
     },
     
     render: function() {
         jstonkers.view.MapView.prototype.render.call(this);
-        this.collection.each( this.add );
+        // this.collection.each( this.add );
+        this.model.get('units').each( this.add );
     },
     
     add: function(model){
