@@ -121,6 +121,7 @@
     this._escapedAttributes = {};
     this.cid = _.uniqueId('c');
     this.set(attributes, {silent : true});
+    this._changed = false;
     this._previousAttributes = _.clone(this.attributes);
     if (options && options.collection) this.collection = options.collection;
     this.initialize(attributes, options);
@@ -156,6 +157,12 @@
       if (html = this._escapedAttributes[attr]) return html;
       var val = this.attributes[attr];
       return this._escapedAttributes[attr] = escapeHTML(val == null ? '' : val);
+    },
+
+    // Returns `true` if the attribute contains a value that is not null
+    // or undefined.
+    has : function(attr) {
+      return this.attributes[attr] != null;
     },
 
     // Set a hash of model attributes on the object, firing `"change"` unless you
@@ -241,12 +248,13 @@
     fetch : function(options) {
       options || (options = {});
       var model = this;
-      var success = function(resp) {
+      var success = options.success;
+      options.success = function(resp) {
         if (!model.set(model.parse(resp), options)) return false;
-        if (options.success) options.success(model, resp);
+        if (success) success(model, resp);
       };
-      var error = wrapError(options.error, model, options);
-      (this.sync || Backbone.sync)('read', this, success, error);
+      options.error = wrapError(options.error, model, options);
+      (this.sync || Backbone.sync)('read', this, options);
       return this;
     },
 
@@ -257,13 +265,14 @@
       options || (options = {});
       if (attrs && !this.set(attrs, options)) return false;
       var model = this;
-      var success = function(resp) {
+      var success = options.success;
+      options.success = function(resp) {
         if (!model.set(model.parse(resp), options)) return false;
-        if (options.success) options.success(model, resp);
+        if (success) success(model, resp);
       };
-      var error = wrapError(options.error, model, options);
+      options.error = wrapError(options.error, model, options);
       var method = this.isNew() ? 'create' : 'update';
-      (this.sync || Backbone.sync)(method, this, success, error);
+      (this.sync || Backbone.sync)(method, this, options);
       return this;
     },
 
@@ -272,12 +281,13 @@
     destroy : function(options) {
       options || (options = {});
       var model = this;
-      var success = function(resp) {
+      var success = options.success;
+      options.success = function(resp) {
         if (model.collection) model.collection.remove(model);
-        if (options.success) options.success(model, resp);
+        if (success) success(model, resp);
       };
-      var error = wrapError(options.error, model, options);
-      (this.sync || Backbone.sync)('delete', this, success, error);
+      options.error = wrapError(options.error, model, options);
+      (this.sync || Backbone.sync)('delete', this, options);
       return this;
     },
 
@@ -285,7 +295,7 @@
     // using Backbone's restful methods, override this to change the endpoint
     // that will be called.
     url : function() {
-      var base = getUrl(this.collection);
+      var base = getUrl(this.collection) || this.urlRoot || urlError();
       if (this.isNew()) return base;
       return base + (base.charAt(base.length - 1) == '/' ? '' : '/') + this.id;
     },
@@ -382,7 +392,7 @@
       this.comparator = options.comparator;
       delete options.comparator;
     }
-    this._boundOnModelEvent = _.bind(this._onModelEvent, this);
+    _.bindAll(this, '_onModelEvent', '_removeReference');
     this._reset();
     if (models) this.refresh(models, {silent: true});
     this.initialize(models, options);
@@ -468,6 +478,7 @@
     refresh : function(models, options) {
       models  || (models = []);
       options || (options = {});
+      this.each(this._removeReference);
       this._reset();
       this.add(models, {silent: true});
       if (!options.silent) this.trigger('refresh', this, options);
@@ -475,16 +486,18 @@
     },
 
     // Fetch the default set of models for this collection, refreshing the
-    // collection when they arrive.
+    // collection when they arrive. If `add: true` is passed, appends the
+    // models to the collection instead of refreshing.
     fetch : function(options) {
       options || (options = {});
       var collection = this;
-      var success = function(resp) {
-        collection.refresh(collection.parse(resp));
-        if (options.success) options.success(collection, resp);
+      var success = options.success;
+      options.success = function(resp) {
+        collection[options.add ? 'add' : 'refresh'](collection.parse(resp));
+        if (success) success(collection, resp);
       };
-      var error = wrapError(options.error, collection, options);
-      (this.sync || Backbone.sync)('read', this, success, error);
+      options.error = wrapError(options.error, collection, options);
+      (this.sync || Backbone.sync)('read', this, options);
       return this;
     },
 
@@ -498,11 +511,12 @@
       } else {
         model.collection = coll;
       }
-      var success = function(nextModel, resp) {
+      var success = options.success;
+      options.success = function(nextModel, resp) {
         coll.add(nextModel);
-        if (options.success) options.success(nextModel, resp);
+        if (success) success(nextModel, resp);
       };
-      return model.save(null, {success : success, error : options.error});
+      return model.save(null, options);
     },
 
     // **parse** converts a response into a list of models to be added to the
@@ -540,7 +554,7 @@
       model.collection = this;
       var index = this.comparator ? this.sortedIndex(model, this.comparator) : this.length;
       this.models.splice(index, 0, model);
-      model.bind('all', this._boundOnModelEvent);
+      model.bind('all', this._onModelEvent);
       this.length++;
       if (!options.silent) model.trigger('add', model, this, options);
       return model;
@@ -554,12 +568,17 @@
       if (!model) return null;
       delete this._byId[model.id];
       delete this._byCid[model.cid];
-      delete model.collection;
       this.models.splice(this.indexOf(model), 1);
       this.length--;
       if (!options.silent) model.trigger('remove', model, this, options);
-      model.unbind('all', this._boundOnModelEvent);
+      this._removeReference(model);
       return model;
+    },
+
+    // Internal method to remove a model's ties to a collection.
+    _removeReference : function(model) {
+      delete model.collection;
+      model.unbind('all', this._onModelEvent);
     },
 
     // Internal method called every time a model in the set fires an event.
@@ -758,6 +777,7 @@
   // Creating a Backbone.View creates its initial element outside of the DOM,
   // if an existing element is not provided...
   Backbone.View = function(options) {
+    this.cid = _.uniqueId('view');
     this._configure(options || {});
     this._ensureElement();
     this.delegateEvents();
@@ -829,12 +849,13 @@
     // not `change`, `submit`, and `reset` in Internet Explorer.
     delegateEvents : function(events) {
       if (!(events || (events = this.events))) return;
-      $(this.el).unbind();
+      $(this.el).unbind('.delegateEvents' + this.cid);
       for (var key in events) {
         var methodName = events[key];
         var match = key.match(eventSplitter);
         var eventName = match[1], selector = match[2];
         var method = _.bind(this[methodName], this);
+        eventName += '.delegateEvents' + this.cid;
         if (selector === '') {
           $(this.el).bind(eventName, method);
         } else {
@@ -905,22 +926,20 @@
   // `application/json` with the model in a param named `model`.
   // Useful when interfacing with server-side languages like **PHP** that make
   // it difficult to read the body of `PUT` requests.
-  Backbone.sync = function(method, model, success, error) {
+  Backbone.sync = function(method, model, options) {
     var type = methodMap[method];
     var modelJSON = (method === 'create' || method === 'update') ?
                     JSON.stringify(model.toJSON()) : null;
 
     // Default JSON-request options.
-    var params = {
-      url:          getUrl(model),
+    var params = _.extend({
+      url:          getUrl(model) || urlError(),
       type:         type,
       contentType:  'application/json',
       data:         modelJSON,
       dataType:     'json',
-      processData:  false,
-      success:      success,
-      error:        error
-    };
+      processData:  false
+    }, options);
 
     // For older servers, emulate JSON by encoding the request into an HTML-form.
     if (Backbone.emulateJSON) {
@@ -990,8 +1009,13 @@
   // Helper function to get a URL from a Model or Collection as a property
   // or as a function.
   var getUrl = function(object) {
-    if (!(object && object.url)) throw new Error("A 'url' property or function must be specified");
+    if (!(object && object.url)) return null;
     return _.isFunction(object.url) ? object.url() : object.url;
+  };
+
+  // Throw an error when a URL is needed, and none is supplied.
+  var urlError = function() {
+    throw new Error("A 'url' property or function must be specified");
   };
 
   // Wrap an optional error callback with a fallback error event.
