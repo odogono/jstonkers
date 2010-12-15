@@ -34,6 +34,3 @@
 [submodule "vendor/node-utils"]
 	path = vendor/node-utils
 	url = git://github.com/mikeal/node-utils.git
-[submodule "vendor/cradle"]
-	path = vendor/cradle
-	url = git://github.com/cloudhead/cradle.git
