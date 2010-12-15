@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 common = require('./common');
+var port = 3000;
 
 var app = express.createServer(
     connect.logger(),
@@ -14,15 +15,22 @@ module.exports = app;
 
 log("using " + dir_public );
 
+// set the port to use if specified
+if( process.argv.length >= 2 )
+    port = parseInt(process.argv[2]);
+
+
 app.use( connect.staticProvider(dir_public) );
 app.set('view engine', 'haml');
-// app.set('view engine', 'jade');
 app.set('views', path.join(__dirname,'views') );
 
 app.configure('development', function()
 {
     app.use(connect.errorHandler({ dumpExceptions: true, showStack: true }));
 });
+
+// for parsing JSON request bodies - ends up in req.body
+app.use(express.bodyDecoder());
 
 app.helpers({
     gather_stylesheets : function()
@@ -72,11 +80,27 @@ app.dynamicHelpers({
 });
 
 
-app.get('/view', function(req, res)
-{
+app.get('/view', function(req, res) {
     // res.render('string of jade', { options: 'here' });
     // res.render('match/test', { locals: {} });
     res.render('match/view', { locals: {} });
 });
 
-app.listen(3000);
+app.post('/match/new', function(req,res){
+    log( inspect(req.body) );
+    res.send( 200 );
+});
+
+app.listen(port);
+
+
+var io = socketio.listen(app),
+		buffer = [];
+io.on('connection', function(client){ 
+    
+    log('client connected');
+    
+    client.on('disconnect', function(){
+        log('client disconnected');
+    });
+})

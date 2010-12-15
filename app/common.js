@@ -19,22 +19,25 @@ global.Backbone = exports.Backbone = require('backbone');
 require.paths.push( exports.dir_lib );
 exports.jstonkers = require( path.join(exports.dir_lib,'jstonkers') ).jstonkers;
 
-require.paths.push( path.join( exports.dir_vendor, 'connect/lib') );
+require.paths.push( path.join( exports.dir_vendor, 'connect', 'lib') );
 exports.connect = require('connect');
 
-require.paths.push( path.join( exports.dir_vendor, 'express/lib') );
+require.paths.push( path.join( exports.dir_vendor, 'express' ,'lib') );
 exports.express = require('express');
 
-require.paths.push( path.join( exports.dir_vendor, 'haml-js/lib') );
+require.paths.push( path.join( exports.dir_vendor, 'haml-js', 'lib') );
 exports.haml = require('haml');
 
 // require.paths.push( path.join( exports.dir_vendor, 'jade/lib') );
 // exports.jade = require('jade');
 
-require.paths.push( path.join( exports.dir_vendor, 'sass.js/lib'))
+require.paths.push( path.join( exports.dir_vendor, 'sass.js', 'lib'))
 require.paths.push( exports.dir_src );
 
-require.paths.push( path.join( exports.dir_vendor, 'nodeunit/lib'))
+require.paths.push( path.join( exports.dir_vendor, 'nodeunit', 'lib'))
+
+require.paths.push( path.join( exports.dir_vendor, 'Socket.IO-node', 'lib') );
+exports.socketio = require('socket.io');
 
 // require.paths.push( path.join(exports.dir_vendor, 'vendor/node-amqp') );
 // exports.amqp = require( path.join( exports.dir_vendor, 'node-amqp/amqp')  );

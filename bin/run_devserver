@@ -10,6 +10,11 @@ child_process = require('child_process');
 fs = require("fs");
 util = require("util");
 
+var port = 3000;
+
+if( process.argv.length >= 2 )
+    port = process.argv[2];
+
 dev_server = {
     process: null,
     files: [],
@@ -26,7 +31,7 @@ dev_server = {
         self = this;
         util.debug('DEVSERVER: Starting server');
         self.watchFiles();
-        this.process = child_process.spawn("node", ['app/app.js']);
+        this.process = child_process.spawn("node", ['app/app.js', port]);
         this.process.stdout.addListener('data', function(data) {
             return process.stdout.write(data);
         });

@@ -52,6 +52,11 @@ $(function(){
         return App.toggleZoom();
     });
     
+    $('#debug_save').click( function(){
+        App.match.save();
+        return false;
+    })
+    
     // Match.world.set( jstonkers.data.world );
     // Match.units.refresh( jstonkers.data.units );
     App.refresh( jstonkers.data );

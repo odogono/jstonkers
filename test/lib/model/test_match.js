@@ -96,9 +96,11 @@ module.exports = testCase({
         this.match.set( state );
         
         // log( inspect(this.match.toJSON(),false,null) );
+        log( JSON.stringify( this.match ));
         // log( inspect(this.match.get('teams'),false,3) );
         var team = this.match.get('teams').get('tea001');
-        // log( inspect(team.get('units').first().toJSON()) );
+        // log( inspect( this.match.get('units').first() ) );
+        // log( inspect(team.get('units').first()) );
         
         test.done();
     },
