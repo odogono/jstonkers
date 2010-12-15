@@ -2,12 +2,12 @@
 
 
 jstonkers.model.Sprite = Backbone.Model.extend({
-    set : function(attrs, options) {
-        if( attrs.position ) {
-            this.set( {screen:{left: attrs.position[0], top: attrs.position[1]} });
-        }
-        Backbone.Model.prototype.set.call(this, attrs, options);
-    },
+    // set : function(attrs, options) {
+    //     // if( attrs.position ) {
+    //     //     this.set( {screen:{left: attrs.position[0], top: attrs.position[1]} });
+    //     // }
+    //     Backbone.Model.prototype.set.call(this, attrs, options);
+    // },
 });
 
 
@@ -108,6 +108,7 @@ jstonkers.model.PlayerList = Backbone.Collection.extend({
 
 
 jstonkers.model.Match = Backbone.Model.extend({
+    
     initialize: function() {
         var players = new jstonkers.model.PlayerList();
         var teams = new jstonkers.model.TeamList();
@@ -119,6 +120,10 @@ jstonkers.model.Match = Backbone.Model.extend({
         teams.bind('refresh', this.onChange);
         units.bind('refresh', this.onChange);
         this.bind('change', this.onChange );
+    },
+    
+    url : function() {
+        return '/match/' + (this.id || 'new');
     },
     
     set : function(attrs, options) {
@@ -196,34 +201,6 @@ jstonkers.model.Match = Backbone.Model.extend({
         });
     },
     
-    // onChangePlayers: function(){
-    //     var self = this;
-    //     var units = this.get('units');
-    //     var teams = this.get('teams');
-    //     var players = this.get('players');
-    //     
-    //     log("players changed");
-    //     
-    //     // units.each( function(unit){ unit.match = self; });
-    //     // teams.each( function(team){ team.match = self; });
-    //     
-    //     // players.each( function(player){
-    //     //     if( _.isString(player.team) ){
-    //     //         log("updating player team");
-    //     //         player.team = teams.get( player.team ) || player.team;
-    //     //     }
-    //     // });
-    // },
-    
-    // resolvePlayers: function(){
-    //     console.log('resolving players');
-    //     
-    //     this.get('players').each( function(player){
-    //         if( !player.get('stub') ) return;
-    //         console.log("replacing " + player.id );
-    //     })
-    //     console.log( JSON.stringify(this.get('players') ) );
-    // },
     
     toJSON : function() {
         var attrs = Backbone.Model.prototype.toJSON.call(this);
