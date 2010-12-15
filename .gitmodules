@@ -31,3 +31,9 @@
 [submodule "vendor/socket.io"]
 	path = vendor/socket.io
 	url = git://github.com/LearnBoost/Socket.IO.git
+[submodule "vendor/node-utils"]
+	path = vendor/node-utils
+	url = git://github.com/mikeal/node-utils.git
+[submodule "vendor/cradle"]
+	path = vendor/cradle
+	url = git://github.com/cloudhead/cradle.git
