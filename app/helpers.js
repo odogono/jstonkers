@@ -1,7 +1,3 @@
-
-// in ./app.js we did "module.exports", allowing
-// us to grab the app from the parent module (the one 
-// which required it)
 var app = module.parent.exports;
 
 app.helpers({

@@ -5,7 +5,7 @@ var port = 3000;
 
 // Our app IS the exports, this prevents require('./app').app,
 // instead it is require('./app');
-var app = module.exports = express.createServer(
+var server = module.exports = express.createServer(
     connect.logger(),
     connect.compiler({ src:dir_public, enable: ['sass'] }),
     connect.cookieDecoder(),
@@ -16,7 +16,7 @@ var app = module.exports = express.createServer(
 );
 
 // for spark2 compatibility
-module.exports = app;
+module.exports = server;
 
 log("using " + dir_public );
 
@@ -24,12 +24,12 @@ log("using " + dir_public );
 if( process.argv.length >= 2 )
     port = parseInt(process.argv[2]);
 
-app.set('view engine', 'haml');
-app.set('views', path.join(__dirname,'views') );
+server.set('view engine', 'haml');
+server.set('views', path.join(__dirname,'views') );
 
-app.configure('development', function()
+server.configure('development', function()
 {
-    app.use(connect.errorHandler({ dumpExceptions: true, showStack: true }));
+    server.use(connect.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 
@@ -37,5 +37,6 @@ app.configure('development', function()
 require('./helpers');
 require('./socketio');
 require('./handlers');
+require('./repl');
 
-app.listen(port);
+server.listen(port);

@@ -39,8 +39,8 @@ require.paths.push( path.join( exports.dir_vendor, 'nodeunit', 'lib'))
 require.paths.push( path.join( exports.dir_vendor, 'Socket.IO-node', 'lib') );
 exports.socketio = require('socket.io');
 
-// require.paths.push( path.join(exports.dir_vendor, 'vendor/node-amqp') );
-// exports.amqp = require( path.join( exports.dir_vendor, 'node-amqp/amqp')  );
+require.paths.push( path.join( exports.dir_vendor, 'node-utils') );
+exports.request = require('request/main');
 
 exports.assert = require('assert');
 exports.path = path;
