@@ -22,11 +22,11 @@ app.helpers({
     },
     gather_javascripts : function() {
         return this.include_js([
-            'vendor/json2.min',
-            'vendor/jquery-1.4.4.min',
-            'vendor/underscore',
-            'vendor/backbone',
-            'vendor/jquery.tmpl.min',
+            'lib/json2.min',
+            'lib/jquery-1.4.4.min',
+            'lib/underscore',
+            'lib/backbone',
+            'lib/jquery.tmpl.min',
             '/socket.io/socket.io',
             'jstonkers',
             'scroll_view',
