@@ -61,5 +61,5 @@ for (var i in util) exports[i] = util[i];
 for (var i in exports) global[i] = exports[i];
 
 
-require.paths.push( exports.dir_lib );
-exports.jstonkers = require( path.join(exports.dir_lib,'jstonkers') ).jstonkers;
+require.paths.push( exports.app_paths.src );
+exports.jstonkers = require( path.join(exports.app_paths.src,'jstonkers') ).jstonkers;
