@@ -31,3 +31,6 @@
 [submodule "vendor/node-utils"]
 	path = vendor/node-utils
 	url = git://github.com/mikeal/node-utils.git
+[submodule "vendor/couch-client"]
+	path = vendor/couch-client
+	url = git://github.com/creationix/couch-client.git
