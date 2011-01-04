@@ -14,7 +14,7 @@ var port = 3000;
 
 if( process.argv.length >= 2 )
     port = process.argv[2];
-
+    
 dev_server = {
     process: null,
     files: [],
@@ -52,10 +52,13 @@ dev_server = {
     watchFiles: function() {
         var self;
         self = this;
-        return child_process.exec('find . | grep "\.js$"', function(error, stdout, stderr) {
+        // return child_process.exec('find . | grep "\.js$\|\.json$"', function(error, stdout, stderr) {
+        return child_process.exec('find . | grep "\.js$" | grep -v vendor', function(error, stdout, stderr) {
             var files;
             files = stdout.trim().split("\n");
+            util.log(util.inspect(error));
             return files.forEach(function(file) {
+                // util.debug(file);
                 self.files.push(file);
                 return fs.watchFile(file, {
                     interval: 500

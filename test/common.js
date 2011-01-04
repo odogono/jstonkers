@@ -1,0 +1,1 @@
+common = require('../app/common');

@@ -1,0 +1,10 @@
+{
+    "repl_server": {
+        "enabled":true,
+        "port": 9000
+    },
+    
+    "socket_server": {
+        "enabled":true
+    }
+}
