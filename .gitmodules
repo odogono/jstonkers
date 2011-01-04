@@ -1,33 +1,27 @@
-[submodule "vendor/connect"]
-	path = vendor/connect
-	url = git://github.com/senchalabs/connect.git
-[submodule "vendor/ext.js"]
-	path = vendor/ext.js
-	url = git://github.com/visionmedia/ext.js.git
-[submodule "vendor/nodeunit"]
-	path = vendor/nodeunit
-	url = git://github.com/caolan/nodeunit.git
-[submodule "vendor/sass.js"]
-	path = vendor/sass.js
-	url = git://github.com/visionmedia/sass.js.git
-[submodule "vendor/Socket.IO-node"]
-	path = vendor/Socket.IO-node
+[submodule "lib/express"]
+	path = lib/express
+	url = git://github.com/visionmedia/express.git
+[submodule "lib/Socket.IO-node"]
+	path = lib/Socket.IO-node
 	url = git://github.com/LearnBoost/Socket.IO-node.git
-[submodule "vendor/haml-js"]
-	path = vendor/haml-js
-	url = git://github.com/creationix/haml-js.git
-[submodule "vendor/underscore"]
-	path = vendor/underscore
-	url = git://github.com/documentcloud/underscore.git
-[submodule "vendor/backbone"]
-	path = vendor/backbone
+[submodule "lib/backbone"]
+	path = lib/backbone
 	url = git://github.com/documentcloud/backbone.git
-[submodule "vendor/jade"]
-	path = vendor/jade
-	url = https://github.com/visionmedia/jade.git
-[submodule "vendor/node-utils"]
-	path = vendor/node-utils
+[submodule "lib/connect"]
+	path = lib/connect
+	url = git://github.com/senchalabs/connect.git
+[submodule "lib/haml-js"]
+	path = lib/haml-js
+	url = git://github.com/creationix/haml-js.git
+[submodule "lib/nodeunit"]
+	path = lib/nodeunit
+	url = git://github.com/caolan/nodeunit.git
+[submodule "lib/sass.js"]
+	path = lib/sass.js
+	url = git://github.com/visionmedia/sass.js.git
+[submodule "lib/underscore"]
+	path = lib/underscore
+	url = git://github.com/documentcloud/underscore.git
+[submodule "lib/node-utils"]
+	path = lib/node-utils
 	url = git://github.com/mikeal/node-utils.git
-[submodule "vendor/couch-client"]
-	path = vendor/couch-client
-	url = git://github.com/creationix/couch-client.git
