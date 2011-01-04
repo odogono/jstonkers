@@ -23,7 +23,7 @@
 
   // Require Underscore, if we're on the server, and it's not already present.
   var _ = this._;
-  if (!_ && (typeof require !== 'undefined')) _ = require("underscore")._;
+  if (!_ && (typeof require !== 'undefined')) _ = require('underscore')._;
 
   // For Backbone's purposes, either jQuery or Zepto owns the `$` variable.
   var $ = this.jQuery || this.Zepto;
@@ -115,8 +115,12 @@
   // Create a new model, with defined attributes. A client id (`cid`)
   // is automatically generated and assigned for you.
   Backbone.Model = function(attributes, options) {
+    var defaults;
     attributes || (attributes = {});
-    if (this.defaults) attributes = _.extend({}, this.defaults, attributes);
+    if (defaults = this.defaults) {
+      if (_.isFunction(defaults)) defaults = defaults();
+      attributes = _.extend({}, defaults, attributes);
+    }
     this.attributes = {};
     this._escapedAttributes = {};
     this.cid = _.uniqueId('c');
@@ -493,7 +497,7 @@
       var collection = this;
       var success = options.success;
       options.success = function(resp) {
-        collection[options.add ? 'add' : 'refresh'](collection.parse(resp));
+        collection[options.add ? 'add' : 'refresh'](collection.parse(resp), options);
         if (success) success(collection, resp);
       };
       options.error = wrapError(options.error, collection, options);
@@ -623,8 +627,9 @@
 
   // Cached regular expressions for matching named param parts and splatted
   // parts of route strings.
-  var namedParam = /:([\w\d]+)/g;
-  var splatParam = /\*([\w\d]+)/g;
+  var namedParam    = /:([\w\d]+)/g;
+  var splatParam    = /\*([\w\d]+)/g;
+  var escapeRegExp  = /[-[\]{}()+?.,\\^$|#\s]/g;
 
   // Set up all inheritable **Backbone.Controller** properties and methods.
   _.extend(Backbone.Controller.prototype, Backbone.Events, {
@@ -667,7 +672,9 @@
     // Convert a route string into a regular expression, suitable for matching
     // against the current location fragment.
     _routeToRegExp : function(route) {
-      route = route.replace(namedParam, "([^\/]*)").replace(splatParam, "(.*?)");
+      route = route.replace(escapeRegExp, "\\$&")
+                   .replace(namedParam, "([^\/]*)")
+                   .replace(splatParam, "(.*?)");
       return new RegExp('^' + route + '$');
     },
 
@@ -879,12 +886,18 @@
     },
 
     // Ensure that the View has a DOM element to render into.
+    // If `this.el` is a string, pass it through `$()`, take the first
+    // matching element, and re-assign it to `el`. Otherwise, create
+    // an element from the `id`, `className` and `tagName` proeprties.
     _ensureElement : function() {
-      if (this.el) return;
-      var attrs = {};
-      if (this.id) attrs.id = this.id;
-      if (this.className) attrs["class"] = this.className;
-      this.el = this.make(this.tagName, attrs);
+      if (!this.el) {
+        var attrs = {};
+        if (this.id) attrs.id = this.id;
+        if (this.className) attrs['class'] = this.className;
+        this.el = this.make(this.tagName, attrs);
+      } else if (_.isString(this.el)) {
+        this.el = $(this.el).get(0);
+      }
     }
 
   });
@@ -928,24 +941,30 @@
   // it difficult to read the body of `PUT` requests.
   Backbone.sync = function(method, model, options) {
     var type = methodMap[method];
-    var modelJSON = (method === 'create' || method === 'update') ?
-                    JSON.stringify(model.toJSON()) : null;
 
     // Default JSON-request options.
     var params = _.extend({
-      url:          getUrl(model) || urlError(),
       type:         type,
       contentType:  'application/json',
-      data:         modelJSON,
       dataType:     'json',
       processData:  false
     }, options);
+
+    // Ensure that we have a URL.
+    if (!params.url) {
+      params.url = getUrl(model) || urlError();
+    }
+
+    // Ensure that we have the appropriate request data.
+    if (!params.data && model && (method == 'create' || method == 'update')) {
+      params.data = JSON.stringify(model.toJSON());
+    }
 
     // For older servers, emulate JSON by encoding the request into an HTML-form.
     if (Backbone.emulateJSON) {
       params.contentType = 'application/x-www-form-urlencoded';
       params.processData = true;
-      params.data        = modelJSON ? {model : modelJSON} : {};
+      params.data        = params.data ? {model : params.data} : {};
     }
 
     // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
@@ -955,7 +974,7 @@
         if (Backbone.emulateJSON) params.data._method = type;
         params.type = 'POST';
         params.beforeSend = function(xhr) {
-          xhr.setRequestHeader("X-HTTP-Method-Override", type);
+          xhr.setRequestHeader('X-HTTP-Method-Override', type);
         };
       }
     }
@@ -1022,7 +1041,7 @@
   var wrapError = function(onError, model, options) {
     return function(resp) {
       if (onError) {
-        onError(model, resp);
+        onError(model, resp, options);
       } else {
         model.trigger('error', model, resp, options);
       }
@@ -1034,4 +1053,4 @@
     return string.replace(/&(?!\w+;)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   };
 
-})();
+}).call(this);

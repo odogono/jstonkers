@@ -356,8 +356,14 @@
   // we need this function. Return the position of the first occurrence of an
   // item in an array, or -1 if the item is not included in the array.
   // Delegates to **ECMAScript 5**'s native `indexOf` if available.
-  _.indexOf = function(array, item) {
+  // If the array is large and already in sort order, pass `true`
+  // for **isSorted** to use binary search.
+  _.indexOf = function(array, item, isSorted) {
     if (array == null) return -1;
+    if (isSorted) {
+      var i = _.sortedIndex(array, item);
+      return array[i] === item ? i : -1;
+    }
     if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item);
     for (var i = 0, l = array.length; i < l; i++) if (array[i] === item) return i;
     return -1;
@@ -584,12 +590,12 @@
   // Is a given value an array?
   // Delegates to ECMA5's native Array.isArray
   _.isArray = nativeIsArray || function(obj) {
-    return !!(obj && obj.concat && obj.unshift && !obj.callee);
+    return toString.call(obj) === '[object Array]';
   };
 
   // Is a given variable an arguments object?
   _.isArguments = function(obj) {
-    return !!(obj && obj.callee);
+    return !!(obj && hasOwnProperty.call(obj, 'callee'));
   };
 
   // Is a given value a function?
@@ -607,10 +613,10 @@
     return !!(obj === 0 || (obj && obj.toExponential && obj.toFixed));
   };
 
-  // Is the given value NaN -- this one is interesting. NaN != NaN, and
-  // isNaN(undefined) == true, so we make sure it's a number first.
+  // Is the given value `NaN`? `NaN` happens to be the only value in JavaScript
+  // that does not equal itself.
   _.isNaN = function(obj) {
-    return toString.call(obj) === '[object Number]' && isNaN(obj);
+    return obj !== obj;
   };
 
   // Is a given value a boolean?
