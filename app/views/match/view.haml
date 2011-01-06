@@ -10,8 +10,12 @@
   %p
     %a{id:"debug_save", href:'#'} save
 
+
+:javascript
+  window.jstonkers.data = #{JSON.stringify(state)};
+
 %script{ id: "template-map_tile", type: "text/x-jquery-tmpl" }
-  %img{ class: "tile", src:"/img/tiles/n-n.png", style:"top:${top}; left:${left}"}
+  %img{ class: "tile", src:"/img/tiles/b/n-n.png", style:"top:${top}; left:${left}"}
 
 %script{ id: "template-map_unit", type: "text/x-jquery-tmpl" }
   %div{ class: "sprite unit", src:"/img/sprites.2.png", style:"top:${screen.top}; left:${screen.left}"}

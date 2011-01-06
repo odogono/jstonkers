@@ -57,19 +57,23 @@ $(function(){
         return false;
     })
     
-    var socket = new io.Socket(null, {port: 3000, rememberTransport: true});
-    socket.connect();
-    socket.on('connect', function(){
-        console.log('connected');
-        socket.send('hi!'); 
-    }) 
-    socket.on('message', function(data){ 
-        console.log('data: ' + JSON.stringify(data));
-      // alert(data);
-    })
-    socket.on('disconnect', function(){
-       console.log('disconnected'); 
-    });
+    if( jstonkers.data.socket_enabled ) {
+        var socket = new io.Socket(null, {port: 3000, rememberTransport: true});
+
+        socket.connect();
+        socket.on('connect', function(){
+            console.log('connected');
+            socket.send('hi!'); 
+        }) 
+        socket.on('message', function(data){ 
+            console.log('data: ' + JSON.stringify(data));
+          // alert(data);
+        })
+        socket.on('disconnect', function(){
+           console.log('disconnected'); 
+        });
+    }
+    
     
     
     

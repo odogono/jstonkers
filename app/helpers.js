@@ -21,7 +21,7 @@ app.helpers({
         //         }
     },
     gather_javascripts : function() {
-        return this.include_js([
+        var includes = [
             'lib/json2.min',
             'lib/jquery-1.4.4.min',
             'lib/underscore',
@@ -34,7 +34,10 @@ app.helpers({
             'app/models',
             'app/collections',
             'app/views',
-        ]);
+        ];
+        if( app.config.socket_server.enabled )
+            includes.push('/socket.io/socket.io');
+        return this.include_js(includes);
     },
     app_name: "Powerful JStonkers!"
 });

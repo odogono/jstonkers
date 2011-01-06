@@ -10,7 +10,7 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
         // setZoom and initialiseTiles (in that order)
         jstonkers.view.ScrollView.prototype.initialize.call(this, this.options);
         
-        this.imageSrc = this.model.get('image_src');
+        // this.imageSrc = this.model.get('image_src');
         this.template = this.options.template;
     },
     
@@ -30,6 +30,7 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
         
         var levelBounds = levels[ this.zoom-1 ].bounds;
         
+        this.imageSrc = this.model.get('image_src');
         this.tileSize = levels[ this.zoom-1 ].tile_size;
         this.cols = Math.ceil( bounds[2] / this.tileSize )+1;
         this.rows = Math.ceil( bounds[3] / this.tileSize )+1;
@@ -99,7 +100,7 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
     {
         var img = $.tmpl( this.template, { top: py, left: px } )[0];
         img.col = gx; img.row = gy;
-        img.src = '/img/tiles/' + zoom + '/' + gx + '-' + gy + '.png';
+        img.src = this.imageSrc + zoom + '/' + gx + '-' + gy + '.png';
         img.xpos = px; img.ypos = py;
         return img;
     },
@@ -114,7 +115,7 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
         
         if( imgTile.col != gx || imgTile.row != gy ) {        
             imgTile.col = gx;  imgTile.row = gy;
-            buffer[buffer.length] = "/img/tiles/";
+            buffer[buffer.length] = this.imageSrc;
 
             if( gx >= 0 && gy >= 0 && gx <= this.worldCols && gy <= this.worldRows ) {
                 buffer[buffer.length] = zoom;

@@ -1,9 +1,12 @@
-var app = module.parent.exports;
+var app = module.parent.exports,
+    fs = require('fs');
 
 app.get('/view', function(req, res) {
-    // res.render('string of jade', { options: 'here' });
-    // res.render('match/test', { locals: {} });
-    res.render('match/view', { locals: {} });
+    var state = JSON.parse( fs.readFileSync( path.join( app.path.var, 'test', 'matchstate_a.json' ) ) );
+    
+    state.socket_enabled = app.config.socket_server.enabled;
+    
+    res.render('match/view', { locals: {state:state} });
 });
 
 app.post('/match/new', function(req,res){

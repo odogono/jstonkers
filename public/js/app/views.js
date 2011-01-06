@@ -119,7 +119,7 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         this.collection.bind('add', this.addOne);
         this.collection.bind('refresh', this.addAll);
         
-        this.spriteData = jstonkers.sprite_data;
+        this.spriteData = window.sprite_data;
         
         this.model.bind('change:teams', function(teams){
             self.model.get('units').each( self.add );

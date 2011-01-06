@@ -136,11 +136,7 @@ jstonkers.model.Match = Backbone.Model.extend({
             Backbone.Model.prototype.set.call(this, attrs.world, options);
             delete attrs.world;
         }
-        
-        // _.each( attrs, function(value,key,list){
-        //    console.log("setting " + key); 
-        // });
-        
+                
         if( !options || !options.initialise ){
             if( attrs.units ){
                 units.refresh( attrs.units );

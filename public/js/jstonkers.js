@@ -5,26 +5,26 @@
 // })();
 // });
 
-_.mixin({
-   format: function( string ){
-       var i = arguments.length-1;
-       while(i--){
-           string = string.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
-       }
-       return string;
-   } 
-});
-
-String.prototype.format = function() {
-    var s = this, i = arguments.length;
-    while (i--) {
-        s = s.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
-    }
-    return s;
-};
+// _.mixin({
+//    format: function( string ){
+//        var i = arguments.length-1;
+//        while(i--){
+//            string = string.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
+//        }
+//        return string;
+//    } 
+// });
+// 
+// String.prototype.format = function() {
+//     var s = this, i = arguments.length;
+//     while (i--) {
+//         s = s.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
+//     }
+//     return s;
+// };
 
 // $(function(){
-    window.jstonkers.sprite_data = {
+    window.sprite_data = {
         offsets:[
             [
                 [ 0,0 ],
@@ -65,7 +65,7 @@ String.prototype.format = function() {
         ]
     };
     
-    window.jstonkers.data = {
+    /*window.jstonkers.data = {
         
         units:[
             { id:"tnk001", type:"tank", position:[2000,200] },
@@ -116,6 +116,7 @@ String.prototype.format = function() {
         ],
         
         world:{
+            image_src:'/img/tiles/a/',
             // current world view position
             position:[2000,342],
             // position and size of the window onto the world
@@ -129,12 +130,11 @@ String.prototype.format = function() {
                 { bounds:[0,0,1280,768], tile_size:256  },
                 { bounds:[0,0,2560,1536], tile_size:256 },
             ],
-            image_src:'/img/tiles/{0}/{1}-{2}.png',
         },
         
         match:{
             state:"playing",
             type:"normal",
         },
-    };
+    };//*/
 // });
