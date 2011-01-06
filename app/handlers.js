@@ -2,7 +2,7 @@ var app = module.parent.exports,
     fs = require('fs');
 
 app.get('/view', function(req, res) {
-    var state = JSON.parse( fs.readFileSync( path.join( app.path.var, 'test', 'matchstate_a.json' ) ) );
+    var state = JSON.parse( fs.readFileSync( path.join( app.path.var, 'test', 'matchstate_b.json' ) ) );
     
     state.socket_enabled = app.config.socket_server.enabled;
     

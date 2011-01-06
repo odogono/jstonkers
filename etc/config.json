@@ -26,8 +26,8 @@
                 "data":"var/maps/b.col.png"
             },
             "levels": [
-                { "bounds":[0,0,256,256], "tile_size":64  },
-                { "bounds":[0,0,512,512], "tile_size":64 }
+                { "bounds":[0,0,256,256], "tile_size":256  },
+                { "bounds":[0,0,512,512], "tile_size":256 }
             ]
         }
     }
