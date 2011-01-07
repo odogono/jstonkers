@@ -14,25 +14,10 @@ app.get('/view/:matchid', function(req, res) {
         
         locals.socket_enabled = app.config.socket_server.enabled;
         
-        locals.collision_maps = [
-            { 
-                id:'index',
-                href:app.config.maps.index.collision.href,
-                dims:app.config.maps.index.collision.dims
-            },
-            {
-                id:'map',
-                href:mapConfig.collision.href,
-                dims:mapConfig.collision.dims
-            }];
-        
-        // location of the collision image
-        // locals.col_href = mapConfig.collision.href;
-        // important we set the collision image dimensions, so that the client
-        // can quickly set up the read canvas
-        // locals.col_dims = mapConfig.collision.dims;
-        
-        // locals.map_index = app.config.maps.index;
+        locals.cmap = {
+            href:mapConfig.collision.href,
+            dims:mapConfig.collision.dims
+        };
     }
     
     res.render('match/view', { locals:locals });

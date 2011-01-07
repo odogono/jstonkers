@@ -9,21 +9,13 @@
     },
     
     "maps": {
-        "index":{
-            "comment":"not for use - used to index pixel values on client",
-            "collision":{
-                "href":"/img/maps/index.png",
-                "dims":[16,1]
-            }
-        },
-        
         "spectrum":{
             "comment":"map used in sinclair version",
             "bounds":[0,0,2560,1536],
             "collision":{
                 "href":"/img/maps/a/col.png",
                 "data":"var/maps/a.col.png",
-                "dims":[ 128,77 ]
+                "dims":[ 128,78 ]
             },
             "levels": [
                 { "bounds":[0,0,1280,768], "tile_size":256  },
@@ -37,7 +29,8 @@
             "collision":{
                 "href":"/img/maps/b/col.png",
                 "data":"var/maps/b.col.png",
-                "dims":[ 8,8 ]
+                "comment":"note - the dims height includes a row for the index",
+                "dims":[ 8,9 ]
             },
             "levels": [
                 { "bounds":[0,0,256,256], "tile_size":256  },

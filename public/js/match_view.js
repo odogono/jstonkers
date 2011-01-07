@@ -26,7 +26,6 @@ $(function(){
                 model:this.match,
                 template:"template-map_tile",
                 collision_map:$('#collision_map')[0],
-                collision_index:$('#collision_index')[0],
             });
             
         },

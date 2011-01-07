@@ -2,11 +2,10 @@
 .jstonkers_view
   %form{ action: "/match/001/commands/", method: "post" }
     .world_view{  }
-  
-  :each map in collision_maps
-    %div{ id:'collision_' + map.id }
-      %canvas{ width:map.dims[0], height:map.dims[1] }
-      %img{ src:map.href, width:map.dims[0], height:map.dims[1] }
+
+  %div{ id:'collision_map', style:'display:none' }
+    %canvas{ width:cmap.dims[0], height:cmap.dims[1] }
+    %img{ src:cmap.href, width:cmap.dims[0], height:cmap.dims[1] }
   
   %p{id:"debug_position"} position: 0, 0
   %p{id:"debug_cursor"} cursor: 0, 0
@@ -15,7 +14,6 @@
     %a{id:"debug_zoom", href:'#'} zoom
   %p
     %a{id:"debug_save", href:'#'} save
-
 
 :javascript
   window.jstonkers.data = #{JSON.stringify(state)};

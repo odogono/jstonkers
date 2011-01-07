@@ -152,13 +152,6 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
             el:this.options.collision_map
         });
         
-        // because different browsers return different values from getImageData
-        // we use an index image to calibrate
-        this.collisionIndex = new jstonkers.view.CollisionView({
-            id:'collision_index',
-            el:this.options.collision_index
-        });
-        
         // bind the movement of the cursor
         this.bind('cursor', function(wx,wy,ex,ey) {
             var val = this.getCollisionFromWorldPosition( wx,wy );
@@ -172,7 +165,7 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         var bounds, pos, val;
         if( !this.tileValues ){
             bounds = this.model.get('bounds');
-            this.tileValues = this.collisionIndex.getValues();
+            this.tileValues = this.collisionView.getIndexValues();
             this.tileMul = [ bounds[2] / this.collisionView.width, bounds[3] / this.collisionView.height ];
         }
 
@@ -213,11 +206,13 @@ jstonkers.view.CollisionView = Backbone.View.extend({
         var self = this;
         this.canvas = $(this.el).find('canvas')[0];
         this.img = $(this.el).find('img')[0];
-        this.width = parseInt(this.img.getAttribute("width"));
-        this.height = parseInt(this.img.getAttribute("height"));
+        
+        
+        this.width = parseInt($(this.img).attr('width'));
+        this.height = parseInt($(this.img).attr('height'))-1;
         this.canvas.width = this.width;
-        this.canvas.height = this.height;
-        // console.log( this.el );
+        this.canvas.height = this.height+1;
+        
         this.isRendered = false;
         
         // make sure the related image is loaded before we
@@ -231,9 +226,9 @@ jstonkers.view.CollisionView = Backbone.View.extend({
         // console.log( $(this.el) );
         
         this.context = this.canvas.getContext("2d");
-        this.context.drawImage( this.img, 0, 0, this.width, this.height );
+        this.context.drawImage( this.img, 0, 0, this.canvas.width, this.canvas.height );
         
-        this.imageData = this.context.getImageData(0,0,this.width,this.height);
+        this.imageData = this.context.getImageData(0,0,this.canvas.width,this.canvas.height);
         this.isRendered = true;
         
         return this;
@@ -242,7 +237,7 @@ jstonkers.view.CollisionView = Backbone.View.extend({
     getValue: function(x,y) {
         if( !this.isRendered )
             this.update();
-        var index = (x + y * this.width) * 4;
+        var index = (x + ((y+1) * this.canvas.width)) * 4;
         var vals = [ this.imageData.data[index], this.imageData.data[index+1], this.imageData.data[index+2], this.imageData.data[index+3] ];
         var rgba = ((vals[0]&0xFF)<<24) | 
                     ((vals[1]&0xFF)<<16) | 
@@ -257,16 +252,16 @@ jstonkers.view.CollisionView = Backbone.View.extend({
         return result;
     },
     
-    getValues: function() {
-        var x,y,result = [];
+    getIndexValues: function(max) {
+        var x,result = [];
+        max = max || Math.min(8,this.canvas.width);
         if( !this.isRendered )
             this.render();
         
-        for( y=0;y<this.height;y++ ){
-            for( x=0;x<this.width;x++ ){
-                result.push( this.getValue(x,y) );
-            }
+        for( x=0;x<max;x++ ){
+            result.push( this.getValue(x,-1) );
         }
+        
         return result;
     }
     
