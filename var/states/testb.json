@@ -23,6 +23,7 @@
     
     "world":{
         "image_src":"/img/tiles/b/",
+        
         "position":[256,256],
         "window":[0,0,0,0],
         "zoom":1,
@@ -30,7 +31,8 @@
         "levels": [
             { "bounds":[0,0,256,256], "tile_size":256  },
             { "bounds":[0,0,512,512], "tile_size":256 }
-        ]
+        ],
+        "col":"/img/maps/b/col.png"
     },
     
     "match":{

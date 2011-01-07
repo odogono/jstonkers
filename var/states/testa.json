@@ -47,6 +47,7 @@
     
     "world":{
         "image_src":"/img/tiles/a/",
+        "col":"/img/maps/a/col.png",
         "position":[1000,342],
         "window":[0,0,0,0],
         "zoom":1,
