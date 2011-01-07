@@ -2,9 +2,15 @@
 .jstonkers_view
   %form{ action: "/match/001/commands/", method: "post" }
     .world_view{  }
-        
-  %p{id:"debug_position"} 0, 0
-  %p{id:"debug_cursor"} 0, 0
+  
+  :each map in collision_maps
+    %div{ id:'collision_' + map.id }
+      %canvas{ width:map.dims[0], height:map.dims[1] }
+      %img{ src:map.href, width:map.dims[0], height:map.dims[1] }
+  
+  %p{id:"debug_position"} position: 0, 0
+  %p{id:"debug_cursor"} cursor: 0, 0
+  %p{id:"debug_tile"} tile: 0, 0
   %p
     %a{id:"debug_zoom", href:'#'} zoom
   %p

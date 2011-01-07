@@ -130,9 +130,8 @@ jstonkers.view.ScrollView = Backbone.View.extend({
     onMouseMove: function(evt) {
         cursorWorld = [ evt.pageX, evt.pageY ];
         this.convertPosition( cursorWorld );
+        this.trigger('cursor', cursorWorld[0], cursorWorld[1], evt.pageX, evt.pageY );
         
-        $('#debug_cursor').html( cursorWorld[0] + ", " + cursorWorld[1] );
-
         if( this.touchDown ){
             this.onMouseDrag(evt);
         }

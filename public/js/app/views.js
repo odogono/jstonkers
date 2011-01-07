@@ -127,7 +127,10 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
            // console.log(units);
         });
         
+        this.initialiseCollision();
+        
         jstonkers.view.MapView.prototype.initialize.call(this, this.options);
+        
     },
     
     render: function() {
@@ -135,6 +138,49 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         // this.collection.each( this.add );
         this.model.get('units').each( this.add );
     },
+    
+    initialiseCollision: function() {
+        var self = this;
+        
+        // create the two collision views which return colour values from a given
+        // position in the image bitmap. this is used to determine a single collision
+        // value for a position within the world, ie to show water or mountain terrain
+        
+        // this isn't a traditional view - it could almost be a model...
+        this.collisionView = new jstonkers.view.CollisionView({
+            id:'collision_map',
+            el:this.options.collision_map
+        });
+        
+        // because different browsers return different values from getImageData
+        // we use an index image to calibrate
+        this.collisionIndex = new jstonkers.view.CollisionView({
+            id:'collision_index',
+            el:this.options.collision_index
+        });
+        
+        // bind the movement of the cursor
+        this.bind('cursor', function(wx,wy,ex,ey) {
+            var val = this.getCollisionFromWorldPosition( wx,wy );
+            $('#debug_tile').html( 'tile: ' + this.cursorTilePos[0] + ", " + this.cursorTilePos[1] + ' ' + val );
+        });
+    },
+    
+    // returns a collision value for the given world position
+    // the value is an index into the collision index image
+    getCollisionFromWorldPosition: function(wx,wy){
+        var bounds, pos, val;
+        if( !this.tileValues ){
+            bounds = this.model.get('bounds');
+            this.tileValues = this.collisionIndex.getValues();
+            this.tileMul = [ bounds[2] / this.collisionView.width, bounds[3] / this.collisionView.height ];
+        }
+
+        this.cursorTilePos = [  (wx / this.tileMul[0]) | 0, (wy / this.tileMul[1]) | 0 ];
+        val = this.collisionView.getValue( this.cursorTilePos[0], this.cursorTilePos[1] );
+        return this.tileValues.indexOf( val );// self.collisionIndex.getIndex( val );
+    },
+    
     
     add: function(model){
         var position = model.get('position');
@@ -156,4 +202,72 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         this.collection.each(this.add);
     },
 
+});
+
+/**
+* Used to encapsulate the maps collision data
+*/
+jstonkers.view.CollisionView = Backbone.View.extend({
+    initialize: function() {
+        // console.log( this.el );
+        var self = this;
+        this.canvas = $(this.el).find('canvas')[0];
+        this.img = $(this.el).find('img')[0];
+        this.width = parseInt(this.img.getAttribute("width"));
+        this.height = parseInt(this.img.getAttribute("height"));
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        // console.log( this.el );
+        this.isRendered = false;
+        
+        // make sure the related image is loaded before we
+        // render/analyse it
+        // this.img.onload = function(){
+        //     self.render();
+        // }
+    },
+    
+    update: function() {
+        // console.log( $(this.el) );
+        
+        this.context = this.canvas.getContext("2d");
+        this.context.drawImage( this.img, 0, 0, this.width, this.height );
+        
+        this.imageData = this.context.getImageData(0,0,this.width,this.height);
+        this.isRendered = true;
+        
+        return this;
+    },
+    
+    getValue: function(x,y) {
+        if( !this.isRendered )
+            this.update();
+        var index = (x + y * this.width) * 4;
+        var vals = [ this.imageData.data[index], this.imageData.data[index+1], this.imageData.data[index+2], this.imageData.data[index+3] ];
+        var rgba = ((vals[0]&0xFF)<<24) | 
+                    ((vals[1]&0xFF)<<16) | 
+                    ((vals[2]&0xFF)<<8)
+                    | ((vals[3]&0xFF)<<0);
+        if (rgba < 0)
+            rgba = 0xFFFFFFFF + rgba + 1;
+        var result = rgba.toString(16);
+        if (result.length < 8) {
+            result = ('0000000000' + result).slice(-8);
+        }
+        return result;
+    },
+    
+    getValues: function() {
+        var x,y,result = [];
+        if( !this.isRendered )
+            this.render();
+        
+        for( y=0;y<this.height;y++ ){
+            for( x=0;x<this.width;x++ ){
+                result.push( this.getValue(x,y) );
+            }
+        }
+        return result;
+    }
+    
 });

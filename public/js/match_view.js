@@ -12,11 +12,12 @@ $(function(){
         createDefaultModels : function() {
             this.match = new jstonkers.model.Match();
             this.match.bind('change:position', function(model,position){
-                $("#debug_position").html(position[0] + "," + position[1]);
+                $("#debug_position").html('position: ' + position[0] + "," + position[1]);
             });
         },
         
         createSubViews : function() {
+            var self = this;
             // define the template used for tiles
             $.template( "template-map_tile", $("#template-map_tile") );
             
@@ -24,12 +25,18 @@ $(function(){
                 el:$(".world_view")[0],
                 model:this.match,
                 template:"template-map_tile",
+                collision_map:$('#collision_map')[0],
+                collision_index:$('#collision_index')[0],
             });
+            
         },
         
         
         renderSubViews: function(){
             this.mapView.render();
+            
+            // nb - no point in rendering until the related image is loaded
+            // this.collisionView.render();
         },
 
         toggleZoom: function(e){
@@ -74,10 +81,9 @@ $(function(){
         });
     }
     
-    
-    
-    
     // Match.world.set( jstonkers.data.world );
     // Match.units.refresh( jstonkers.data.units );
     App.refresh( jstonkers.data );
 });
+
+

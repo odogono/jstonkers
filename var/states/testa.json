@@ -60,6 +60,7 @@
     
     "match":{
         "state":"playing",
-        "type":"normal"
+        "type":"normal",
+        "map":"spectrum"
     }
 }
