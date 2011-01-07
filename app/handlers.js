@@ -1,13 +1,20 @@
 var app = module.parent.exports,
-    fs = require('fs');
+    fs = require('fs'),
+    path = require('path');
 
-app.get('/view', function(req, res) {
-    var state = JSON.parse( fs.readFileSync( path.join( app.path.var, 'test', 'matchstate_b.json' ) ) );
+app.get('/view/:matchid', function(req, res) {
     
-    state.socket_enabled = app.config.socket_server.enabled;
+    var statePath = path.join( app.path.var, 'states', req.params.matchid + '.json' );
+    
+    if( path.existsSync(statePath) && fs.statSync(statePath).isFile() ) {
+        var state = JSON.parse( fs.readFileSync( statePath ) );
+        state.socket_enabled = app.config.socket_server.enabled;
+    }
     
     res.render('match/view', { locals: {state:state} });
 });
+
+
 
 app.post('/match/new', function(req,res){
     log( inspect(req.body) );
