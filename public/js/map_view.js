@@ -65,7 +65,6 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
     },
 
 
-    
     setWorldPosition: function( pPosition ) {
         
         if( !pPosition ){
@@ -100,7 +99,11 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
     {
         var img = $.tmpl( this.template, { top: py, left: px } )[0];
         img.col = gx; img.row = gy;
-        img.src = this.imageSrc + zoom + '/' + gx + '-' + gy + '.png';
+        if( gx >= 0 && gy >= 0 && gx < this.worldCols && gy < this.worldRows ) {
+            img.src = this.imageSrc + zoom + '/' + gx + '-' + gy + '.png';
+        }else{
+            img.src = this.imageSrc + 'n-n.png';
+        }
         img.xpos = px; img.ypos = py;
         return img;
     },
