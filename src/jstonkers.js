@@ -14,5 +14,6 @@ require('./model/unit');
 require('./model/team');
 require('./model/player');
 require('./model/match');
+require('./model/cmap');
 jstonkers.storage = require('./storage');
 jstonkers.utils = require('./utils');
