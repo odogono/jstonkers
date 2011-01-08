@@ -13,9 +13,15 @@ module.exports = testCase({
     
     testLoad: function(test) {
         var options = {
-            data:"var/maps/b.col.png",
-            dims:[ 8,9 ]
+            data: 'var/test/cmap.pix'
         };
         
+        this.cmap = jstonkers.model.createCMap( options );
+        
+        test.equals( this.cmap.width, 8 );
+        test.equals( this.cmap.height, 8 );
+        test.equals( this.cmap.data.length, 64 );
+        
+        test.done();
     },
 });

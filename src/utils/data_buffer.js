@@ -43,8 +43,15 @@ DataBuffer.prototype = {
     },
     
     readBytes: function(len) {
-        var result = this.data.slice( this.pos, this.pos+len );
-        this.pos += len;
+        var result;
+        if( len ){
+            result = this.data.slice( this.pos, this.pos+len );
+            this.pos += len;
+        } else {
+            result = this.data.slice( this.pos );
+            this.pos = this.data.length;
+        }
+        
         return result;
     },
     
@@ -57,7 +64,7 @@ DataBuffer.prototype = {
     }
 }
 
-exports.create = function( data ) {
+exports.createDataBuffer = function( data ) {
     if( Array.isArray(data) )
         data = new Buffer( data );
     
