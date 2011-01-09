@@ -1,4 +1,6 @@
-var Vector2f = function (){}
+var Vector2f = exports.Vector2f = function (){
+    
+};
 
 Vector2f.prototype = {
     e: function(i) {
@@ -23,7 +25,7 @@ Vector2f.prototype = {
     }
 }
 
-exports.create = function( x, y, z ) {
+exports.createVector2f = function( x, y, z ) {
     var v = new Vector2f();
     var type = Object.prototype.toString.call(x);
     
@@ -42,6 +44,3 @@ exports.create = function( x, y, z ) {
     }
     return v;
 }
-
-exports.info = "two dimensional vector class";
-exports.Vector2f = Vector2f;
