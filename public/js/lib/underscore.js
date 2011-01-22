@@ -1,5 +1,5 @@
-//     Underscore.js 1.1.3
-//     (c) 2010 Jeremy Ashkenas, DocumentCloud Inc.
+//     Underscore.js 1.1.4
+//     (c) 2011 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore is freely distributable under the MIT license.
 //     Portions of Underscore are inspired or borrowed from Prototype,
 //     Oliver Steele's Functional, and John Resig's Micro-Templating.
@@ -58,7 +58,7 @@
   }
 
   // Current version.
-  _.VERSION = '1.1.3';
+  _.VERSION = '1.1.4';
 
   // Collection Functions
   // --------------------
@@ -67,7 +67,6 @@
   // Handles objects implementing `forEach`, arrays, and raw objects.
   // Delegates to **ECMAScript 5**'s native `forEach` if available.
   var each = _.each = _.forEach = function(obj, iterator, context) {
-    var value;
     if (obj == null) return;
     if (nativeForEach && obj.forEach === nativeForEach) {
       obj.forEach(iterator, context);
@@ -360,12 +359,13 @@
   // for **isSorted** to use binary search.
   _.indexOf = function(array, item, isSorted) {
     if (array == null) return -1;
+    var i, l;
     if (isSorted) {
-      var i = _.sortedIndex(array, item);
+      i = _.sortedIndex(array, item);
       return array[i] === item ? i : -1;
     }
     if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item);
-    for (var i = 0, l = array.length; i < l; i++) if (array[i] === item) return i;
+    for (i = 0, l = array.length; i < l; i++) if (array[i] === item) return i;
     return -1;
   };
 
@@ -383,18 +383,21 @@
   // the native Python `range()` function. See
   // [the Python documentation](http://docs.python.org/library/functions.html#range).
   _.range = function(start, stop, step) {
-    var args  = slice.call(arguments),
-        solo  = args.length <= 1,
-        start = solo ? 0 : args[0],
-        stop  = solo ? args[0] : args[1],
-        step  = args[2] || 1,
-        len   = Math.max(Math.ceil((stop - start) / step), 0),
-        idx   = 0,
-        range = new Array(len);
-    while (idx < len) {
+    if (arguments.length <= 1) {
+      stop = start || 0;
+      start = 0;
+    }
+    step = arguments[2] || 1;
+
+    var len = Math.max(Math.ceil((stop - start) / step), 0);
+    var idx = 0;
+    var range = new Array(len);
+
+    while(idx < len) {
       range[idx++] = start;
       start += step;
     }
+
     return range;
   };
 
@@ -425,7 +428,7 @@
     hasher = hasher || _.identity;
     return function() {
       var key = hasher.apply(this, arguments);
-      return key in memo ? memo[key] : (memo[key] = func.apply(this, arguments));
+      return hasOwnProperty.call(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
     };
   };
 
@@ -498,7 +501,6 @@
   // Retrieve the names of an object's properties.
   // Delegates to **ECMAScript 5**'s native `Object.keys`
   _.keys = nativeKeys || function(obj) {
-    if (_.isArray(obj)) return _.range(0, obj.length);
     var keys = [];
     for (var key in obj) if (hasOwnProperty.call(obj, key)) keys[keys.length] = key;
     return keys;

@@ -137,6 +137,7 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         jstonkers.view.MapView.prototype.render.call(this);
         // this.collection.each( this.add );
         this.model.get('units').each( this.add );
+        return this;
     },
     
     initialiseCollision: function() {

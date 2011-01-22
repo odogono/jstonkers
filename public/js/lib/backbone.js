@@ -160,7 +160,7 @@
       var html;
       if (html = this._escapedAttributes[attr]) return html;
       var val = this.attributes[attr];
-      return this._escapedAttributes[attr] = escapeHTML(val == null ? '' : val);
+      return this._escapedAttributes[attr] = escapeHTML(val == null ? '' : '' + val);
     },
 
     // Returns `true` if the attribute contains a value that is not null
@@ -1003,6 +1003,9 @@
     } else {
       child = function(){ return parent.apply(this, arguments); };
     }
+
+    // Inherit class (static) properties from parent.
+    _.extend(child, parent);
 
     // Set the prototype chain to inherit from `parent`, without calling
     // `parent`'s constructor function.
