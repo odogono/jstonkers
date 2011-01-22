@@ -36,6 +36,6 @@
     "match":{
         "state":"playing",
         "type":"normal",
-        "map":"test"
+        "map":"test_b"
     }
 }

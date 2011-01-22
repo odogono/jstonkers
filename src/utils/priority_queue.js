@@ -19,6 +19,16 @@ PriorityQueue.prototype = {
     },
     
     push: function( item, priority ) {
+        var existing;
+        // if( !this.allow_dupes ){
+            if( existing = this.contains(item) ) {
+                if( existing.priority !== priority ){
+                    existing.priority = priority;
+                    this.queue.sort( this.sort );
+                    return;
+                }
+            }
+        // }
         this.queue.push( {item:item, priority:priority} );
         this.queue.sort( this.sort );
     },
@@ -38,17 +48,49 @@ PriorityQueue.prototype = {
     
     length: function() {
         return this.queue.length;
-    }
+    },
+    
+    contains: function( item ) {
+        var result;
+        
+        this.queue.some( function(el){
+            if( _.isEqual(el.item,item) ) {
+                result = el;
+                return true;
+            }
+        });
+        return result;
+    },
+    
+    select: function( selectFn ) {
+        return _.map(_.select( this.queue, function(i){
+            return selectFn( i.item );
+        }), function(i){ return i.item });
+    },
+    
+    remove: function( item ) {
+        var index = -1;
+        for( var i in this.queue ) {
+            if( _.isEqual(item, this.queue[i].item ) ){
+                index = i;
+                break;
+            }
+        }
+        if( index >= 0 )
+            return this.queue.splice( index, 1 );
+    },
 };
 
 exports.PriorityQueue = PriorityQueue;
+
 exports.createPriorityQueue = function(options){
     var result = new PriorityQueue();
-    
+
     options = options || {};
-    
-    // set default sort
     result.sort = options.sort || result.defaultSort;
+    result.allow_dupes = options.allow_dupes;
+    if( options.reverse )
+        result.sort = result.reverseSort;
     
     return result;
 };

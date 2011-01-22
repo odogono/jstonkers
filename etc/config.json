@@ -51,6 +51,6 @@
                 { "bounds":[0,0,256,256], "tile_size":256, "src":"var/maps/c.1.png" },
                 { "bounds":[0,0,512,512], "tile_size":256, "src":"var/maps/c.2.png" }
             ]
-        },
+        }
     }
 }

@@ -88,8 +88,21 @@ module.exports = testCase({
         test.equal( this.queue.pop(), 'middle' );
         test.equal( this.queue.pop(), 'last' );
         
+        
+        this.queue = jstonkers.utils.createPriorityQueue({reverse:true});
+        
+        this.queue.push( 'last', 24 );
+        this.queue.push( 'first', 48 );
+        this.queue.push( 'middle', 12 );
+        
+        test.equal( this.queue.pop(), 'middle' );
+        test.equal( this.queue.pop(), 'last' );
+        test.equal( this.queue.pop(), 'first' );
+        
         test.done();
     },
+    
+    
     
     testCustomSort: function( test ) {
         var sort = function(a,b) {
@@ -113,5 +126,105 @@ module.exports = testCase({
         
         test.done();
     },
+    
+    testContains: function(test) {
+        
+        var value = {name:'middle', active:false};
+        var value2 = {name:'middle', active:false};
+        var value3 = {name:'middle', active:true};
+        
+        this.queue.push( 'last', 13 );
+        this.queue.push( 'first', 200 );
+        this.queue.push( value, 199 );
+        
+        test.ok( this.queue.contains('last') );
+        test.ok( this.queue.contains('first') );
+        test.ok( !this.queue.contains('middle') );
+        test.ok( this.queue.contains(value) );
+        test.ok( this.queue.contains(value2) );
+        test.ok( !this.queue.contains(value3) );
+        
+        test.done();
+        
+    },
+    
+    
+    /*testDuplicates: function(test) {
+        
+        this.queue = jstonkers.utils.createPriorityQueue({allow_dupes:true});
+        
+        this.queue.push( 'last', 40 );
+        
+        this.queue.push( 'first', 300 );
+        this.queue.push( 'middle', 190 );
+        this.queue.push( 'first', 300 );
+        this.queue.push( 'middle', 190 );
+        this.queue.push( 'last', 40 );
+        
+        log(inspect(this.queue));
+        
+        test.equal( this.queue.pop(), 'first' );
+        test.equal( this.queue.pop(), 'first' );
+        test.equal( this.queue.pop(), 'middle' );
+        test.equal( this.queue.pop(), 'middle' );
+        test.equal( this.queue.pop(), 'last' );
+        test.equal( this.queue.pop(), 'last' );
+        
+        test.ok( this.queue.isEmpty() );
+        
+        test.done();
+    },//*/
+    
+    
+    testMove: function(test) {
+        
+        this.queue.push( 'last', 40 );
+        this.queue.push( 'first', 300 );
+        this.queue.push( 'middle', 190 );
+        
+        this.queue.push( 'last', 301 );
+        
+        test.equal( this.queue.pop(), 'last' );
+        test.equal( this.queue.pop(), 'first' );
+        test.equal( this.queue.pop(), 'middle' );
+        
+        test.ok( this.queue.isEmpty() );
+        
+        test.done();
+    },
+    
+    testSelect: function(test) {
+        
+        this.queue.push( {name:'first', time:60}, 20 );
+        this.queue.push( {name:'middle', time:20}, 20 );
+        this.queue.push( {name:'last', time:200}, 200 );
+        
+        test.equal( this.queue.select( function(item){
+            return item.time === 20;
+        })[0].name, 'middle' ); 
+        
+        test.equal( _.first(this.queue.select( function(item){
+            return item.time === 220;
+        })), undefined );
+        
+        test.done();
+    },
+    
+    testRemove: function(test) {
+        this.queue.push( {name:'first', time:60}, 20 );
+        this.queue.push( {name:'middle', time:20}, 20 );
+        this.queue.push( {name:'last', time:200}, 200 );
+        
+        test.equal( this.queue.length(), 3 );
+        
+        this.queue.remove( {name:'middle', time:20} );
+        test.equal( this.queue.length(), 2 );
+        
+        test.equal( this.queue.remove( {name:'middle', time:20}), undefined );
+        test.equal( this.queue.length(), 2 );
+        
+        test.done();
+    },
+    
     
 });
