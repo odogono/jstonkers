@@ -10,7 +10,7 @@ var app = module.exports = express.createServer();
 require('./config');
 
 // create the storage manager
-app.persistentStorage = jstonkers.utils.PersistentStorage.create();
+// app.persistentStorage = jstonkers.utils.PersistentStorage.create();
 
 require('./helpers');
 require('./socketio');

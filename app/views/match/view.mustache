@@ -1,0 +1,38 @@
+<div class="jstonkers_view">
+    <form action="/match/001/commands/" method="post">
+        <div id="inventory_0" class="inventory border_a"></div>
+        <div class="world_view border_a"></div>
+        <div id="inventory_1" class="inventory border_a"></div>
+        <div id="messages" class="border_a"></div>
+    </form>
+    {{#cmap}}
+    <div id="collision_map" style="display:none;">
+        <canvas width="{{width}}" height="{{height}}"></canvas>
+        <img src="{{href}}" width="{{width}}" height="{{height}}" />
+    </div>
+    {{/cmap}}
+    
+    <div id="debug_position">position: 0,0</div>
+    <div id="debug_cursor">cursor: 0,0</div>
+    <div id="debug_tile">tile: 0,0</div>
+    <p><a href="#" id="debug_zoom">zoom</a></p>
+    <p><a href="#" id="debug_save">save</a></p>
+</div>
+
+<script type="text/javascript" charset="utf-8">
+//<![CDATA[
+window.jstonkers.data = {{&state}};
+//]]>
+</script>
+
+<script id="template-map_tile" type="x-jquery-tmpl" charset="utf-8">
+<img class="tile" src="/img/tiles/b/n-n.png" style="top:${top}; left:${left}"/>
+</script>
+
+<script id="template-map_unit" type="x-jquery-tmpl" charset="utf-8">
+<div class="sprite unit" src="/img/sprites.2.png" style="top:${screen.top}; left:${screen.left}" />
+</script>
+
+<script id="template-unit" type="x-jquery-tmpl" charset="utf-8">
+<div class="sprite unit <%= type %>" src="/img/sprites.2.png" style="top:<%= screen.top %>; left:<%= screen.left %>" />
+</script>

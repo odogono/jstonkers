@@ -141,6 +141,10 @@
     // Has the item been changed since the last `"change"` event?
     _changed : false,
 
+    // The default name for the JSON `id` attribute is `"id"`. MongoDB and
+    // CouchDB users may want to set this to `"_id"`.
+    idAttribute : 'id',
+
     // Initialize is an empty function by default. Override it with your own
     // initialization logic.
     initialize : function(){},
@@ -183,7 +187,7 @@
       if (!options.silent && this.validate && !this._performValidation(attrs, options)) return false;
 
       // Check for changes of `id`.
-      if ('id' in attrs) this.id = attrs.id;
+      if (this.idAttribute in attrs) this.id = attrs[this.idAttribute];
 
       // Update attributes.
       for (var attr in attrs) {
@@ -202,8 +206,9 @@
     },
 
     // Remove an attribute from the model, firing `"change"` unless you choose
-    // to silence it.
+    // to silence it. `unset` is a noop if the attribute doesn't exist.
     unset : function(attr, options) {
+      if (!(attr in this.attributes)) return this;
       options || (options = {});
       var value = this.attributes[attr];
 
@@ -215,6 +220,7 @@
       // Remove the attribute.
       delete this.attributes[attr];
       delete this._escapedAttributes[attr];
+      if (attr == this.idAttribute) delete this.id;
       this._changed = true;
       if (!options.silent) {
         this.trigger('change:' + attr, this, void 0, options);
@@ -258,7 +264,7 @@
         if (success) success(model, resp);
       };
       options.error = wrapError(options.error, model, options);
-      (this.sync || Backbone.sync)('read', this, options);
+      (this.sync || Backbone.sync).call(this, 'read', this, options);
       return this;
     },
 
@@ -276,7 +282,7 @@
       };
       options.error = wrapError(options.error, model, options);
       var method = this.isNew() ? 'create' : 'update';
-      (this.sync || Backbone.sync)(method, this, options);
+      (this.sync || Backbone.sync).call(this, method, this, options);
       return this;
     },
 
@@ -287,11 +293,11 @@
       var model = this;
       var success = options.success;
       options.success = function(resp) {
-        if (model.collection) model.collection.remove(model);
+        model.trigger('destroy', model, model.collection, options);
         if (success) success(model, resp);
       };
       options.error = wrapError(options.error, model, options);
-      (this.sync || Backbone.sync)('delete', this, options);
+      (this.sync || Backbone.sync).call(this, 'delete', this, options);
       return this;
     },
 
@@ -301,7 +307,7 @@
     url : function() {
       var base = getUrl(this.collection) || this.urlRoot || urlError();
       if (this.isNew()) return base;
-      return base + (base.charAt(base.length - 1) == '/' ? '' : '/') + this.id;
+      return base + (base.charAt(base.length - 1) == '/' ? '' : '/') + encodeURIComponent(this.id);
     },
 
     // **parse** converts a response into the hash of attributes to be `set` on
@@ -501,7 +507,7 @@
         if (success) success(collection, resp);
       };
       options.error = wrapError(options.error, collection, options);
-      (this.sync || Backbone.sync)('read', this, options);
+      (this.sync || Backbone.sync).call(this, 'read', this, options);
       return this;
     },
 
@@ -511,7 +517,9 @@
       var coll = this;
       options || (options = {});
       if (!(model instanceof Backbone.Model)) {
-        model = new this.model(model, {collection: coll});
+        var attrs = model;
+        model = new this.model(null, {collection: coll});
+        if (!model.set(attrs)) return false;
       } else {
         model.collection = coll;
       }
@@ -555,7 +563,9 @@
       if (already) throw new Error(["Can't add the same model to a set twice", already.id]);
       this._byId[model.id] = model;
       this._byCid[model.cid] = model;
-      model.collection = this;
+      if (!model.collection) {
+        model.collection = this;
+      }
       var index = this.comparator ? this.sortedIndex(model, this.comparator) : this.length;
       this.models.splice(index, 0, model);
       model.bind('all', this._onModelEvent);
@@ -581,7 +591,9 @@
 
     // Internal method to remove a model's ties to a collection.
     _removeReference : function(model) {
-      delete model.collection;
+      if (this == model.collection) {
+        delete model.collection;
+      }
       model.unbind('all', this._onModelEvent);
     },
 
@@ -589,10 +601,13 @@
     // Sets need to update their indexes when models change ids. All other
     // events simply proxy through. "add" and "remove" events that originate
     // in other collections are ignored.
-    _onModelEvent : function(ev, model, collection) {
+    _onModelEvent : function(ev, model, collection, options) {
       if ((ev == 'add' || ev == 'remove') && collection != this) return;
-      if (ev === 'change:id') {
-        delete this._byId[model.previous('id')];
+      if (ev == 'destroy') {
+        this._remove(model, options);
+      }
+      if (ev === 'change:' + model.idAttribute) {
+        delete this._byId[model.previous(model.idAttribute)];
         this._byId[model.id] = model;
       }
       this.trigger.apply(this, arguments);
@@ -660,12 +675,17 @@
       Backbone.history.saveLocation(fragment);
     },
 
-    // Bind all defined routes to `Backbone.history`.
+    // Bind all defined routes to `Backbone.history`. We have to reverse the
+    // order of the routes here to support behavior where the most general
+    // routes can be defined at the bottom of the route map.
     _bindRoutes : function() {
       if (!this.routes) return;
+      var routes = [];
       for (var route in this.routes) {
-        var name = this.routes[route];
-        this.route(route, name, this[name]);
+        routes.unshift([route, this.routes[route]]);
+      }
+      for (var i = 0, l = routes.length; i < l; i++) {
+        this.route(routes[i][0], routes[i][1], this[routes[i][1]]);
       }
     },
 
@@ -700,6 +720,9 @@
   // Cached regex for cleaning hashes.
   var hashStrip = /^#*/;
 
+  // Has the history handling already been started?
+  var historyStarted = false;
+
   // Set up all inheritable **Backbone.History** properties and methods.
   _.extend(Backbone.History.prototype, {
 
@@ -715,6 +738,7 @@
     // Start the hash change handling, returning `true` if the current URL matches
     // an existing route, and `false` otherwise.
     start : function() {
+      if (historyStarted) throw new Error("Backbone.history has already been started");
       var docMode = document.documentMode;
       var oldIE = ($.browser.msie && (!docMode || docMode <= 7));
       if (oldIE) {
@@ -725,13 +749,14 @@
       } else {
         setInterval(this.checkUrl, this.interval);
       }
+      historyStarted = true;
       return this.loadUrl();
     },
 
-    // Add a route to be tested when the hash changes. Routes are matched in the
-    // order they are added.
+    // Add a route to be tested when the hash changes. Routes added later may
+    // override previous routes.
     route : function(route, callback) {
-      this.handlers.push({route : route, callback : callback});
+      this.handlers.unshift({route : route, callback : callback});
     },
 
     // Checks the current URL to see if it has changed, and if it has,
@@ -800,6 +825,9 @@
 
   // Cached regex to split keys for `delegate`.
   var eventSplitter = /^(\w+)\s*(.*)$/;
+
+  // List of view options to be merged as properties.
+  var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName'];
 
   // Set up all inheritable **Backbone.View** properties and methods.
   _.extend(Backbone.View.prototype, Backbone.Events, {
@@ -876,12 +904,10 @@
     // attached directly to the view.
     _configure : function(options) {
       if (this.options) options = _.extend({}, this.options, options);
-      if (options.model)      this.model      = options.model;
-      if (options.collection) this.collection = options.collection;
-      if (options.el)         this.el         = options.el;
-      if (options.id)         this.id         = options.id;
-      if (options.className)  this.className  = options.className;
-      if (options.tagName)    this.tagName    = options.tagName;
+      for (var i = 0, l = viewOptions.length; i < l; i++) {
+        var attr = viewOptions[i];
+        if (options[attr]) this[attr] = options[attr];
+      }
       this.options = options;
     },
 
@@ -891,7 +917,7 @@
     // an element from the `id`, `className` and `tagName` proeprties.
     _ensureElement : function() {
       if (!this.el) {
-        var attrs = {};
+        var attrs = this.attributes || {};
         if (this.id) attrs.id = this.id;
         if (this.className) attrs['class'] = this.className;
         this.el = this.make(this.tagName, attrs);

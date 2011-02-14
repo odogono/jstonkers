@@ -61,6 +61,7 @@
     "match":{
         "state":"playing",
         "type":"normal",
-        "map":"spectrum"
+        "map":"spectrum",
+        "valid":true
     }
 }

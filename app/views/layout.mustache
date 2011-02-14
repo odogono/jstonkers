@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <meta content="telephone=no" name="format-detection">
+    {{#javascript}}
+    <script src="{{.}}.js"></script>
+    {{/javascript}}
+    {{#css}}
+    <link rel='stylesheet' href='{{.}}.css' type='text/css' media='screen, projection'>
+    {{/css}}
+    <title>{{title}}</title>
+  </head>
+  <body>
+      <div id="header"></div>
+      <div id="content">
+      {{&body}}
+      </div>
+      <div id="footer"></div>
+  </body>
+</html>

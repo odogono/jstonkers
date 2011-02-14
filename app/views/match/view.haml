@@ -1,7 +1,12 @@
 = include_js('match_view')
+= include_css('/css/lib/less')
+
 .jstonkers_view
   %form{ action: "/match/001/commands/", method: "post" }
-    .world_view{  }
+    #inventory_0{ class:"inventory border_a" }
+    .world_view{ class:"border_a"  }
+    #inventory_1{ class:"inventory border_a" }
+    #messages{ class:"border_a" }
 
   %div{ id:'collision_map', style:'display:none' }
     %canvas{ width:cmap.dims[0], height:cmap.dims[1] }
@@ -16,7 +21,7 @@
     %a{id:"debug_save", href:'#'} save
 
 :javascript
-  window.jstonkers.data = #{JSON.stringify(state)};
+  window.jstonkers.data = #{state};
 
 %script{ id: "template-map_tile", type: "text/x-jquery-tmpl" }
   %img{ class: "tile", src:"/img/tiles/b/n-n.png", style:"top:${top}; left:${left}"}

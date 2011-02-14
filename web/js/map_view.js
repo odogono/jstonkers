@@ -57,6 +57,8 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
                 imageTile = this.generateImageTag( xx + (x*this.tileSize), yy + (y*this.tileSize), sx + x, sy + y, this.zoom );        
                 $(imageTile).appendTo(this.el);
                 colTiles.push( imageTile );
+                // console.log('img: ' + (xx + (x*this.tileSize)) + ',' + (yy + (y*this.tileSize)) + ',' + (sx + x) + ',' + (sy + y) );
+                // console.log( imageTile );
             }
             this.tileArray.push( colTiles );
         }
@@ -92,19 +94,20 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
                     sx + x, sy + y, this.zoom );
             }
         }
-        
     },
 
     generateImageTag: function( px, py, gx, gy, zoom )
     {
-        var img = $.tmpl( this.template, { top: py, left: px } )[0];
-        img.col = gx; img.row = gy;
+        var imgSrc = this.imageSrc + 'n-n.png';
         if( gx >= 0 && gy >= 0 && gx < this.worldCols && gy < this.worldRows ) {
-            img.src = this.imageSrc + zoom + '/' + gx + '-' + gy + '.png';
-        }else{
-            img.src = this.imageSrc + 'n-n.png';
+            imgSrc = this.imageSrc + zoom + '/' + gx + '-' + gy + '.png';
         }
+        // var img = $.tmpl( this.template, { top: py, left: px } )[0];
+        var img = $('<img class="tile" src="' + imgSrc + '" style="top:' + py + 'px; left:' + px + 'px;" />')[0];
+        // img.src = imgSrc;
+        img.col = gx; img.row = gy;
         img.xpos = px; img.ypos = py;
+        
         return img;
     },
     

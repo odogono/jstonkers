@@ -284,7 +284,7 @@
   // values in the array. Aliased as `head`. The **guard** check allows it to work
   // with `_.map`.
   _.first = _.head = function(array, n, guard) {
-    return n && !guard ? slice.call(array, 0, n) : array[0];
+    return (n != null) && !guard ? slice.call(array, 0, n) : array[0];
   };
 
   // Returns everything but the first entry of the array. Aliased as `tail`.
@@ -292,7 +292,7 @@
   // the rest of the values in the array from that index onward. The **guard**
   // check allows it to work with `_.map`.
   _.rest = _.tail = function(array, index, guard) {
-    return slice.call(array, _.isUndefined(index) || guard ? 1 : index);
+    return slice.call(array, (index == null) || guard ? 1 : index);
   };
 
   // Get the last element of an array.
@@ -521,6 +521,14 @@
   _.extend = function(obj) {
     each(slice.call(arguments, 1), function(source) {
       for (var prop in source) obj[prop] = source[prop];
+    });
+    return obj;
+  };
+
+  // Fill in a given object with default properties.
+  _.defaults = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      for (var prop in source) if (obj[prop] == null) obj[prop] = source[prop];
     });
     return obj;
   };

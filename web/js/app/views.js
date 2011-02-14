@@ -59,8 +59,12 @@ jstonkers.view.Unit = Backbone.View.extend({
         this.uvs = this.view.spriteData.uvs[ this.zoom-1 ][type];
 
         this.el.style.backgroundPosition = -(this.uvs[0]+this.offset[0]) + 'px ' + -(this.uvs[1]+this.offset[1]) + 'px';
-        this.el.style.width = this.uvs[2];
-        this.el.style.height = this.uvs[3];
+        $(this.el).css({width:this.uvs[2], height:this.uvs[3]});
+        // this.el.style.width = this.uvs[2];
+        // this.el.style.height = this.uvs[3];
+        
+        // console.log( this.uvs );
+        // console.log( this.el );
         
         this.updatePosition();
         
@@ -123,8 +127,6 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         
         this.model.bind('change:teams', function(teams){
             self.model.get('units').each( self.add );
-           // units.each( self.add );
-           // console.log(units);
         });
         
         this.initialiseCollision();
@@ -186,6 +188,7 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
             view: this,
         });
         
+        // console.log('adding unit ' + model.get('id') );
         $(this.el).append(unitView.render().el);
         
         // make sure the sprite is updated when the map is moved (screen pos)

@@ -3,10 +3,25 @@ $(function(){
     jstonkers.controllers.Match = Backbone.Controller.extend({
         
         initialize : function() {
+            var self = this;
             this.el = $('.jstonkers_view')[0];
             this.createDefaultModels();
             this.createSubViews();
             this.renderSubViews();
+            
+            // TODO AV : find better place for this
+            // re-render the subviews after a window resize. the
+            // resize is delayed for a while to stop instant results which
+            // may cause flicker and pain
+            $(window).resize((function() {
+              var timeout = null;
+              return function() {
+                if (timeout) clearTimeout(timeout);
+                timeout = setTimeout(function(){
+                    self.renderSubViews();
+                }, 150);
+              };
+            })());
         },
         
         createDefaultModels : function() {
@@ -20,7 +35,6 @@ $(function(){
             var self = this;
             // define the template used for tiles
             $.template( "template-map_tile", $("#template-map_tile") );
-            
             this.mapView = new jstonkers.view.MatchView( {
                 el:$(".world_view")[0],
                 model:this.match,
@@ -29,7 +43,6 @@ $(function(){
             });
             
         },
-        
         
         renderSubViews: function(){
             this.mapView.render();

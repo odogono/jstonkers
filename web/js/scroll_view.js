@@ -19,10 +19,9 @@ jstonkers.view.ScrollView = Backbone.View.extend({
     
     initialize: function() {
         var self = this;
-        this.elOffset = $(this.el).offset();
-        this.elOffset = [this.elOffset.left, this.elOffset.top];
         
-        this.window = [0,0,$(this.el).width(),$(this.el).height()];
+        
+        // this.window = [0,0,$(this.el).width(),$(this.el).height()];
         
         this.model.bind('change:zoom', function(model,zoom){
             self.render();
@@ -39,6 +38,7 @@ jstonkers.view.ScrollView = Backbone.View.extend({
             self.trigger('mouseup', e);
             // self.onMouseUp(e);
         });
+        
     },
     
     
@@ -52,6 +52,10 @@ jstonkers.view.ScrollView = Backbone.View.extend({
             this.invalid = true;
             return this;
         }
+        
+        this.elOffset = $(this.el).offset();
+        this.elOffset = [this.elOffset.left, this.elOffset.top];
+        this.window = [0,0,$(this.el).width(),$(this.el).height()];
         
         var levelBounds = levels[ this.zoom-1 ].bounds;
         
