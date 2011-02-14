@@ -25,3 +25,6 @@
 [submodule "lib/node-utils"]
 	path = lib/node-utils
 	url = git://github.com/mikeal/node-utils.git
+[submodule "lib/qs"]
+	path = lib/qs
+	url = git://github.com/visionmedia/node-querystring.git
