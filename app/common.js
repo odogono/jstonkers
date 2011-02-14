@@ -18,7 +18,6 @@ exports.app_paths = {
     'backbone',
     'connect/lib',
     'express/lib',
-    'haml-js/lib',
     'sass.js/lib',
     'nodeunit/lib',
     'Socket.IO-node',
@@ -35,7 +34,6 @@ exports._ = exports.underscore = require('underscore');
 global.Backbone = exports.Backbone = require('backbone');
 exports.connect = require('connect');
 exports.express = require('express');
-exports.haml = require('haml');
 exports.socketio = require('socket.io');
 exports.request = require('request/main');
 exports.mongoose = require('mongoose');
