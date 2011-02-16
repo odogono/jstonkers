@@ -4,6 +4,7 @@ $(function(){
         
         initialize : function() {
             var self = this;
+            _.bindAll( this, 'onInventoryUnitSelected' );
             this.el = $('.jstonkers_view')[0];
             this.createDefaultModels();
             this.createSubViews();
@@ -56,6 +57,12 @@ $(function(){
                     teamIndex:1,
                 }),
             ];
+            
+            _.each( this.inventoryViews, function(iView){
+                iView.bind('selected', self.onInventoryUnitSelected);// function(view, unit){
+                   // console.log('unit ' + unit.id + ' touched'); 
+                // });
+            });
         },
         
         renderSubViews: function(){
@@ -74,6 +81,45 @@ $(function(){
         refresh: function( data ) {
             this.match.set( data );
         },
+        
+        onInventoryUnitSelected: function( inventory, unit ){
+            var self = this;
+            var setPosition = this.match.get('position');
+            var position = { x:setPosition[0], y:setPosition[1] };
+            var target = unit.model.get('position');
+            target = { x:target[0], y:target[1] };
+            
+            if( self.moveViewInterval ){
+                return;
+                // clearInterval( self.moveViewInterval );
+                // self.moveViewInterval = null;
+            }
+                
+            
+            // console.log('unit ' + unit.id + ' touched ' + JSON.stringify(target) );
+            
+            var tween = new TWEEN.Tween(position).to( target, 1000)
+            .easing(TWEEN.Easing.Sinusoidal.EaseInOut)
+            .onComplete(function(){
+                clearInterval( self.moveViewInterval );
+                self.moveViewInterval = null;
+            }).start();
+            
+            // console.log( 'current position: ' + JSON.stringify( setPosition ) + ' target: ' + JSON.stringify(target) );
+            this.moveViewInterval = setInterval( function(){
+                TWEEN.update();
+                setPosition[0] = position.x; setPosition[1] = position.y;
+                // self.mapView.setWorldPosition( position );
+                // console.log( 'current position: ' + JSON.stringify( setPosition ) + ' target: ' + JSON.stringify(target) );
+                
+                // self.match.set({position:[position.x,position.y]});
+                self.mapView.setWorldPosition( [position.x,position.y] );
+            }, 1000 / 30);
+            
+            // self.match.set( {position:[target.x,target.y] } );
+            // self.mapView.setWorldPosition( [target.x,target.y] );
+        },
+        
     });
     
     // Finally, we kick things off by creating the **App**.

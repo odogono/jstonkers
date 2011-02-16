@@ -18,6 +18,9 @@ jstonkers.model.Unit = jstonkers.model.Sprite.extend({
     toJSON : function() {
         var attrs = Backbone.Model.prototype.toJSON.call(this);
         delete attrs.match;
+        // no need to have a team reference ?
+        // attrs.team = attrs.team.id;
+        delete attrs.team;
         return attrs;
     },
 });
@@ -47,15 +50,17 @@ jstonkers.model.Team = Backbone.Model.extend({
         
         if( attrs.units && _.isArray(attrs.units) ){
             
+            // we may have been passed a list of unit ids; create stubs for
+            // these, they will be resolved to proper references later
             if( attrs.units.length > 0 && _.isString(attrs.units[0]) ) {
                 units.refresh(
                     _.map( attrs.units, function(unitID){
                         return {id:unitID, stub:true};
                     }), {silent:true} );        
             } else {
+                // a list of full units has been passed to us
                 units.refresh( attrs.units, {silent:true} );
             }
-            
             delete attrs.units;
         }
         
@@ -180,6 +185,7 @@ jstonkers.model.Match = Backbone.Model.extend({
                         return unit;
                     }
                 }
+                return unit;
             });
             
             // remove any null units

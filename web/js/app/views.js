@@ -37,6 +37,8 @@ jstonkers.view.Unit = Backbone.View.extend({
             if( self.touchDown ){
                 self.touchDown = false;
                 $(self.el).removeClass('selected');
+                self.onTouchUp(e);
+                self.trigger('touch_up', self);
             }
         });
     },
@@ -89,6 +91,7 @@ jstonkers.view.Unit = Backbone.View.extend({
     onTouchDown: function(evt){
         this.touchDown = true;
         $(this.el).addClass('selected');
+        this.trigger('touch_down', self);
         return false;
     },
     
@@ -113,6 +116,7 @@ jstonkers.view.InventoryUnit = jstonkers.view.Unit.extend({
     },
     
     updatePosition: function(model,model_position) {
+        // override to remove logic for placement on map
     },
     // 
     // render: function(){
@@ -122,10 +126,12 @@ jstonkers.view.InventoryUnit = jstonkers.view.Unit.extend({
     // },
     // 
     onTouchDown: function(evt){
+        jstonkers.view.Unit.prototype.onTouchDown.call(this, evt);
     },
     onTouchMove: function(evt){
     },
     onTouchUp: function(evt){
+        // console.log('touched ' + this.model.get('position') );
     },
 })
 
@@ -301,6 +307,8 @@ jstonkers.view.InventoryView = Backbone.View.extend({
         this.spriteData = window.sprite_data;
         this.teamIndex = this.options.teamIndex;
         this.zoom = 3;
+        
+        // _.bindAll(this, 'onUnitSelected');
 
         // listen to team updates
         this.model.bind('change:teams', function(teams){
@@ -311,6 +319,9 @@ jstonkers.view.InventoryView = Backbone.View.extend({
     
     render: function() {
         var self = this;
+        
+        $(this.el).empty();
+        
         if( !this.team )
             return;
         
@@ -319,12 +330,19 @@ jstonkers.view.InventoryView = Backbone.View.extend({
             // add a specialised version of a unit to the view
             var unitView = new jstonkers.view.InventoryUnit({
                 id: 'iv' + unit.id, 
-                model: unit, 
+                model: unit,
                 map: self,
                 view: self,
                 spriteData: window.sprite_data,
             });
+            unitView.bind('touch_up', function(unit){
+                self.trigger('selected', self, unit );
+            });
             $(self.el).append(unitView.render().el);
         });
     },
+    
+    // onUnitSelected : function(unit){
+    //     console.log('unit ' + unit.id + ' touched');
+    // },
 });

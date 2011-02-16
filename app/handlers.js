@@ -13,6 +13,7 @@ app.get('/view/:matchid', function(req, res) {
         // css: [ '/css/lib/less' ],
         javascript: [ 
             // '/js/lib/less-grid',
+            '/js/lib/Tween',
               '/js/match_view' ],
     };
     
