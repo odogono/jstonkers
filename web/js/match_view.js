@@ -1,6 +1,6 @@
 $(function(){
     
-    jstonkers.controllers.Match = Backbone.Controller.extend({
+    jstonkers.controllers.MatchController = Backbone.Controller.extend({
         
         initialize : function() {
             var self = this;
@@ -19,7 +19,7 @@ $(function(){
                 if (timeout) clearTimeout(timeout);
                 timeout = setTimeout(function(){
                     self.renderSubViews();
-                }, 150);
+                }, 250);
               };
             })());
         },
@@ -42,11 +42,26 @@ $(function(){
                 collision_map:$('#collision_map')[0],
             });
             
+            // we cant set the inventory views model until the
+            // data arrives later
+            this.inventoryViews = [
+                new jstonkers.view.InventoryView({
+                    el:$('#inventory_0')[0],
+                    model:this.match,
+                    teamIndex:0,
+                }),
+                new jstonkers.view.InventoryView({
+                    el:$('#inventory_1')[0],
+                    model:this.match,
+                    teamIndex:1,
+                }),
+            ];
         },
         
         renderSubViews: function(){
             this.mapView.render();
-            
+            this.inventoryViews[0].render();
+            this.inventoryViews[1].render();
             // nb - no point in rendering until the related image is loaded
             // this.collisionView.render();
         },
@@ -62,7 +77,7 @@ $(function(){
     });
     
     // Finally, we kick things off by creating the **App**.
-    window.App = new jstonkers.controllers.Match();
+    window.App = new jstonkers.controllers.MatchController();
 });
 
 

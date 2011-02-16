@@ -16,9 +16,10 @@ jstonkers.view.Unit = Backbone.View.extend({
         var type = this.model.get('type');
         this.model.view = this;
         this.view = this.options.view;
+        this.spriteData = this.options.spriteData;
         this.zoom = this.view.zoom;
-        this.uvs = this.view.spriteData.uvs[ this.view.zoom-1 ][type];
-        
+        this.uvs = this.spriteData.uvs[ this.view.zoom-1 ][type];
+        // used to modulate the size of the sprite on the screen
         _.bindAll(this, 'render', 'updatePosition');
         
         // listen to changes in the models position and update our own
@@ -55,16 +56,11 @@ jstonkers.view.Unit = Backbone.View.extend({
         this.zoom = this.view.zoom;
         
         // offset depends on the team - we use the attribute index to select the right set
-        this.offset = this.view.spriteData.offsets[ team.get('index') ][ this.zoom-1 ];
-        this.uvs = this.view.spriteData.uvs[ this.zoom-1 ][type];
+        this.offset = this.spriteData.offsets[ team.get('index') ][ this.zoom-1 ];
+        this.uvs = this.spriteData.uvs[ this.zoom-1 ][type];
 
         this.el.style.backgroundPosition = -(this.uvs[0]+this.offset[0]) + 'px ' + -(this.uvs[1]+this.offset[1]) + 'px';
         $(this.el).css({width:this.uvs[2], height:this.uvs[3]});
-        // this.el.style.width = this.uvs[2];
-        // this.el.style.height = this.uvs[3];
-        
-        // console.log( this.uvs );
-        // console.log( this.el );
         
         this.updatePosition();
         
@@ -78,11 +74,12 @@ jstonkers.view.Unit = Backbone.View.extend({
         var position = model_position || this.model.get('position');
         var mul = this.view.mul;
         var bounds = this.view.window;
-        var x = (position[0]/mul[0]) - bounds[0];
-        var y = (position[1]/mul[1]) - bounds[1];
+        var x,y;
+        // var x = (position[0]/mul[0]) - bounds[0];
+        // var y = (position[1]/mul[1]) - bounds[1];
         
-        x -= (this.uvs[2]/2);
-        y -= (this.uvs[3]/2);
+        x = (position[0]/mul[0]) - bounds[0] - (this.uvs[2]/2);
+        y = (position[1]/mul[1]) - bounds[1] - (this.uvs[3]/2);
 
         this.el.style.left = x + 'px';
         this.el.style.top = y + 'px';
@@ -109,6 +106,29 @@ jstonkers.view.Unit = Backbone.View.extend({
     },
 });
 
+jstonkers.view.InventoryUnit = jstonkers.view.Unit.extend({
+    initialize: function() {
+        jstonkers.view.Unit.prototype.initialize.call(this, this.options);
+        this.zoom = 3;
+    },
+    
+    updatePosition: function(model,model_position) {
+    },
+    // 
+    // render: function(){
+    //     console.log('rendering?');
+    //     jstonkers.view.Unit.prototype.render.call(this);
+    //     $(this.el).css({width:this.uvs[2]*2, height:this.uvs[3]*2});
+    // },
+    // 
+    onTouchDown: function(evt){
+    },
+    onTouchMove: function(evt){
+    },
+    onTouchUp: function(evt){
+    },
+})
+
 
 
 jstonkers.view.MatchView = jstonkers.view.MapView.extend({
@@ -132,7 +152,6 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         this.initialiseCollision();
         
         jstonkers.view.MapView.prototype.initialize.call(this, this.options);
-        
     },
     
     render: function() {
@@ -186,6 +205,7 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
             model: model, 
             map: this,
             view: this,
+            spriteData: window.sprite_data,
         });
         
         // console.log('adding unit ' + model.get('id') );
@@ -201,6 +221,8 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
 
 });
 
+
+
 /**
 * Used to encapsulate the maps collision data
 */
@@ -210,7 +232,6 @@ jstonkers.view.CollisionView = Backbone.View.extend({
         var self = this;
         this.canvas = $(this.el).find('canvas')[0];
         this.img = $(this.el).find('img')[0];
-        
         
         this.width = parseInt($(this.img).attr('width'));
         this.height = parseInt($(this.img).attr('height'))-1;
@@ -227,8 +248,6 @@ jstonkers.view.CollisionView = Backbone.View.extend({
     },
     
     update: function() {
-        // console.log( $(this.el) );
-        
         this.context = this.canvas.getContext("2d");
         this.context.drawImage( this.img, 0, 0, this.canvas.width, this.canvas.height );
         
@@ -269,4 +288,43 @@ jstonkers.view.CollisionView = Backbone.View.extend({
         return result;
     }
     
+});
+
+
+
+/**
+*
+*/
+jstonkers.view.InventoryView = Backbone.View.extend({
+    initialize: function(){
+        var self = this;
+        this.spriteData = window.sprite_data;
+        this.teamIndex = this.options.teamIndex;
+        this.zoom = 3;
+
+        // listen to team updates
+        this.model.bind('change:teams', function(teams){
+            self.team = teams.at( self.teamIndex );
+            self.render();
+        });
+    },
+    
+    render: function() {
+        var self = this;
+        if( !this.team )
+            return;
+        
+        this.team.get('units').each( function(unit){
+            
+            // add a specialised version of a unit to the view
+            var unitView = new jstonkers.view.InventoryUnit({
+                id: 'iv' + unit.id, 
+                model: unit, 
+                map: self,
+                view: self,
+                spriteData: window.sprite_data,
+            });
+            $(self.el).append(unitView.render().el);
+        });
+    },
 });

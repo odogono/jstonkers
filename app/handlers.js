@@ -10,9 +10,9 @@ app.get('/view/:matchid', function(req, res) {
         col_href:'',
         state:null,
         socket_enabled:false,
-        css: [ '/css/lib/less' ],
+        // css: [ '/css/lib/less' ],
         javascript: [ 
-            '/js/lib/less-grid',
+            // '/js/lib/less-grid',
               '/js/match_view' ],
     };
     

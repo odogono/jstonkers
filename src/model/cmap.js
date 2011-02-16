@@ -197,8 +197,6 @@ jstonkers.model.createCMap = function( options ) {
             
             result.set({width: ds.readInt(), height: ds.readInt(), data: ds.readBytes()});
         }
-        
-        
     }
     
     return result;
