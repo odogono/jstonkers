@@ -79,7 +79,7 @@ $(function(){
         },
         
         refresh: function( data ) {
-            this.match.set( data );
+            this.match.set( this.match.parse(data) );
         },
         
         onInventoryUnitSelected: function( inventory, unit ){

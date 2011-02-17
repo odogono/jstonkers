@@ -70,5 +70,21 @@ module.exports = testCase({
     
         test.done();
     },
+    
+    testAddUnit: function(test) {
+        test.expect(3);
+        
+        var team = new jstonkers.model.Team({ id:'tea001' });
+        var unit = new jstonkers.model.Unit({ id:'unt001', type:'example' });
+        var expected =  { units: [ 'unt001' ], id: 'tea001' };
+        
+        team.add( unit );
+        test.deepEqual( team.toJSON(), expected );
+        
+        test.equal( team.get('units').at(0).id, 'unt001' );
+        test.equal( team.get('units').get('unt001').get('type'), 'example' );
+        
+        test.done();
+    },
 
 });

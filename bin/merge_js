@@ -8,13 +8,13 @@ var dirRoot = path.join( path.dirname(__filename), '../' );
 var common = require( path.join( dirRoot, 'app', 'common' ) );
 
 var targets = { 
-    // 'public/js/app/models.js':['lib/model/'],
-    'public/js/app/models.js':[
-        'lib/model/sprite.js',
-        'lib/model/unit.js',
-        'lib/model/team.js',
-        'lib/model/player.js',
-        'lib/model/match.js'
+    // 'web/js/app/models.js':['src/model/'],
+    'web/js/app/models.js':[
+        'src/model/sprite.js',
+        'src/model/unit.js',
+        'src/model/team.js',
+        'src/model/player.js',
+        'src/model/match.js'
         ],
 };
 
@@ -59,9 +59,7 @@ _.each(targets, function(source,target,list){
     
     log('files to write ' + JSON.stringify(filesToWrite) );
     
-    
-    fs.open( targetPath, 'w', function(err,fd){
-            
+    fs.open( targetPath, 'w', 0666, function(err,fd){    
         _.each( filesToWrite, function(filePath){
             var buffer = fs.readFileSync(filePath);
             fs.writeSync( fd, "//" + path.basename(filePath) + "\n\n\n" );

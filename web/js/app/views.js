@@ -36,9 +36,7 @@ jstonkers.view.Unit = Backbone.View.extend({
         $(document).mouseup(function(e) {
             if( self.touchDown ){
                 self.touchDown = false;
-                $(self.el).removeClass('selected');
                 self.onTouchUp(e);
-                self.trigger('touch_up', self);
             }
         });
     },
@@ -77,12 +75,9 @@ jstonkers.view.Unit = Backbone.View.extend({
         var mul = this.view.mul;
         var bounds = this.view.window;
         var x,y;
-        // var x = (position[0]/mul[0]) - bounds[0];
-        // var y = (position[1]/mul[1]) - bounds[1];
         
         x = (position[0]/mul[0]) - bounds[0] - (this.uvs[2]/2);
         y = (position[1]/mul[1]) - bounds[1] - (this.uvs[3]/2);
-
         this.el.style.left = x + 'px';
         this.el.style.top = y + 'px';
     },
@@ -96,19 +91,46 @@ jstonkers.view.Unit = Backbone.View.extend({
     },
     
     onTouchMove: function(evt){
-        if( this.touchDown ) {
-            // note - cursorWorld doesnt get set because this element consumes the event
-            // this.model.set({position:this.view.cursorWorld});
-            this.model.set({position:this.view.convertPosition( [evt.pageX, evt.pageY] ) });
-        }
         return false;
     },
     
     onTouchUp: function(){
-      
+      $(this.el).removeClass('selected');
+      this.trigger('touch_up', this);
     },
 });
 
+
+/**
+* A unit subclass which allows the units to be moved
+*/
+jstonkers.view.MoveableUnit = jstonkers.view.Unit.extend({
+    onTouchDown: function(evt){
+        this.positionStart = _.clone(this.model.get('position'));
+        this.touchPositionStart = this.view.convertPosition( [evt.pageX,evt.pageY] );
+        
+        return jstonkers.view.Unit.prototype.onTouchDown.call(this, evt);
+    },
+    
+    onTouchMove: function(evt){
+        // if( this.touchDown ) {
+            var touchPosition = this.view.convertPosition( [evt.pageX,evt.pageY] );
+            touchPosition[0] -= this.touchPositionStart[0];
+            touchPosition[1] -= this.touchPositionStart[1];
+            this.model.set({position:[this.positionStart[0] + touchPosition[0], this.positionStart[1] + touchPosition[1]]});
+            
+            // note - cursorWorld doesnt get set because this element consumes the event
+            // this.model.set({position:this.view.cursorWorld});
+        // }
+        return jstonkers.view.Unit.prototype.onTouchMove.call(this, evt);
+    },
+});
+
+
+
+/**
+* A Unit view which appears in the inventory only
+*/
 jstonkers.view.InventoryUnit = jstonkers.view.Unit.extend({
     initialize: function() {
         jstonkers.view.Unit.prototype.initialize.call(this, this.options);
@@ -118,19 +140,14 @@ jstonkers.view.InventoryUnit = jstonkers.view.Unit.extend({
     updatePosition: function(model,model_position) {
         // override to remove logic for placement on map
     },
-    // 
-    // render: function(){
-    //     console.log('rendering?');
-    //     jstonkers.view.Unit.prototype.render.call(this);
-    //     $(this.el).css({width:this.uvs[2]*2, height:this.uvs[3]*2});
-    // },
-    // 
+
     onTouchDown: function(evt){
         jstonkers.view.Unit.prototype.onTouchDown.call(this, evt);
     },
     onTouchMove: function(evt){
     },
     onTouchUp: function(evt){
+        jstonkers.view.Unit.prototype.onTouchUp.call(this, evt);
         // console.log('touched ' + this.model.get('position') );
     },
 })
@@ -152,8 +169,11 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
         this.spriteData = window.sprite_data;
         
         this.model.bind('change:teams', function(teams){
-            self.model.get('units').each( self.add );
+            self.render();
         });
+        // this.model.bind('change:teams', function(teams){
+        //     self.model.get('units').each( self.add );
+        // });
         
         this.initialiseCollision();
         
@@ -206,15 +226,14 @@ jstonkers.view.MatchView = jstonkers.view.MapView.extend({
     add: function(model){
         var position = model.get('position');
         
-        var unitView = new jstonkers.view.Unit({
+        var unitView = new jstonkers.view.MoveableUnit({
             id: 'v' + model.get('id'), 
             model: model, 
             map: this,
             view: this,
             spriteData: window.sprite_data,
         });
-        
-        // console.log('adding unit ' + model.get('id') );
+        // console.log('adding unit ' + unitView.id );
         $(this.el).append(unitView.render().el);
         
         // make sure the sprite is updated when the map is moved (screen pos)
@@ -299,7 +318,8 @@ jstonkers.view.CollisionView = Backbone.View.extend({
 
 
 /**
-*
+* Displays the state of a teams units, and allows easy
+* selection.
 */
 jstonkers.view.InventoryView = Backbone.View.extend({
     initialize: function(){

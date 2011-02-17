@@ -3,10 +3,20 @@
 *   - an associated team
 */
 jstonkers.model.Player = Backbone.Model.extend({
-    // initialize: function() {
-    //     this.set({team:null});
-    // },
     
+    /**
+    *
+    */
+    set : function( attrs, options ) {
+        if( attrs.team ){
+            attrs.team.set({player:this},{silent:true});
+        }
+        Backbone.Model.prototype.set.call(this, attrs, options);
+    },
+    
+    /**
+    *
+    */
     toJSON : function() {
         var attrs = Backbone.Model.prototype.toJSON.call(this);
         if( attrs.team && !_.isString(attrs.team) )
@@ -16,6 +26,9 @@ jstonkers.model.Player = Backbone.Model.extend({
     },
 });
 
+/**
+*
+*/
 jstonkers.model.PlayerList = Backbone.Collection.extend({
     model:jstonkers.model.Player,  
 });

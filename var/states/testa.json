@@ -1,4 +1,6 @@
 {
+    "id":"testa",
+    
     "units":[
         { "id":"tnk001", "type":"tank", "position":[2000,200] },
         { "id":"tnk002", "type":"tank", "position":[2100,200] },
@@ -17,22 +19,22 @@
         { "id":"inf003", "type":"infantry", "position":[2200,500] },
         { "id":"inf004", "type":"infantry", "position":[2300,500] },
         
-        { "id":"tnk101", "type":"tank", "position":[100,200] },
-        { "id":"tnk102", "type":"tank", "position":[200,200] },
-        { "id":"tnk103", "type":"tank", "position":[300,200] },
-        { "id":"tnk104", "type":"tank", "position":[400,200] },
-        { "id":"art101", "type":"artillery", "position":[100,300] },
-        { "id":"art102", "type":"artillery", "position":[200,300] },
-        { "id":"art103", "type":"artillery", "position":[300,300] },
-        { "id":"art104", "type":"artillery", "position":[400,300] },
-        { "id":"sup101", "type":"supply", "position":[100,400] },
-        { "id":"sup102", "type":"supply", "position":[200,400] },
-        { "id":"sup103", "type":"supply", "position":[300,400] },
-        { "id":"sup104", "type":"supply", "position":[400,400] },
-        { "id":"inf101", "type":"infantry", "position":[100,500] },
-        { "id":"inf102", "type":"infantry", "position":[200,500] },
-        { "id":"inf103", "type":"infantry", "position":[300,500] },
-        { "id":"inf104", "type":"infantry", "position":[400,500] }
+        { "id":"tnk101", "type":"tank", "position":[100,400] },
+        { "id":"tnk102", "type":"tank", "position":[200,400] },
+        { "id":"tnk103", "type":"tank", "position":[300,400] },
+        { "id":"tnk104", "type":"tank", "position":[400,400] },
+        { "id":"art101", "type":"artillery", "position":[100,500] },
+        { "id":"art102", "type":"artillery", "position":[200,500] },
+        { "id":"art103", "type":"artillery", "position":[300,500] },
+        { "id":"art104", "type":"artillery", "position":[400,500] },
+        { "id":"sup101", "type":"supply", "position":[100,600] },
+        { "id":"sup102", "type":"supply", "position":[200,600] },
+        { "id":"sup103", "type":"supply", "position":[300,600] },
+        { "id":"sup104", "type":"supply", "position":[400,600] },
+        { "id":"inf101", "type":"infantry", "position":[100,700] },
+        { "id":"inf102", "type":"infantry", "position":[200,700] },
+        { "id":"inf103", "type":"infantry", "position":[300,700] },
+        { "id":"inf104", "type":"infantry", "position":[400,700] }
     ],
     
     "teams":[

@@ -24,7 +24,10 @@ exports.app_paths = {
     'Socket.IO-node/lib',
     'Socket.IO-node/support/node-websocket-client/lib',
     'node-utils',
-    'mongoose/lib' ].forEach( function(libpath){
+    'node-mongodb-native/lib',
+    'q/lib'
+    // 'mongoose/lib' 
+].forEach( function(libpath){
     require.paths.push( path.join( exports.app_paths.lib, libpath ) );
 });
 
@@ -36,8 +39,10 @@ exports.connect = require('connect');
 exports.express = require('express');
 exports.socketio = require('socket.io');
 exports.request = require('request/main');
-exports.mongoose = require('mongoose');
+// exports.mongoose = require('mongoose');
+exports.mongodb = require('mongodb');
 exports.assert = require('assert');
+require('q');
 exports.path = path;
 
 for (var i in util) exports[i] = util[i];

@@ -4,37 +4,55 @@
 */
 
 jstonkers.model.Team = Backbone.Model.extend({
+
+    /**
+    *
+    */
+    add : function( unit ) {
+        var units = this.getUnits();
+        units.add( unit );
+    },
     
-    set : function(attrs, options) {
+    /**
+    *
+    */
+    getUnits: function() {
         var units = this.get('units');
         if( !units ){
             units = new jstonkers.model.UnitList();
             this.attributes.units = units;
         }
+        return units;
+    },
+
+    /**
+    *
+    */
+    set : function( attrs, options ) {
+        var team = this;
         
-        if( attrs.units && _.isArray(attrs.units) ){
-            
-            if( attrs.units.length > 0 && _.isString(attrs.units[0]) ) {
-                units.refresh(
-                    _.map( attrs.units, function(unitID){
-                        return {id:unitID, stub:true};
-                    }), {silent:true} );        
-            } else {
-                units.refresh( attrs.units, {silent:true} );
-            }
-            
+        if( _.isArray(attrs.units) ){
+            _.each(attrs.units, function(unit){
+                unit.set({team:team}, {silent:true});
+            });
+            this.getUnits().refresh( attrs.units );
             delete attrs.units;
         }
-        
         Backbone.Model.prototype.set.call(this, attrs, options);
     },
     
+    /**
+    *
+    */
     toJSON : function() {
         var attrs = Backbone.Model.prototype.toJSON.call(this);
         // convert the object collection into an array of ids
         if( attrs.units )
-            attrs.units = attrs.units.map(function(div){ return div.id });
+            attrs.units = attrs.units.map(function(unit){
+                return unit.id; 
+            });
         delete attrs.match;
+        delete attrs.player;
         return attrs;
     },
     

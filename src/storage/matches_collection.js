@@ -1,9 +1,9 @@
 var sys = require('sys');
 var util = require('util');
 
-var Manager = function (){};
+var MatchesCollection = function (){};
 
-Manager.prototype = {
+MatchesCollection.prototype = {
     
     get: function( resource_id, options ) {
         
@@ -29,11 +29,11 @@ Manager.prototype = {
 }
 
 exports.create = function( options ) {
-    var db = new Manager();
+    var db = new MatchesCollection();
     options = options || {};
     
     return db;
 }
 
-exports.info = "storage manager";
-exports.Manager = Manager;
+exports.info = "collection of matches";
+exports.MatchesCollection = MatchesCollection;
