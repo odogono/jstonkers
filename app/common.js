@@ -23,7 +23,7 @@ exports.app_paths = {
     'Socket.IO-node',
     'Socket.IO-node/lib',
     'Socket.IO-node/support/node-websocket-client/lib',
-    'node-utils',
+    // 'request',
     'node-mongodb-native/lib',
     'q/lib'
     // 'mongoose/lib' 

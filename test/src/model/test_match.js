@@ -47,7 +47,7 @@ module.exports = testCase({
         unit = team.get('units').get('unit001');
         test.equal( unit.get('type'), 'tank' );
         
-        //*/
+        
         test.done();
     },
     
@@ -142,8 +142,63 @@ module.exports = testCase({
         test.equal( unit.get('match'), this.match );
     
         test.done();
-    },
+    },//*/
     
+    
+    testUnitChange: function(test) {
+        var data = {
+            units:[
+                {id:'unit1', type:'tank',position:[10,0]},{id:'unit2', type:'supply', position:[8,2] }
+            ],
+            teams:[
+                {id:'team1', units:['unit1','unit2']}
+            ],
+        };
+        
+        // this.match.bind('all', function(evt){
+        //    log('received event ' + evt + ' from ' + this.id ); 
+        // });
+        // this.match.get('units').bind('all', function(evt){
+        //    log('received units event ' + evt + ' from ' + this.id ); 
+        // });
+        
+        this.match.set( this.match.parse( data ) );
+        var unit1 = this.match.get('units').get('unit1');
+        
+        test.equal( this.match.get('teams').at(0).get('units').length, 2);
+        test.equal( this.match.get('teams').at(0).get('units').at(0).get('type'), 'tank');
+        test.equal( JSON.stringify(this.match.get('teams').at(0).get('units').at(0).get('position')), JSON.stringify([10,0]));
+        test.equal( JSON.stringify(this.match.get('teams').at(0).get('units').at(1).get('position')), JSON.stringify([8,2]));
+        
+        
+        var update_data = {
+            units:[
+                {id:'unit1', position:[12,10] }, {id:'unit2', position:[30,0], velocity:[2,1] }
+            ]
+        };
+        
+        // this.match.get('units').at(1).bind('all', function(evt){
+        //    log('received unit event ' + evt + ' from ' + this.id ); 
+        // });
+        
+        // the updated data should not displace existing
+        // log('updating:');
+        this.match.set( this.match.parse( update_data ), {update:true} );
+        test.equal( this.match.get('teams').at(0).get('units').length, 2);
+        test.equal( this.match.get('teams').at(0).get('units').at(0).get('type'), 'tank');
+        test.equal( JSON.stringify(this.match.get('teams').at(0).get('units').at(0).get('position')), JSON.stringify([12,10]));
+        test.equal( JSON.stringify(this.match.get('teams').at(0).get('units').at(1).get('position')), JSON.stringify([30,0]));
+        test.equal( JSON.stringify(this.match.get('teams').at(0).get('units').at(1).get('velocity')), JSON.stringify([2,1]));
+
+        // log( this.match.get('units').at(0).changedAttributes() );
+        // test.ok( this.match.get('units').at(0).hasChanged() );
+        // test.ok( this.match.get('units').at(1).hasChanged() );
+        // test.ok( this.match.get('units').at(1).hasChanged() );
+        
+        // log( inspect(unit1.previousAttributes()) );
+        // log( JSON.stringify(this.match));
+        test.done();
+    },
     
     testLoading: function(test) {
         var state = JSON.parse( fs.readFileSync( path.join( app_paths.var, 'test', 'match_state.json' ) ) );
