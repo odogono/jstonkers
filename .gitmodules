@@ -28,3 +28,6 @@
 [submodule "lib/qs"]
 	path = lib/qs
 	url = git://github.com/visionmedia/node-querystring.git
+[submodule "lib/request"]
+	path = lib/request
+	url = git://github.com/mikeal/request.git
