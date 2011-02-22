@@ -48,13 +48,11 @@ if( args[0] )
 
 // recursively scans directories for potential test files
 function scan_directory( dir, result ) {
-    return fs.readdirSync(dir).reduce(function(a,filename)
-    {
+    return fs.readdirSync(dir).reduce(function(a,filename){
         var fullpath = path.join( dir, filename );
         var stat = fs.statSync(fullpath);
     
-        if( stat.isFile() )
-        {
+        if( stat.isFile() ) {
             // if( initial_file && filename.indexOf(initial_file) === 0 )
             //    initial_file = fullpath;
             if( initial_file && filename.indexOf(initial_file) > -1 )

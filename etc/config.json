@@ -52,5 +52,10 @@
                 { "bounds":[0,0,512,512], "tile_size":256, "src":"var/maps/c.2.png" }
             ]
         }
+    },
+    
+    "storage":{
+        "type":"file",
+        "path":"var/storage"
     }
 }

@@ -2,7 +2,7 @@ var fs = require('fs');
 var app = module.parent.exports;
 
 app.path = app_paths;
-app.config = JSON.parse( fs.readFileSync( path.join( app.path.etc, 'config.json' ) ) );
+app.config = jstonkers.config;
 
 app.set('view engine', 'mustache');
 // app.set('view engine', 'haml');

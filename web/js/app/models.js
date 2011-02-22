@@ -218,29 +218,82 @@ jstonkers.model.Match = Backbone.Model.extend({
         var units = this.get('units');
         var teams = this.get('teams');
         var players = this.get('players');
+        var unit,team,player,hasAdded=false;
+        
+        options || (options = { update:true });
         
         if( attrs.world ){
             Backbone.Model.prototype.set.call(this, attrs.world, options);
             delete attrs.world;
         }
-                
-        if( !options || !options.initialise ){
+        
+        if( !options.initialise ){
+            
             if( attrs.units ){
-                units.refresh( attrs.units );
-                this.trigger('change:units', units );
+                hasAdded=false;
+                _.each(attrs.units, function(u){
+                    unit = units.get(u.id);
+                    if( unit ) {
+                        unit.set(u);
+                    }else{
+                        units.add(u,{silent:true});
+                        hasAdded=true;
+                    }
+                });
+                if( hasAdded )
+                    this.trigger('change:units', units );
                 delete attrs.units;
             }
-            if( attrs.teams ) {
-                teams.refresh( attrs.teams );
-                this.trigger('change:teams', teams );
+            
+            if( attrs.teams ){
+                hasAdded=false;
+                _.each(attrs.teams, function(t){
+                    team = teams.get(t.id);
+                    if( team ) {
+                        team.set(t);
+                    }else{
+                        teams.add(t,{silent:true});
+                        hasAdded=true;
+                    }
+                });
+                if( hasAdded )
+                    this.trigger('change:teams', teams );
                 delete attrs.teams;
             }
-            if( attrs.players ) {
-                players.refresh( attrs.players );
-                this.trigger('change:players', players );
+            
+            if( attrs.players ){
+                hasAdded=false;
+                _.each(attrs.players, function(p){
+                    player = players.get(p.id);
+                    if( player ) {
+                        player.set(p);
+                    }else{
+                        players.add(p,{silent:true});
+                        hasAdded=true;
+                    }
+                });
+                if( hasAdded )
+                    this.trigger('change:players', players );
                 delete attrs.players;
             }
         }
+        // else if( !options.initialise ){
+        //     if( attrs.units ){
+        //         units.refresh( attrs.units );
+        //         this.trigger('change:units', units );
+        //         delete attrs.units;
+        //     }
+        //     if( attrs.teams ) {
+        //         teams.refresh( attrs.teams );
+        //         this.trigger('change:teams', teams );
+        //         delete attrs.teams;
+        //     }
+        //     if( attrs.players ) {
+        //         players.refresh( attrs.players );
+        //         this.trigger('change:players', players );
+        //         delete attrs.players;
+        //     }
+        // }
         
         Backbone.Model.prototype.set.call(this, attrs, options);
     },

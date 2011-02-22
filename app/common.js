@@ -1,5 +1,6 @@
-var path = require("path");
-var util = require("util");
+var path = require('path');
+var util = require('util');
+var fs = require('fs');
 
 exports.app_paths = {
     root: path.join( path.dirname(__filename), '../' ),
@@ -25,13 +26,14 @@ exports.app_paths = {
     'Socket.IO-node/support/node-websocket-client/lib',
     // 'request',
     'node-mongodb-native/lib',
-    'q/lib'
+    'q/lib',
     // 'mongoose/lib' 
 ].forEach( function(libpath){
     require.paths.push( path.join( exports.app_paths.lib, libpath ) );
 });
 
 require( 'mustache.js' );
+exports.uuid = require( 'node-uuid/uuid' );
 
 exports._ = exports.underscore = require('underscore');
 global.Backbone = exports.Backbone = require('backbone');
@@ -51,3 +53,5 @@ for (var i in exports) global[i] = exports[i];
 
 require.paths.push( exports.app_paths.src );
 exports.jstonkers = require('jstonkers').jstonkers;
+
+exports.jstonkers.config = JSON.parse( fs.readFileSync( path.join( app_paths.etc, 'config.json' ) ) );
