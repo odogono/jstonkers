@@ -31,3 +31,6 @@
 [submodule "lib/request"]
 	path = lib/request
 	url = git://github.com/mikeal/request.git
+[submodule "lib/node-uuid"]
+	path = lib/node-uuid
+	url = git://github.com/broofa/node-uuid.git
