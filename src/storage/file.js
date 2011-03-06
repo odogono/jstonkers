@@ -50,8 +50,11 @@ _.extend(FileStorage.prototype, {
 
     // Retrieve a model from `this.data` by id.
     find: function(model) {
-        filename = this.getFilename(model);
-        return JSON.parse( fs.readFileSync( filename ) );
+        var filename = this.getFilename(model);
+        if( path.existsSync(filename) ){
+            return JSON.parse( fs.readFileSync( filename ) );
+        }
+        return null;
     },
 
     // Return the array of all models currently in storage.
@@ -85,22 +88,27 @@ exports.FileSync = function(method, model, options) {
     var store = new FileStorage(jstonkers.config.storage);
 
     switch (method) {
-        case 'read':    resp = model.id ? store.find(model) : store.findAll(); break;
+        case 'read':
+            resp = store.find(model);
+            // resp = model.id ? store.find(model) : store.findAll();
+            break;
         case 'create':  resp = store.create(model);                            break;
         case 'update':  resp = store.update(model);                            break;
         case 'delete':  resp = store.destroy(model);                           break;
     }
 
     if (resp) {
+        // log('calling succcesssss!' + options.success);
         options.success(resp);
     } else {
+        // log("CALLING FAIL");
         options.error('Record not found');
     }
 };
 
 // Override `Backbone.sync` to use delegate to the model or collection's
 // *localStorage* property, which should be an instance of `Store`.
-Backbone.sync = function(method, model, options) {
+Backbone.sync = exports.FileSync;/*function(method, model, options) {
 
   var resp;
   var store = new FileStorage(jstonkers.config.storage);
@@ -117,4 +125,4 @@ Backbone.sync = function(method, model, options) {
   } else {
     options.error('Record not found');
   }
-};
+};//*/

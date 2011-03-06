@@ -2,16 +2,18 @@ var path = require('path');
 var util = require('util');
 var fs = require('fs');
 
+var root = path.join( path.dirname(__filename), '../' );
+
 exports.app_paths = {
-    root: path.join( path.dirname(__filename), '../' ),
-    app: path.join( exports.root, 'app' ),
-    etc: path.join( exports.root, 'etc' ),
-    lib: path.join( exports.root, 'lib' ),
-    web: path.join( exports.root, 'web' ),
-    src: path.join( exports.root, 'src' ),
-    var: path.join( exports.root, 'var' ),
-    test: path.join( exports.root, 'test' ),
-    view: path.join( exports.root, 'app', 'views' ),
+    root: root,
+    app: path.join( root, 'app' ),
+    etc: path.join( root, 'etc' ),
+    lib: path.join( root, 'lib' ),
+    web: path.join( root, 'web' ),
+    src: path.join( root, 'src' ),
+    var: path.join( root, 'var' ),
+    test: path.join( root, 'test' ),
+    view: path.join( root, 'app', 'views' ),
 };
 
 [   '.',
@@ -21,12 +23,13 @@ exports.app_paths = {
     'express/lib',
     'sass.js/lib',
     'nodeunit/lib',
+    'step/lib',
     'Socket.IO-node',
     'Socket.IO-node/lib',
     'Socket.IO-node/support/node-websocket-client/lib',
     // 'request',
     'node-mongodb-native/lib',
-    'q/lib',
+    // 'q/lib',
     // 'mongoose/lib' 
 ].forEach( function(libpath){
     require.paths.push( path.join( exports.app_paths.lib, libpath ) );
@@ -34,6 +37,7 @@ exports.app_paths = {
 
 require( 'mustache.js' );
 exports.uuid = require( 'node-uuid/uuid' );
+exports.Step = require('step');
 
 exports._ = exports.underscore = require('underscore');
 global.Backbone = exports.Backbone = require('backbone');

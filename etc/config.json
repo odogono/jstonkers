@@ -1,9 +1,29 @@
 {
+    
+    "environment":{
+        "test":{
+            "server":{
+                "port":5556
+            },
+            "repl_server": {
+                "enabled":true,
+                "port": 9002
+            },
+            "socket_server":{
+                "enabled":true
+            }
+        }
+    },
+    
+    "server": {
+        "port": 3000
+    },
+    
     "repl_server": {
         "enabled":true,
         "port": 9000
     },
-    
+
     "socket_server": {
         "enabled":false
     },

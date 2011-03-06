@@ -1,3 +1,8 @@
+<div id="preload">
+    {{#preload_images}}
+    <img src="{{.}}">
+    {{/preload_images}}
+</div>
 <div class="jstonkers_view">
     <form action="/match/001/commands/" method="post">
         <div id="inventory_0" class="inventory border_a"></div>
@@ -17,6 +22,7 @@
     <div id="debug_tile">tile: 0,0</div>
     <p><a href="#" id="debug_zoom">zoom</a></p>
     <p><a href="#" id="debug_save">save</a></p>
+    <p><a href="#" id="debug_create_new">create_new</a></p>
 </div>
 
 <script type="text/javascript" charset="utf-8">
@@ -35,4 +41,15 @@ window.jstonkers.data = {{&state}};
 
 <script id="template-unit" type="x-jquery-tmpl" charset="utf-8">
 <div class="sprite unit <%= type %>" src="/img/sprites.2.png" style="top:<%= screen.top %>; left:<%= screen.left %>" />
+</script>
+
+<script type="text/javascript">
+    $(function(){
+        $('#debug_create_new').click(function(){
+           $.post( '/match/new', function(data){
+               console.log('returned ' + data );
+           });
+           return false;
+        });
+    });
 </script>
