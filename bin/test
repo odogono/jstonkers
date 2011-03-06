@@ -6,7 +6,8 @@
 //  a unit test name - only this file will be executed
 
 var path = require("path"),
-    fs = require('fs');
+    fs = require('fs'),
+    http = require('http');
 
 var dirRoot = path.join( path.dirname(__filename), '../' );
 var args = process.argv.slice(2);
@@ -25,6 +26,166 @@ var common = require( path.join( dirRoot, './app/common') );
 
 // require.paths.push( path.join(dirRoot, 'vendor/nodeunit/lib') );
 var testrunner = require('nodeunit').reporters.default;
+
+/**
+ * Assert response from `server` with
+ * the given `req` object and `res` assertions object.
+ * 'borrowed' from expresso
+ *
+ * @param {Server} server
+ * @param {Object} req
+ * @param {Object|Function} res
+ * @param {String} msg
+ */
+
+assert.response = function(test, server, req, res, msg){
+    var port = server.config.server.port;
+    server.__port = server.config.server.port;
+    
+    // // Check that the server is ready or defer
+    // if (!server.fd) {
+    //     if (!('__deferred' in server)) {
+    //         server.__deferred = [];
+    //     }
+    //     server.__deferred.push(arguments);
+    //     if (!server.__started) {
+    //         server.listen(server.__port = server.config.server.port++, '127.0.0.1', function(){
+    //             if (server.__deferred) {
+    //                 process.nextTick(function(){
+    //                     server.__deferred.forEach(function(args){
+    //                       assert.response.apply(assert, args);
+    //                     });
+    //                 });
+    //             }
+    //         });
+    //         server.__started = true;
+    //     }
+    //     return;
+    // }
+    
+    // Callback as third or fourth arg
+    var callback = typeof res === 'function'
+        ? res
+        : typeof msg === 'function'
+            ? msg
+            : function(){};
+
+    // Default message to test title
+    if (typeof msg === 'function') msg = null;
+    msg = msg || assert.testTitle;
+    msg += '. ';
+    
+    // Pending responses
+    server.__pending = server.__pending || 0;
+    server.__pending++;
+
+    // Create client
+    if (!server.fd) {
+        server.listen(server.__port = server.config.server.port++, '127.0.0.1', issue);
+    } else {
+        issue();
+    }
+    
+    function issue(){
+        // if (!server.client){
+        //     log(inspect(server));
+        //     log('creating client on port ' + server.__port );
+        //     server.client = http.createClient(server.__port);
+        // }
+
+        // Issue request
+        var timer,
+            client = server.client,
+            method = req.method || 'GET',
+            status = res.status || res.statusCode,
+            data = req.data || req.body,
+            requestTimeout = req.timeout || 0;
+
+        log('starting request with ' + method + ' serverport ' + (server.__port) + ' url ' + req.url + " headers " + req.headers );
+        // var request = client.request(method, req.url, req.headers);
+        var request = http.request({method:method, port:(server.__port), path:req.url, headers:req.headers});
+        
+        // Timeout
+        if (requestTimeout) {
+            timer = setTimeout(function(){
+                --server.__pending || server.close();
+                delete req.timeout;
+                test.fail(msg + 'Request timed out after ' + requestTimeout + 'ms.');
+            }, requestTimeout);
+        }
+
+        if (data){
+            request.write(data);
+        }
+        request.on('error', function(response){
+           log('got error ' + inspect(response) ); 
+        });
+        request.on('response', function(response){
+            response.body = '';
+            response.setEncoding('utf8');
+            response.on('data', function(chunk){ 
+                response.body += chunk; 
+            });
+            response.on('end', function(){
+                --server.__pending || server.close();
+                if (timer) clearTimeout(timer);
+
+                // Assert response body
+                if (res.body !== undefined) {
+                    if( _.isFunction(res.body) ){
+                        res.body( response.body );
+                    }
+                    else{
+                        var eql = res.body instanceof RegExp
+                          ? res.body.test(response.body)
+                          : res.body === response.body;
+                        // log( 'eql turns out to be ' + eql + ' ' + res.body );
+                        test.ok(
+                            eql,
+                            msg + 'Invalid response body.\n'
+                                + '    Expected: ' + inspect(res.body) + '\n'
+                                + '    Got: ' + inspect(response.body)
+                        );
+                    }
+                }
+
+                // Assert response status
+                if (typeof status === 'number') {
+                    test.equal(
+                        response.statusCode,
+                        status,
+                        msg + 'Invalid response status code.\n'
+                            + '    Expected: {' + status + '}\n'
+                            + '    Got: {' + response.statusCode + '}'
+                    );
+                }
+
+                // Assert response headers
+                if (res.headers) {
+                    var keys = Object.keys(res.headers);
+                    for (var i = 0, len = keys.length; i < len; ++i) {
+                        var name = keys[i],
+                            actual = response.headers[name.toLowerCase()],
+                            expected = res.headers[name],
+                            eql = expected instanceof RegExp
+                              ? expected.test(actual)
+                              : expected == actual;
+                        test.ok(
+                            eql,
+                            msg + 'Invalid response header [bold]{' + name + '}.\n'
+                                + '    Expected: {' + expected + '}\n'
+                                + '    Got: {' + actual + '}'
+                        );
+                    }
+                }
+
+                // Callback
+                callback(response);
+            });
+        });
+        request.end();
+      }
+};
 
 log( "cwd " + process.cwd() );
 log( "dirname " + __dirname );
@@ -82,13 +243,5 @@ files = files.map(function (f) {
 
 log("initial file: " + initial_file + " : " + path.existsSync(initial_file) );
 log( "files: " + files );
-// files = ['/Volumes/HD2/Dropbox/work/jstonkers/test/lib/util/test_vector2f.js'];
 
-// determine whether a specific file that was
-// if( path.existsSync(initial_file) ) {
-//     log('running initial file: ' + initial_file );
-//     testrunner.run( [initial_file] );
-// }
-// else {
-    testrunner.run( files );
-// }
+testrunner.run( files );
