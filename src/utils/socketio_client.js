@@ -5,17 +5,15 @@ var WebSocket = require('websocket').WebSocket;
 var encode = require('socket.io/utils').encode;
 var decode = require('socket.io/utils').decode;
 
-var Client = module.exports = function (host, options) {
-  this.url = 'ws://' + host + ':' + options.port + '/socket.io/websocket';
-  this.open = false;
-  this.sessionId = null;
-  this._heartbeats = 0;
-  // this.options = { origin: options.origin || 'http://opendoorgonorth.com' };
+var SocketIOClient = exports.SocketIOClient = function(){
+    this.open = false;
+    this.sessionId = null;
+    this._heartbeats = 0;
 };
 
-Client.prototype = new EventEmitter;
+SocketIOClient.prototype = new EventEmitter;
 
-Client.prototype.connect = function () {
+SocketIOClient.prototype.connect = function () {
   
   var self = this;
   
@@ -53,14 +51,24 @@ Client.prototype.connect = function () {
   };
 };
 
-Client.prototype.send = function (data) {
+SocketIOClient.prototype.send = function (data) {
   if (this.open) {
     this.connection.send(encode(data));
   }
 };
 
-Client.prototype.disconnect = function () {
+SocketIOClient.prototype.disconnect = function () {
   if (this.open) {
     this.connection.close();
   }
+};
+
+
+
+exports.createSocketIOClient = function(host, options){
+    var result = new SocketIOClient();
+    result.url = 'ws://' + host + ':' + options.port + '/socket.io/websocket';
+    
+    // result.options = { origin: options.origin || 'http://opendoorgonorth.com' };
+    return result;
 };
