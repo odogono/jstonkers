@@ -68,7 +68,6 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
 
 
     setWorldPosition: function( pPosition ) {
-        
         if( !pPosition ){
             pPosition = this.model.get('position');
         }
@@ -123,7 +122,7 @@ jstonkers.view.MapView = jstonkers.view.ScrollView.extend({
             imgTile.col = gx;  imgTile.row = gy;
             buffer[buffer.length] = this.imageSrc;
 
-            if( gx >= 0 && gy >= 0 && gx <= this.worldCols && gy <= this.worldRows ) {
+            if( gx >= 0 && gy >= 0 && gx < this.worldCols && gy < this.worldRows ) {
                 buffer[buffer.length] = zoom;
                 buffer[buffer.length] = "/";
                 buffer[buffer.length] = gx;
