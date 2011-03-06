@@ -34,3 +34,6 @@
 [submodule "lib/node-uuid"]
 	path = lib/node-uuid
 	url = git://github.com/broofa/node-uuid.git
+[submodule "lib/mime"]
+	path = lib/mime
+	url = git://github.com/bentomas/node-mime.git
