@@ -37,3 +37,6 @@
 [submodule "lib/mime"]
 	path = lib/mime
 	url = git://github.com/bentomas/node-mime.git
+[submodule "lib/step"]
+	path = lib/step
+	url = git://github.com/creationix/step.git
