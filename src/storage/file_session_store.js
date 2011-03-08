@@ -12,6 +12,7 @@ var sys = require('sys'),
     path = require('path'),
     util = require('util'),
     fs = require('fs'),
+    crypto = require('crypto'),
     Store = require('connect').middleware.session.Store;
 
 /**
@@ -26,8 +27,9 @@ var FileSessionStore = module.exports = function FileSessionStore(opts) {
 
     // define default session store directory
     this.prefix = opts.prefix || 'file-store-';
+    this.filePattern = new RegExp( '^' + this.prefix + '.*' );
     this.path = opts.path || process.env.TMPDIR;
-
+    // log(inspect(opts));
     // set default reapInterval to 10 minutes
     this.reapInterval = opts.reapInterval || 600000;
 
@@ -50,20 +52,28 @@ sys.inherits(FileSessionStore, Store);
 FileSessionStore.prototype.reap = function (ms) {
     var threshold = + new Date() - ms;
     var self = this; // store 'this' object
+    var val, filePath;
     
-    this.redis.sendCommand('keys', this.prefix + '*', function (err, keys) {
-        for (k in keys) {
-            var sid = keys[k].toString();
-            // try to remove keys one by one if lastAccess < threshold
-            self.redis.sendCommand('get', sid, function (err, val) {
-                if (err === null) {
-                    val = JSON.parse(val);
+    // TODO AV : check the files we are reading match the prefix and are not directories
+    
+    fs.readdir( self.path, function(err, files){
+        if( files.length <= 0 ){
+            fn(null,result);
+            return;
+        }
+        files.forEach(function(f,i){
+            if( !self.filePattern.exec(f) )
+                return;
+            filePath = path.join(self.path,f);
+            fs.readFile( filePath, function (err, data) {
+                if( err == null ){
+                    val = JSON.parse(data);
                     if (val.lastAccess < threshold) {
-                        self.redis.sendCommand('del', sid);
+                        fs.unlink( filePath );
                     }
                 }
             });
-        }
+        });
     });
 };
 
@@ -75,16 +85,18 @@ FileSessionStore.prototype.reap = function (ms) {
    @api public
  */
 FileSessionStore.prototype.get = function(sid, fn) {
-    var filePath = path.join( this.path, sid );
+    var fileName = this.prefix + crypto.createHash('md5').update(sid).digest('hex');
+    var filePath = path.join( this.path, fileName );
     fn = fn || function () {};
+    // console.log('get [' + sid + ']');
     path.exists( filePath, function (exists) {
         if( exists ){
             fs.readFile( filePath, function (err, data) {
-              if (err){ 
-                  fn();
-              }else{
-                  fn( null, JSON.parse(data) );
-              }
+                if(err){
+                    fn();
+                }else{
+                    fn( null, JSON.parse(data) );
+                }
             });
         } else{
             fn();
@@ -101,12 +113,11 @@ FileSessionStore.prototype.get = function(sid, fn) {
    @api public
  */
 FileSessionStore.prototype.set = function (sid, sess, fn) {
-    console.log('set [' + sid + '] = ' + JSON.stringify(sess));
-    // fn = fn || function () {};
-    // this.redis.sendCommand('set', this.prefix + sid, JSON.stringify(sess), fn);
+    var fileName = this.prefix + crypto.createHash('md5').update(sid).digest('hex');
+    // console.log('set [' + sid + '] = ' + JSON.stringify(sess));
     
     var content = JSON.stringify(sess);
-    var filePath = path.join( this.path, sid );
+    var filePath = path.join( this.path, fileName );
     fs.writeFile( filePath, content, function(err){
         fn && fn();
     });
@@ -120,20 +131,19 @@ FileSessionStore.prototype.set = function (sid, sess, fn) {
    @api public
  */
 FileSessionStore.prototype.destroy = function (sid, fn) {
-    var filePath = path.join( this.path, sid );
+    var fileName = this.prefix + crypto.createHash('md5').update(sid).digest('hex');
+    var filePath = path.join( this.path, fileName );
     fn = fn || function () {};
     
     path.exists( filePath, function (exists) {
-        if( exists ){
+        if( exists ) {
             fs.unlink( filePath, function (err, data) {
-                  fn();
+                fn();
             });
         } else{
             fn();
         }
     });
-    
-    this.redis.sendCommand('del', this.prefix + sid, fn);
 };
 
 /**
@@ -144,8 +154,32 @@ FileSessionStore.prototype.destroy = function (sid, fn) {
    @api public
  */
 FileSessionStore.prototype.all = function (fn) {
+    var self = this;
+    var result = [];
     fn = fn || function () {};
-    // this.redis.sendCommand('keys', this.prefix + '*', fn);
+    
+    
+    fs.readdir( self.path, function(err, files){
+        if( files.length <= 0 ){
+            fn(null,result);
+            return;
+        }
+        files.forEach(function(f,i){
+            
+            if( self.filePattern.exec(f) ){
+                fs.readFile( path.join(self.path,f), function (err, data) {
+                    if( err == null && data ){
+                        result.push( JSON.parse(data) );
+                    }
+                    if( i >= files.length-1 )
+                        fn(null, result);
+                });
+            }else{
+                if( i >= files.length-1 )
+                    fn(null, result);
+            }
+        });
+    });
 };
 
 /**
@@ -155,21 +189,32 @@ FileSessionStore.prototype.all = function (fn) {
    @api public
  */
 FileSessionStore.prototype.clear = function (fn) {
+    
+    var self = this; // store 'this' object
+    var filePath;
     fn = fn || function () {};
-    var self = this;
-    fs.readdir( this,path, function(err, files){
-        files.each( function(f){
+    
+    fs.readdir( self.path, function(err, files){
+        if( files.length <= 0 ){
+            fn(null,result);
+            return;
+        }
+        files.forEach(function(f,i){
+            filePath = path.join(self.path,f);
             
+            if( self.filePattern.exec(f) ){
+                // log('deleting ' + filePath );
+                fs.unlink( filePath, function (err) {
+                    if( i >= files.length-1 )
+                        fn();
+                });
+            }else{
+                if( i >= files.length-1 )
+                    fn();
+            }
         });
     });
     
-    // this.redis.sendCommand('keys', this.prefix + '*', function (err, keys) {
-    //     var arr = ['del'];
-    //     for (k in keys) {
-    //         arr.push(keys[k].toString());
-    //     }
-    //     self.redis.sendCommand.apply(self.redis, arr, fn);
-    // });
 };
 
 /**
@@ -179,13 +224,17 @@ FileSessionStore.prototype.clear = function (fn) {
    @api public
  */
 FileSessionStore.prototype.length = function (fn) {
+    var self = this;
+    var result = [];
+    var result = 0;
     fn = fn || function () {};
-    console.log('get length');
-    // this.redis.sendCommand('keys', this.prefix + '*', function (err, keys) {
-    //     if (keys !== 'nil') {
-    //         fn(null, keys.length);
-    //     } else {
-    //         fn();
-    //     }
-    // });
+    
+    fs.readdir( self.path, function(err, files){
+        files.forEach( function(f){
+            if( self.filePattern.exec(f) ){
+                result++;
+            }
+        })
+        fn( null, result );
+    });
 };
