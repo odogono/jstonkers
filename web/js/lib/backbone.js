@@ -9,25 +9,38 @@
   // Initial Setup
   // -------------
 
+  // Save a reference to the global object.
+  var root = this;
+  
+  // Save the previous value of the `Backbone` variable.
+  var previousBackbone = root.Backbone;
+  
   // The top-level namespace. All public Backbone classes and modules will
   // be attached to this. Exported for both CommonJS and the browser.
   var Backbone;
   if (typeof exports !== 'undefined') {
     Backbone = exports;
   } else {
-    Backbone = this.Backbone = {};
+    Backbone = root.Backbone = {};
   }
 
   // Current version of the library. Keep in sync with `package.json`.
   Backbone.VERSION = '0.3.3';
 
   // Require Underscore, if we're on the server, and it's not already present.
-  var _ = this._;
+  var _ = root._;
   if (!_ && (typeof require !== 'undefined')) _ = require('underscore')._;
 
   // For Backbone's purposes, either jQuery or Zepto owns the `$` variable.
-  var $ = this.jQuery || this.Zepto;
+  var $ = root.jQuery || root.Zepto;
 
+  // Runs Backbone.js in *noConflict* mode, returning the `Backbone` variable
+  // to its previous owner. Returns a reference to this Backbone object.
+  Backbone.noConflict = function() {
+    root.Backbone = previousBackbone;
+    return this;
+  };
+  
   // Turn on `emulateHTTP` to use support legacy HTTP servers. Setting this option will
   // fake `"PUT"` and `"DELETE"` requests via the `_method` parameter and set a
   // `X-Http-Method-Override` header.
@@ -931,7 +944,7 @@
   // The self-propagating extend function that Backbone classes use.
   var extend = function (protoProps, classProps) {
     var child = inherits(this, protoProps, classProps);
-    child.extend = extend;
+    child.extend = this.extend;
     return child;
   };
 
@@ -1045,7 +1058,7 @@
     // Add static properties to the constructor function, if supplied.
     if (staticProps) _.extend(child, staticProps);
 
-    // Correctly set child's `prototype.constructor`, for `instanceof`.
+    // Correctly set child's `prototype.constructor`.
     child.prototype.constructor = child;
 
     // Set a convenience property in case the parent's prototype is needed later.

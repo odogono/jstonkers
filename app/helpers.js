@@ -15,7 +15,7 @@ app.helpers({
             ],
             javascript:[
                 'lib/json2.min',
-                'http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min',
+                'lib/jquery-1.5.1.min',
                 'lib/underscore',
                 'lib/backbone',
                 'lib/jquery.tmpl.min',

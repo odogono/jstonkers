@@ -1,4 +1,4 @@
-//     Underscore.js 1.1.4
+//     Underscore.js 1.1.5
 //     (c) 2011 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore is freely distributable under the MIT license.
 //     Portions of Underscore are inspired or borrowed from Prototype,
@@ -59,7 +59,7 @@
   }
 
   // Current version.
-  _.VERSION = '1.1.4';
+  _.VERSION = '1.1.5';
 
   // Collection Functions
   // --------------------
@@ -408,11 +408,12 @@
   // Create a function bound to a given object (assigning `this`, and arguments,
   // optionally). Binding with arguments is also known as `curry`.
   // Delegates to **ECMAScript 5**'s native `Function.bind` if available.
+  // We check for `func.bind` first, to fail fast when `func` is undefined.
   _.bind = function(func, obj) {
-    if (nativeBind && func.bind === nativeBind) return func.bind.apply(func, slice.call(arguments, 1));
+    if (func.bind === nativeBind && nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
     var args = slice.call(arguments, 2);
     return function() {
-      return func.apply(obj || {}, args.concat(slice.call(arguments)));
+      return func.apply(obj, args.concat(slice.call(arguments)));
     };
   };
 
@@ -475,6 +476,17 @@
     return limit(func, wait, true);
   };
 
+  // Returns a function that will be executed at most one time, no matter how
+  // often you call it. Useful for lazy initialization.
+  _.once = function(func) {
+    var ran = false, memo;
+    return function() {
+      if (ran) return memo;
+      ran = true;
+      return memo = func.apply(this, arguments);
+    };
+  };
+
   // Returns the first function passed as an argument to the second,
   // allowing you to adjust arguments, run code before and after, and
   // conditionally execute the original function.
@@ -504,6 +516,7 @@
   // Retrieve the names of an object's properties.
   // Delegates to **ECMAScript 5**'s native `Object.keys`
   _.keys = nativeKeys || function(obj) {
+    if (obj !== Object(obj)) throw new TypeError('Invalid object');
     var keys = [];
     for (var key in obj) if (hasOwnProperty.call(obj, key)) keys[keys.length] = key;
     return keys;
