@@ -40,3 +40,6 @@
 [submodule "lib/step"]
 	path = lib/step
 	url = git://github.com/creationix/step.git
+[submodule "lib/connect-session-file"]
+	path = lib/connect-session-file
+	url = git://github.com/odogono/connect-session-file.git
