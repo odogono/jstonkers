@@ -27,8 +27,9 @@ exports.app_paths = {
     'Socket.IO-node',
     'Socket.IO-node/lib',
     'Socket.IO-node/support/node-websocket-client/lib',
+    'connect-session-file/lib',
     // 'request',
-    'node-mongodb-native/lib',
+    // 'node-mongodb-native/lib',
     // 'q/lib',
     // 'mongoose/lib' 
 ].forEach( function(libpath){
@@ -46,8 +47,9 @@ exports.express = require('express');
 exports.socketio = require('socket.io');
 exports.request = require('request/main');
 // exports.mongoose = require('mongoose');
-exports.mongodb = require('mongodb');
+// exports.mongodb = require('mongodb');
 exports.assert = require('assert');
+exports.FileSessionStore = require('connect-session-file');
 require('q');
 exports.path = path;
 
@@ -57,5 +59,4 @@ for (var i in exports) global[i] = exports[i];
 
 require.paths.push( exports.app_paths.src );
 exports.jstonkers = require('jstonkers').jstonkers;
-
 exports.jstonkers.config = JSON.parse( fs.readFileSync( path.join( app_paths.etc, 'config.json' ) ) );

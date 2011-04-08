@@ -47,4 +47,4 @@ require('./repl');
 port = parseInt(port || jstonkers.config.server.port, 10);
 app.listen(port);
 
-console.log('app started on port ' + port );
+console.log('app started on port ' + port + ' running in env ' + environment );

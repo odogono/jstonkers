@@ -140,9 +140,14 @@ app.get('/match/:matchid', function(req, res) {
         res.send( statePath + ' not found');//*/
 });
 
+// app.get('/test', function(req,res){
+//     res.sendfile( path.join( app.path.test, 'csstesting', 'index.html' ) );
+// });
+
 app.get('/test', function(req,res){
-    res.sendfile( path.join( app.path.test, 'csstesting', 'index.html' ) );
+    res.send( '<img src="/img/tiles/a/1/1-1.png"/><img src="/img/tiles/a/1/1-2.png"/>' );
 });
+
 
 // app.get('/compare/:which', function(req,res){
 //     res.sendfile( path.join( app.path.var, req.params.which + '.html' ) );

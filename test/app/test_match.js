@@ -10,6 +10,8 @@ module.exports = testCase({
     },
     
     tearDown: function (callback) {
+        
+        // log( "TMP DIR " + process.env.TMPDIR );
         // clean up
         callback();
     },
@@ -27,6 +29,5 @@ module.exports = testCase({
                 test.done();
             });
     },
-    
 });
     

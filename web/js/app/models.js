@@ -155,7 +155,8 @@ jstonkers.model.Match = Backbone.Model.extend({
         var teams = new jstonkers.model.TeamList();
         var units = new jstonkers.model.UnitList();
         
-        _.bindAll(this, 'onChange');
+        // _.bindAll(this, 'onChange');
+        // this.bind( 'onChange' );
         this.set({ players:players, teams:teams, units:units, levels:[], bounds:[], window:[], zoom:1}, {silent:true, initialise:true});
         // players.bind('refresh', this.onChange);
         // teams.bind('refresh', this.onChange);
@@ -295,7 +296,7 @@ jstonkers.model.Match = Backbone.Model.extend({
         //     }
         // }
         
-        Backbone.Model.prototype.set.call(this, attrs, options);
+        return Backbone.Model.prototype.set.call(this, attrs, options);
     },
     
     /**
@@ -309,6 +310,14 @@ jstonkers.model.Match = Backbone.Model.extend({
             attrs.teams = attrs.teams.toJSON();
         if( attrs.players )
             attrs.players = attrs.players.toJSON();
+        
+        // rearrange a few attributes - bit of a faff really
+        attrs.world = {};
+        _.each( [ 'image_src', 'col', 'position', 'window', 'zoom', 'bounds', 'levels' ], function(attr){
+            attrs.world[attr] = attrs[attr];
+            delete attrs[attr];
+        });
+        
         return attrs;
     },
     
