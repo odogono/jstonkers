@@ -28,10 +28,6 @@ exports.app_paths = {
     'Socket.IO-node/lib',
     'Socket.IO-node/support/node-websocket-client/lib',
     'connect-session-file/lib',
-    // 'request',
-    // 'node-mongodb-native/lib',
-    // 'q/lib',
-    // 'mongoose/lib' 
 ].forEach( function(libpath){
     require.paths.push( path.join( exports.app_paths.lib, libpath ) );
 });
@@ -46,8 +42,6 @@ exports.connect = require('connect');
 exports.express = require('express');
 exports.socketio = require('socket.io');
 exports.request = require('request/main');
-// exports.mongoose = require('mongoose');
-// exports.mongodb = require('mongodb');
 exports.assert = require('assert');
 exports.FileSessionStore = require('connect-session-file');
 require('q');
