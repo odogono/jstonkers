@@ -29,6 +29,8 @@ var FileSessionStore = module.exports = function FileSessionStore(opts) {
     this.prefix = opts.prefix || 'file-store-';
     this.filePattern = new RegExp( '^' + this.prefix + '.*' );
     this.path = opts.path || process.env.TMPDIR;
+    this.use_async = opts.use_async;
+    
     // log(inspect(opts));
     // set default reapInterval to 10 minutes
     this.reapInterval = opts.reapInterval || 600000;
@@ -85,20 +87,40 @@ FileSessionStore.prototype.reap = function (ms) {
    @api public
  */
 FileSessionStore.prototype.get = function(sid, fn) {
+    var serial = Math.round(Math.random()*1000);
     var fileName = this.prefix + crypto.createHash('md5').update(sid).digest('hex');
     var filePath = path.join( this.path, fileName );
     fn = fn || function () {};
-    // console.log('get [' + sid + ']');
+    
+    if( !this.use_async ){
+        if( path.existsSync(filePath) ){
+            var data = fs.readFileSync( filePath );
+            console.log(serial + ' get sync OK [' + fileName + ']' + data + '.' );
+            fn( null, JSON.parse(data) );
+        }else{
+            console.log(serial + ' get sync FAIL [' + fileName + '] - no data found');
+            fn();
+        }
+        return;
+    }
+    
+    console.log(serial + ' get [' + fileName + ']');
     path.exists( filePath, function (exists) {
         if( exists ){
             fs.readFile( filePath, function (err, data) {
-                if(err){
+                
+                // if( data === undefined || data === null )
+                // console.log('no data');
+                if(err || data.length <= 0){
+                    console.log(serial + ' get FAIL [' + fileName + '] - no data found');
                     fn();
                 }else{
+                    console.log(serial + ' get OK [' + fileName + ']' + data + '.' );
                     fn( null, JSON.parse(data) );
                 }
             });
         } else{
+            console.log(serial + ' get FAIL [' + fileName + '] not exists');
             fn();
         }
     });
@@ -113,12 +135,24 @@ FileSessionStore.prototype.get = function(sid, fn) {
    @api public
  */
 FileSessionStore.prototype.set = function (sid, sess, fn) {
+    var serial = Math.round(Math.random()*1000);
     var fileName = this.prefix + crypto.createHash('md5').update(sid).digest('hex');
-    // console.log('set [' + sid + '] = ' + JSON.stringify(sess));
+    console.log(serial + ' set [' + fileName + '] = ' + JSON.stringify(sess));
     
     var content = JSON.stringify(sess);
     var filePath = path.join( this.path, fileName );
+    
+    if( !this.use_async ){
+        fs.writeFileSync( filePath, content );
+        console.log(serial + ' set sync OK [' + filePath + '] = ' + JSON.stringify(sess));
+        fn && fn();
+        return;
+    }
+    
     fs.writeFile( filePath, content, function(err){
+        if( err )
+            console.log(serial + 'set err ' + err );
+        console.log(serial + ' set OK [' + filePath + '] = ' + JSON.stringify(sess));
         fn && fn();
     });
 };
