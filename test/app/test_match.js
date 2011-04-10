@@ -17,17 +17,28 @@ module.exports = testCase({
     },
 
     testNew: function(test){
-        test.expect(2);
+        test.expect(3);
         
         assert.response(test, app,
-            { url: '/match/new', method:'POST' },
-            // { body: 'Cannot GET /'},
+            {   url: '/match/new', method:'POST' },
             {   status: 200,
-                body: 'ok',
+                body: function(res){
+                    res = JSON.parse(res);
+                    test.ok( res.ok );
+                    test.ok( _.isString(res.id) );
+                }
             },
             function(){
                 test.done();
             });
     },
+    
+    
+    testClone: function(test){
+        
+        // clone existing match - clone testa
+        
+        test.done();
+    }
 });
     

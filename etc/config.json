@@ -14,6 +14,10 @@
             },
             "session":{
                 "path":false
+            },
+            "storage":{
+                "type":"file",
+                "path":false
             }
         }
     },
@@ -34,7 +38,12 @@
     "session":{
         "path":"var/session"
     },
-    
+
+    "storage":{
+        "type":"file",
+        "path":"var/storage"
+    },
+
     "maps": {
         "spectrum":{
             "comment":"map used in sinclair version",
@@ -79,10 +88,5 @@
                 { "bounds":[0,0,512,512], "tile_size":256, "src":"var/maps/c.2.png" }
             ]
         }
-    },
-    
-    "storage":{
-        "type":"file",
-        "path":"var/storage"
     }
 }

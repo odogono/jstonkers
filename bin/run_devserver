@@ -31,7 +31,7 @@ dev_server = {
         self = this;
         util.debug('DEVSERVER: Starting server');
         self.watchFiles();
-        this.process = child_process.spawn("node", ['app/app.js', port]);
+        this.process = child_process.spawn("node", ['app/app.js', port, '-e', 'dev']);
         this.process.stdout.addListener('data', function(data) {
             return process.stdout.write(data);
         });

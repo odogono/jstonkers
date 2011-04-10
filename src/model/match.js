@@ -173,7 +173,6 @@ jstonkers.model.Match = Backbone.Model.extend({
             attrs.world[attr] = attrs[attr];
             delete attrs[attr];
         });
-        
         return attrs;
     },
     

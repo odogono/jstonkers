@@ -1,10 +1,12 @@
 var fs = require('fs'),
+    util = require('util'),
     crypto = require('crypto');
 
 // Our Store is represented by a single JS object in *localStorage*. Create it
 // with a meaningful name, like the name you'd give a table.
 var FileStorage = function(options) {
-  this.path = options.path || 'var/storage';
+    // use system tempdir if a path is not specified
+    this.path = options.path || process.env.TMPDIR;
 };
 
 exports.create = function( options ) {
@@ -37,6 +39,8 @@ _.extend(FileStorage.prototype, {
             model.id = model.attributes.id = uuid();
         
         filename = this.getFilename(model);
+        model.set({created:new Date()});
+        util.debug("saving to " + filename );
         fs.writeFileSync( filename, JSON.stringify(model) );
         return model;
     },
@@ -44,6 +48,7 @@ _.extend(FileStorage.prototype, {
     // Update a model by replacing its copy in `this.data`.
     update: function(model) {
         filename = this.getFilename(model);
+        model.set({updated:new Date()});
         fs.writeFileSync( filename, JSON.stringify(model) );
         return model;
     },

@@ -3,6 +3,7 @@
 var common = require('./common');
 var port = null;
 var environment = null;
+var fs = require('fs');
 
 // parse command line args
 var args = process.argv.slice(2);
@@ -40,7 +41,14 @@ require('./config');
 
 require('./helpers');
 require('./socketio');
-require('./handlers');
+
+fs.readdir(__dirname + '/handlers', function(err, files) {
+    if (err) throw err;
+    files.forEach(function(file) {
+        require('./handlers/' + file.replace('.js',''));
+    });
+});
+
 require('./repl');
 
 // read from config first
