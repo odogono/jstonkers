@@ -61,7 +61,7 @@
     },
     
     "match":{
-        "state":"playing",
+        "state":"dormant",
         "type":"normal",
         "map":"spectrum",
         "valid":true

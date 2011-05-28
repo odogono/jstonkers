@@ -34,7 +34,7 @@
     },
     
     "match":{
-        "state":"playing",
+        "state":"dormant",
         "type":"normal",
         "map":"test_c"
     }

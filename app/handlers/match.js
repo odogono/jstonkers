@@ -40,6 +40,7 @@ app.post('/match/new', function(req,res){
     // create a new match id
     matchData.id = templateMatch + '-' + uuid();
     
+    // create the match
     var match = new jstonkers.model.Match();
     match.set( match.parse( matchData ) );
     match.save();
@@ -47,6 +48,8 @@ app.post('/match/new', function(req,res){
     // set the requesting user as the creator, and as the first player
     req.session.matches = req.session.matches || [];
     req.session.matches.push( match.id );
+    
+    // add the match to the internal registry
     
     // the match will now start executing
     util.debug('created match ' + match.id + ' from template ' + templateMatch );

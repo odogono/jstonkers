@@ -1,4 +1,4 @@
-//     Underscore.js 1.1.5
+//     Underscore.js 1.1.6
 //     (c) 2011 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore is freely distributable under the MIT license.
 //     Portions of Underscore are inspired or borrowed from Prototype,
@@ -55,11 +55,12 @@
     module.exports = _;
     _._ = _;
   } else {
-    root._ = _;
+    // Exported as a string, for Closure Compiler "advanced" mode.
+    root['_'] = _;
   }
 
   // Current version.
-  _.VERSION = '1.1.5';
+  _.VERSION = '1.1.6';
 
   // Collection Functions
   // --------------------
@@ -73,7 +74,7 @@
       obj.forEach(iterator, context);
     } else if (_.isNumber(obj.length)) {
       for (var i = 0, l = obj.length; i < l; i++) {
-        if (iterator.call(context, obj[i], i, obj) === breaker) return;
+        if (i in obj && iterator.call(context, obj[i], i, obj) === breaker) return;
       }
     } else {
       for (var key in obj) {
@@ -168,7 +169,6 @@
   // Delegates to **ECMAScript 5**'s native `every` if available.
   // Aliased as `all`.
   _.every = _.all = function(obj, iterator, context) {
-    iterator || (iterator = _.identity);
     var result = true;
     if (obj == null) return result;
     if (nativeEvery && obj.every === nativeEvery) return obj.every(iterator, context);
@@ -208,7 +208,7 @@
   _.invoke = function(obj, method) {
     var args = slice.call(arguments, 2);
     return _.map(obj, function(value) {
-      return (method ? value[method] : value).apply(value, args);
+      return (method.call ? method || value : value[method]).apply(value, args);
     });
   };
 
@@ -250,6 +250,16 @@
       var a = left.criteria, b = right.criteria;
       return a < b ? -1 : a > b ? 1 : 0;
     }), 'value');
+  };
+
+  // Groups the object's values by a criterion produced by an iterator
+  _.groupBy = function(obj, iterator) {
+    var result = {};
+    each(obj, function(value, index) {
+      var key = iterator(value, index);
+      (result[key] || (result[key] = [])).push(value);
+    });
+    return result;
   };
 
   // Use a comparator function to figure out at what index an object should
@@ -503,12 +513,20 @@
     var funcs = slice.call(arguments);
     return function() {
       var args = slice.call(arguments);
-      for (var i=funcs.length-1; i >= 0; i--) {
+      for (var i = funcs.length - 1; i >= 0; i--) {
         args = [funcs[i].apply(this, args)];
       }
       return args[0];
     };
   };
+
+  // Returns a function that will only be executed after being called N times.
+  _.after = function(times, func) {
+    return function() {
+      if (--times < 1) { return func.apply(this, arguments); }
+    };
+  };
+
 
   // Object Functions
   // ----------------
@@ -536,7 +554,9 @@
   // Extend a given object with all the properties in passed-in object(s).
   _.extend = function(obj) {
     each(slice.call(arguments, 1), function(source) {
-      for (var prop in source) obj[prop] = source[prop];
+      for (var prop in source) {
+        if (source[prop] !== void 0) obj[prop] = source[prop];
+      }
     });
     return obj;
   };
@@ -544,7 +564,9 @@
   // Fill in a given object with default properties.
   _.defaults = function(obj) {
     each(slice.call(arguments, 1), function(source) {
-      for (var prop in source) if (obj[prop] == null) obj[prop] = source[prop];
+      for (var prop in source) {
+        if (obj[prop] == null) obj[prop] = source[prop];
+      }
     });
     return obj;
   };
