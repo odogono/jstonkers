@@ -21,7 +21,6 @@ exports.app_paths = {
     'backbone',
     'connect/lib',
     'express/lib',
-    'sass.js/lib',
     'nodeunit/lib',
     'step/lib',
     'Socket.IO-node',

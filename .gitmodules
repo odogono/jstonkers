@@ -4,24 +4,12 @@
 [submodule "lib/Socket.IO-node"]
 	path = lib/Socket.IO-node
 	url = git://github.com/LearnBoost/Socket.IO-node.git
-[submodule "lib/backbone"]
-	path = lib/backbone
-	url = git://github.com/documentcloud/backbone.git
 [submodule "lib/connect"]
 	path = lib/connect
 	url = git://github.com/senchalabs/connect.git
-[submodule "lib/haml-js"]
-	path = lib/haml-js
-	url = git://github.com/creationix/haml-js.git
 [submodule "lib/nodeunit"]
 	path = lib/nodeunit
 	url = git://github.com/caolan/nodeunit.git
-[submodule "lib/sass.js"]
-	path = lib/sass.js
-	url = git://github.com/visionmedia/sass.js.git
-[submodule "lib/underscore"]
-	path = lib/underscore
-	url = git://github.com/documentcloud/underscore.git
 [submodule "lib/node-utils"]
 	path = lib/node-utils
 	url = git://github.com/mikeal/node-utils.git

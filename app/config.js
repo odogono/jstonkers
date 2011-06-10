@@ -15,7 +15,7 @@ app.sessionStore = new FileSessionStore( {path:storePath, printDebug:true} );
 // for parsing JSON request bodies - ends up in req.body
 app.use( express.bodyParser() );
 app.use( connect.logger({ format: ":date :response-time\t:method :status\t\t:url" }) );
-app.use( connect.compiler({ src:app.path.web, enable: ['sass'] }) );
+// app.use( connect.compiler({ src:app.path.web, enable: ['sass'] }) );
 app.use( connect.cookieParser() );
 app.use( connect.session({ key:'jstonkers', secret:'jstonkers-secret', store: app.sessionStore}) );
 app.use( connect.static(app.path.web) );
