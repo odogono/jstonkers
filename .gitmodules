@@ -1,9 +1,6 @@
 [submodule "lib/express"]
 	path = lib/express
 	url = git://github.com/visionmedia/express.git
-[submodule "lib/Socket.IO-node"]
-	path = lib/Socket.IO-node
-	url = git://github.com/LearnBoost/Socket.IO-node.git
 [submodule "lib/connect"]
 	path = lib/connect
 	url = git://github.com/senchalabs/connect.git
@@ -31,3 +28,18 @@
 [submodule "lib/connect-session-file"]
 	path = lib/connect-session-file
 	url = git://github.com/odogono/connect-session-file.git
+[submodule "lib/hbs"]
+	path = lib/hbs
+	url = https://github.com/mmoulton/hbs
+[submodule "lib/socket.io"]
+	path = lib/socket.io
+	url = https://github.com/LearnBoost/socket.io.git
+[submodule "lib/socket.io-client"]
+	path = lib/socket.io-client
+	url = https://github.com/LearnBoost/socket.io-client.git
+[submodule "lib/UglifyJS"]
+	path = lib/UglifyJS
+	url = https://github.com/mishoo/UglifyJS.git
+[submodule "lib/redis"]
+	path = lib/redis
+	url = https://github.com/mranney/node_redis.git

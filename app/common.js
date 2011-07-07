@@ -21,17 +21,26 @@ exports.app_paths = {
     'backbone',
     'connect/lib',
     'express/lib',
+    'hbs',
     'nodeunit/lib',
     'step/lib',
-    'Socket.IO-node',
-    'Socket.IO-node/lib',
-    'Socket.IO-node/support/node-websocket-client/lib',
+    // 'node_redis',
+    'UglifyJS',
+    // 'Socket.IO-node/lib',
+    'socket.io-client',
+    'socket.io',
+    'socket.io/support/node-websocket-client/lib',
     'connect-session-file/lib',
 ].forEach( function(libpath){
     require.paths.push( path.join( exports.app_paths.lib, libpath ) );
 });
 
+
+// require.paths.push( path.join( exports.app_paths.web, 'js', 'lib') );
+
+// util.log( util.inspect(require.paths) );
 require( 'mustache.js' );
+// require( 'handlebars.min.js');
 exports.uuid = require( 'node-uuid/uuid' );
 exports.Step = require('step');
 
@@ -39,6 +48,12 @@ exports._ = exports.underscore = require('underscore');
 global.Backbone = exports.Backbone = require('backbone');
 exports.connect = require('connect');
 exports.express = require('express');
+// exports.hbs = require('hbs'); // handlbars view renderer for express
+// exports.handlebars = require( path.join( exports.app_paths.web, 'js', 'lib', 'handlebars.js') );
+// exports.handlebars.compile = Handlebars.compile;
+// require('hbs').handlebars = exports.handlebars;
+// util.log('path: ' + util.inspect(exports.handlebars) );
+
 exports.socketio = require('socket.io');
 exports.request = require('request/main');
 exports.assert = require('assert');
