@@ -1,58 +1,57 @@
-#!/usr/bin/env node
+var Common = require( '../src/common.js' );
 
-var common = require('./common');
-var port = null;
-var environment = null;
-var fs = require('fs');
-
-// parse command line args
-var args = process.argv.slice(2);
-while (args.length) {
-    var arg = args.shift();
-    switch( arg ){
-        case '-p':
-        case '--port':
-            if (arg = args.shift()) {
-                port = parseInt(arg, 10);
-            } else {
-                throw new Error('--port requires a number');
-            }
-            break;
-        case '-e':
-        case '--env':
-            if (arg = args.shift())
-                environment = arg;
-            break;
-    }
-}
-
-// if an environment has been specified, then apply values from it to the main config
-if( environment && jstonkers.config.environment[environment] ){
-    _.each( jstonkers.config.environment[environment], function(value,key){
-        jstonkers.config[key] = value;
-    });
-}
-
-// Our app IS the exports, this prevents require('./app').app,
-// instead it is require('./app');
 var app = module.exports = express.createServer();
 
-require('./config');
+app.path = Common.paths;
+app.config = Common.config;
 
-require('./helpers');
-require('./socketio');
+program
+    .version('0.0.1')
+    .option('-p, --port <n>', 'port', parseInt)
+    .option('-e, --env', 'environment')
+    .parse(process.argv);
 
-fs.readdir(__dirname + '/handlers', function(err, files) {
-    if (err) throw err;
-    files.forEach(function(file) {
-        require('./handlers/' + file.replace('.js',''));
+app.set('view options', {layout:'layouts/main'});
+app.set('view engine', 'mustache');
+// app.engine('mustache', mustache );// require( '../web/js/lib/mustache.min.js' ));
+
+app.engine('mustache', function(path, options, cb){
+    Common.fs.readFile(path, 'utf8', function(err, str){
+        if (err) return fn(err);
+        var renderFn = mustache.compile(str,options);
+        cb(null,renderFn(options));
     });
 });
 
-require('./repl');
+app.set('views', Common.path.join(__dirname,'views') );
 
-// read from config first
-port = parseInt(port || jstonkers.config.server.port, 10);
+
+app.use( express.bodyParser({ uploadDir: Common.paths.uploadDir }) );
+app.use( express.methodOverride() );
+app.use( connect.cookieParser(app.config.session.secret) );
+app.use( connect.logger({ format: ":date :response-time\t:method :status\t\t:url" }) );
+app.use( connect.favicon() );
+app.use( connect.static(app.path.web) );
+// app.use( '/img/upload', connect.static(app.path.uploadDir) );
+// app.use(express.errorHandler({ showStack: true, dumpExceptions: true }));
+
+var RedisStore = require('connect-redis')(express);
+app.use(express.session({ 
+    key:app.config.session.id,
+    store:new RedisStore({prefix:app.config.session.prefix+':'}) }));
+
+// require('./handlers/iframe');
+// require('./handlers/cms');
+// require('./handlers/main');
+// require('./handlers/uploader');
+
+app.get('/', function(req,res){
+    log('received a test');
+    // res.send({ok:true, msg:'thanks'});
+    res.render( 'match', { msg: "hello there" } );
+});
+
+
+var port = program.port || Common.config.server.port;
+log('started on port ' + port + ' in env ' + Common.config.env.current );
 app.listen(port);
-
-console.log('app started on port ' + port + ' running in env ' + environment );
