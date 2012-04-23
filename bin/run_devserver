@@ -9,11 +9,6 @@
 child_process = require('child_process');
 fs = require("fs");
 util = require("util");
-
-var port = 3000;
-
-if( process.argv.length >= 2 )
-    port = process.argv[2];
     
 dev_server = {
     process: null,
@@ -31,7 +26,7 @@ dev_server = {
         self = this;
         util.debug('DEVSERVER: Starting server');
         self.watchFiles();
-        this.process = child_process.spawn("node", ['app/app.js', port, '-e', 'dev']);
+        this.process = child_process.spawn("node", ['app/app.js', '-e', 'dev']);
         this.process.stdout.addListener('data', function(data) {
             return process.stdout.write(data);
         });
@@ -52,13 +47,12 @@ dev_server = {
     watchFiles: function() {
         var self;
         self = this;
-        // return child_process.exec('find . | grep "\.js$\|\.json$"', function(error, stdout, stderr) {
-        return child_process.exec('find . | grep "\.js$" | grep -v vendor', function(error, stdout, stderr) {
+        return child_process.exec('find . | grep "\.js$" | grep -v web', function(error, stdout, stderr) {
             var files;
             files = stdout.trim().split("\n");
-            util.log(util.inspect(error));
+            if( error )
+                util.log(util.inspect(error));
             return files.forEach(function(file) {
-                // util.debug(file);
                 self.files.push(file);
                 return fs.watchFile(file, {
                     interval: 500
@@ -75,7 +69,7 @@ dev_server = {
     unwatchFiles: function() {
         this.files.forEach(function(file){
             fs.unwatchFile(file);
-        })
+        });
         return (this.files = []);
     }
 };

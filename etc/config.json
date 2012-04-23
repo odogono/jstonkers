@@ -1,29 +1,32 @@
 {
-    
-    "environment":{
+    "env":{
         "test":{
             "server":{
-                "port":5556
+                "port": 3011    
             },
-            "repl_server": {
-                "enabled":true,
-                "port": 9002
-            },
-            "socket_server":{
-                "enabled":true
-            },
+
             "session":{
-                "path":false
+                "prefix":"test_jst"
             },
-            "storage":{
-                "type":"file",
-                "path":false
+            
+            "logging":{
+                "level":"debug"
+            },
+
+            "sync":{
+                "redis":{
+                    "redisdb":1,
+                    "key_prefix":"test:jstonk",
+                    "uuid":{
+                        "key":"uuid"
+                    }
+                }
             }
         }
     },
     
     "server": {
-        "port": 3000
+        "port": 3001
     },
     
     "repl_server": {
@@ -36,12 +39,18 @@
     },
     
     "session":{
-        "path":"var/session"
+        "prefix":"jst",
+        "secret":"jst-secret"
     },
 
-    "storage":{
-        "type":"file",
-        "path":"var/storage"
+    "sync":{
+        "redis":{
+            "redisdb":1,
+            "key_prefix":"jstonk",
+            "uuid":{
+                "key":"uuid"
+            }
+        }
     },
 
     "maps": {
@@ -49,14 +58,10 @@
             "comment":"map used in sinclair version",
             "bounds":[0,0,2560,1536],
             "collision":{
-                "href":"/img/maps/a.pix.png",
-                "data":"var/maps/a.col.pix",
+                "href":"a.pix.png",
+                "data":"a.pix",
                 "dims":[ 128,78 ]
-            },
-            "levels": [
-                { "bounds":[0,0,1280,768], "tile_size":256, "src":"var/maps/a.1.png"  },
-                { "bounds":[0,0,2560,1536], "tile_size":256, "src":"var/maps/a.2.png" }
-            ]
+            }
         },
         
         "test_b":{

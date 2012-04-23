@@ -1,0 +1,1 @@
+exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#unit';

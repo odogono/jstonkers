@@ -37,30 +37,34 @@ L.LatLngBounds.prototype.extend = function (/*LatLng or LatLngBounds*/ obj) {
 
 
 L.JStonkersMap = L.Map.extend({
-    // originLatLng: new L.LatLng(0,0),
-
     initialize: function (id, options) {
         options = _.extend( {
             scrollWheelZoom: false,
             doubleClickZoom: true,
             zoomControl: true,
             attributionControl: false,
-            zoom: 3,
+            zoom: 2,
             maxZoom: 4,
-            minZoom: 3,
+            minZoom: 2,
             dragging: true,
             worldCopyJump: false, 
             crs: L.CRS.Direct,
-            center: new L.LatLng(0.2, 0.31)
+            center: new L.LatLng(0.1875,0.3125)
+            // center: new L.LatLng(0,0)
         }, options );
         L.Map.prototype.initialize.call( this, id, options );
-
         this.initializeTileLayer();
+
+        this.on('zoomend', function(){
+            // used to invalidate the origin point for layer <-> block conv
+            this.originLayerPoint = null;
+        });
     },
 
     initializeTileLayer: function(){
         var url = 'http://work.localhost/jstonkers/web/img/tiles/a/{z}-{x}-{y}.png';
         var params = { minZoom: -2, maxZoom: 4 };
+        // var params = { minZoom: 2, maxZoom: 8 };
         this.tileLayer = new L.TileLayer(url, {
             maxZoom: params.maxZoom - params.minZoom, //6
             minZoom: 0,
@@ -73,7 +77,9 @@ L.JStonkersMap = L.Map.extend({
 
         var maxBounds = new L.LatLngBounds( this.worldToMap([0,1536]), this.worldToMap([2560,0]) );
         // console.debug('maxBounds ' + JSON.stringify(maxBounds));
-        this.setMaxBounds( maxBounds );
+        // this.setMaxBounds( maxBounds );
+
+        // console.log( this.worldToMap([1280,768]) );
     },
 
     worldToMap: function( pos ){
@@ -82,14 +88,20 @@ L.JStonkersMap = L.Map.extend({
     },
 
     layerPointToBlock: function(layerPoint){
-        var origin = this.originLayerPoint;
+        if( !this.originLayerPoint ){
+            this.originLayerPoint = this.latLngToLayerPoint( new L.LatLng(0,0) );
+        }
+        var origin = this.originLayerPoint; //this.latLngToLayerPoint( new L.LatLng(0,0) ); //
         var block = new L.Point(layerPoint.x - origin.x, layerPoint.y - origin.y);
         var zoom = this.tileLayer._getOffsetZoom(this.getZoom());
+        var oblock = block;
+
         if (zoom > 0) {
             block = new L.Point(block.x << zoom, block.y << zoom);
         } else {
             block = new L.Point(block.x >> (zoom * -1), block.y >> (zoom * -1));
         }
+        mlog('layerPointToBlock ' + zoom + ' ' + oblock + ' ' + block  + ' ' + origin );
         return block;
     },
 
@@ -105,7 +117,7 @@ L.JStonkersMap = L.Map.extend({
             block = new L.Point(block.x << (zoom * -1), block.y << (zoom * -1));
         }
 
-        var origin = this.originLayerPoint;
+        var origin = this.originLayerPoint; //this.latLngToLayerPoint( new L.LatLng(0,0) ); //
         var layerPoint = new L.Point(block.x + origin.x, block.y + origin.y);
         return layerPoint;
     },

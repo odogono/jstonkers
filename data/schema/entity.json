@@ -1,0 +1,102 @@
+{
+    "id":"urn:schemas-opendoorgonorth:jstonkers:entity#",
+    "properties":{
+
+        "entity_status":{
+            "id":"#entity_status",
+            "type":"string",
+            "names":[ "active", "inactive", "disabled", "logically_deleted" ],
+            "labels":[ "Active", "Inactive", "Disabled", "Logically Deleted" ],
+            "enum":[ "atv", "iat", "dis", "ldl" ]
+        },
+
+        "unit_type":{
+            "id":"#unit_type",
+            "type":"string",
+            "enum":[ "artillery", "infantry", "tank", "ship", "supply" ]
+        },
+
+        "position":{
+            "id":"#position",
+            "type":"array",
+            "items":{ "type":"number", "minItems":2, "maxItems":2 }
+        },
+        
+        "entity":{
+            "id":"#entity",
+            "type":"object",
+            "properties":{
+                "id":{
+                    "type":"string", "required":true
+                },
+                "status":{
+                    "extends":{"$ref":"#entity_status"},
+                    "default":"atv",
+                    "required":true
+                },
+                "created_at":{ "type":"string" },
+                "updated_at":{ "type":"string" }
+            },
+            "additionalProperties":true
+        },
+
+        "user":{
+            "id":"#user",
+            "extends":{"$ref":"#entity"},
+            "er":[
+                { "oneToMany":"#team" }
+            ]
+        },
+
+        "game":{
+            "id":"#game",
+            "extends":{"$ref":"#entity"},
+            "er":[
+                { "oneToMany":"#team", "name":"teams" },
+                { "oneToOne":"#map" }
+            ],
+            "properties":{
+            }
+        },
+        
+        "map":{
+            "id":"#map",
+            "extends":{"$ref":"#entity"}
+        },
+
+        "team":{
+            "id":"#team",
+            "extends":{"$ref":"#entity"},
+            "properties":{
+                "team_type":{ "type":"string", "enum":[ "hu", "ai" ] }
+            },
+            "er":[
+                { "oneToMany":"#unit" }
+            ]
+        },
+
+        "unit":{
+            "id":"#unit",
+            "extends":{"$ref":"#entity"},
+            "properties":{
+                "unit_type":{
+                    "extends":{"$ref":"#unit_type"}, "required":true
+                },
+                "pos":{
+                    "extends":{"$ref":"#position"}, "required":true
+                }
+            }
+        },
+
+        "order":{
+            "id":"#order",
+            "extends":{"$ref":"#entity"},
+            "properties":{
+                "user_id":{ "type":"string", "required":true },
+                "game_id":{ "type":"string", "required":true },
+                "unit_id":{ "type":"string", "required":true },
+                "pos":{ "extends":{"$ref":"#position"} }
+            }
+        }
+    }
+}

@@ -1,0 +1,61 @@
+html, body  {
+  background-color: black;
+}
+
+.border_a {
+  border: 16px solid green;
+  -moz-border-image: url(../img/border_a.png) 16 16 16 16 repeat;
+  -webkit-border-image: url(../img/border_a.png) 16 16 16 16 repeat;
+  -o-border-image: url(../img/border_a.png) 16 16 16 16 repeat;
+  border-image: url(../img/border_a.png) 16px 16px 16px 16px repeat;}
+
+.border_b {
+  border: 16px solid green;
+  -moz-border-image: url(../img/border_b.png) 16 16 16 16 repeat;
+  -webkit-border-image: url(../img/border_b.png) 16 16 16 16 repeat;
+  -o-border-image: url(../img/border_b.png) 16 16 16 16 repeat;
+  border-image: url(../img/border_b.png) 16px 16px 16px 16px repeat;}
+
+.border_c{
+  border: 16px solid green;
+}
+#map{
+  background-color: black;
+    height:480px;
+}
+#messages{
+  background-color: black;
+  height: 16px;
+  color: white;
+}
+#log {
+    color: #000;
+    max-height: 20em;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    position: absolute;
+    left:  10px;
+    top: 100px;
+    z-index: 100;
+}
+.imoverlay-man { 
+    z-index: 2;
+}
+.leaflet-control-coordinates {
+    background: none repeat scroll 0 0 #ffffff;
+    color: #333333;
+    font: 12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif;
+    padding: 6px 10px 6px 6px;
+    border-radius: 7px 7px 7px 7px;
+    box-shadow: 0 0 7px #999999;
+}
+.imoverlay-man:hover {cursor:pointer}
+
+
+.sprite {
+    background-image: url(../img/sprites.2.png);  
+}
+.sprite.zoom_1 {
+  background-image: url(/img/sprites.1.png);}
+.sprite.zoom_2 {
+  background-image: url(/img/sprites.2.png);}

@@ -18,8 +18,16 @@ app.set('view engine', 'mustache');
 app.engine('mustache', function(path, options, cb){
     Common.fs.readFile(path, 'utf8', function(err, str){
         if (err) return fn(err);
-        var renderFn = mustache.compile(str,options);
-        cb(null,renderFn(options));
+        try {
+            var renderFn = mustache.compile(str,options);
+            if( options.cb )
+                cb(null,renderFn);
+            else
+                cb(null,renderFn(options));
+        }
+        catch(err) {
+            cb(err);
+        }
     });
 });
 
@@ -40,17 +48,7 @@ app.use(express.session({
     key:app.config.session.id,
     store:new RedisStore({prefix:app.config.session.prefix+':'}) }));
 
-// require('./handlers/iframe');
-// require('./handlers/cms');
-// require('./handlers/main');
-// require('./handlers/uploader');
-
-app.get('/', function(req,res){
-    log('received a test');
-    // res.send({ok:true, msg:'thanks'});
-    res.render( 'match', { msg: "hello there" } );
-});
-
+require('./handlers/match');
 
 var port = program.port || Common.config.server.port;
 log('started on port ' + port + ' in env ' + Common.config.env.current );
