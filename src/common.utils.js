@@ -38,7 +38,7 @@ Bjs2Callback = function( next, options ){
         success:function(model,resp){
             next(null, model, resp);
         },
-        error:function(err,model,resp){
+        error:function(model,err,resp){
             next( err, model, resp);
         }
     });

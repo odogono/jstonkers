@@ -15,28 +15,67 @@ var Entity = Backbone.Model.extend({
         this.set( type, instance, options );
     },
 
+/*
+    set: function(key, value, options) {
+        
+        // var result = this.constructor.__super__.set.call(this,key,value,options);
+        var result = Backbone.Model.prototype.set.call(this,key,value,options);
+
+        if( this.goforit ){
+           log('setting...' + options);
+           print_ins( this ); 
+        }
+
+        return result;
+    },//*/
+
     parse: function(resp, xhr){
         if( !resp )
             return resp;
         
         var self = this,
+            origResp = resp,
             entityDef = Common.entity.ids[this.type];
 
+        if( resp[this.id] ){
+            resp = resp[this.id];
+        }
+        else
+            log('nope ' + this.id);
+
         // set any ER properties
+        if( resp !== this ){
+            _.each( entityDef.ER, function(er){
+                var erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
+                var collection = self[erName];
 
-        _.each( entityDef.ER, function(er){
-            var collectionName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();;
-            var collection = self[collectionName];
+                if( er.oneToOne ){
+                    var erId = resp[erName];
+                    log('looking for ' + erId );
+                    // print_ins( origResp );
 
-            if( resp[collectionName] && collection ){
-                // log('setting properties for ' + collectionName + ' ' + JSON.stringify(resp[collectionName]) );
-                collection.set( collection.parse(resp[collectionName]) );
-                delete resp[collectionName];
-            }
-        });
+                    if( origResp[erId] ){
+                        resp[erName] = origResp[erId];
+                        log('got it')
+                    }
+                }                
+
+                // log('hey! ' + erName + ' ' + resp[erName] + ' ' + collection);
+
+                // if( er.oneToOne && origResp[resp[erName]] ){
+                //     resp[erName] =  origResp[ resp[erName] ];
+                // }
+
+                // if( resp[erName] && collection ){
+                    // log('setting properties for ' + erName + ' ' + JSON.stringify(resp[erName]) );
+                    // collection.set( collection.parse(resp[erName]) );
+                    // delete resp[erName];
+                // }
+            });//*/
+        }
         
-
-        // print_ins( this );
+// print_ins( this );
+        
 
         return resp;
     },
@@ -85,10 +124,12 @@ exports.create = function( type, attrs, options ) {
         if( !type && attrs.id && attrs.id.indexOf('.') > 0 )
             type = attrs.id.substring( 0, attrs.id.indexOf('.') );
     }
-    else if( _.isString(attrs) )
-        attrs = { id:attrs };
-    else 
+    else if( attrs ) { //_.isString(attrs) ){
+        if( !_.isObject(attrs) )
+            attrs = { id:attrs };
+    }else{
         attrs = (attrs || {});
+    }
 
     attrs.created_at = new Date();
     attrs.updated_at = new Date();
@@ -157,27 +198,3 @@ exports.create = function( type, attrs, options ) {
     });
     return result;
 };
-
-
-// exports.retrieveById = function( id, options ){
-//     var storageOptions = {},
-//         successCallback = options.success,
-//         errorCallback = options.error;
-//     // the id will be the initial chars
-//     var entityType = id.substring( 0, id.indexOf('.') );
-//     var result = Common.entity.ids[ entityType ].create({id:id});
-    
-//     storageOptions.db = Common.config.mongodb.default_db;
-//     storageOptions.collection = Common.config.mongodb.collections[ entityType ] || Common.config.mongodb.collections.entity;
-
-//     Common.storage.readRecord( id, storageOptions, function(err,doc){
-//         if( doc ){
-//             result.set( result.parse(doc), {silent:true} );
-//             successCallback( result );
-//         } else {
-//             if( options.debug ) log('returning null for ' + model.id );
-//             errorCallback( err );
-//         }
-//     });    
-// };
-

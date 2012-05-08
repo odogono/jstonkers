@@ -45,6 +45,8 @@ srcImage.onload = function(){
             filename = _.sprintf( "%s-%s-%s.png", program.zoomprefix, x, y );
             filename = Common.path.join( program.destdir, filename );
 
+            context.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
+
             // draw the cropped image
             context.drawImage( srcImage, -(x*TILE_SIZE), -(y*TILE_SIZE) );
             buffer = canvas.toBuffer();

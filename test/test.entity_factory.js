@@ -2,19 +2,17 @@ var Common = require( '../src/common.js' );
 
 describe('EntityFactory', function(){
 
-    var testEntity = {
-        type: 'test',
-        ER:[
-            { oneToMany: 'test_b' }
-        ]
-    };
-    var testEntityB = { type: 'test_b', ER:[ { oneToMany:'test_c'} ] };
-    var testEntityC = { type: 'test_c' };
+    var testEntities = [
+        { type: 'test_a', ER:[ { oneToMany: 'test_b' } ] },
+        { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
+        { type: 'test_c' },
+        { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'} ] }
+    ];
 
-    Common.entity.registerEntity( testEntityC );
-    Common.entity.registerEntity( testEntityB );
-    Common.entity.registerEntity( testEntity );
-    
+    _.each( testEntities.reverse(), function(e){
+        Common.entity.registerEntity(e);
+    });
+
     beforeEach( function(done){
         Common.sync.clear( function(err){
             if( err ) return done(err);
@@ -22,30 +20,64 @@ describe('EntityFactory', function(){
         });
     });
 
+    describe('entity import', function(){
+
+        /*
+        it('should import itself', function(){
+            var data = JSON.parse('{'
+                +'"a.001":{'
+                +'    "name":"alpha"'
+                +'}'
+                +'}');
+
+            var a = Common.entity.create( Common.entity.TYPE_TEST_A, 'a.001' );
+            a.set(a.parse(data));
+            assert.strictEqual( a.get('name'), 'alpha' );
+        });//*/
+
+        it('should import a o2o', function(){
+            var data = JSON.parse('{'
+                +'"d.001":{'
+                +'    "name":"first",'
+                +'    "friend":"c.002"'
+                +'},'
+                +'"c.002":{'
+                +'    "name":"second"'
+                +'}'
+                +'}');
+
+            var a = Common.entity.create( Common.entity.TYPE_TEST_D, 'd.001' );
+            print_ins(a.parse(data));
+            // a.set(a.parse(data));
+            // assert.strictEqual( a.get('friend').get('name'), 'second' );
+        });
+
+    });
+
     describe('export', function(){
 
-        it('should export a user', function(){
-            var user = Common.entity.create(Common.entity.TYPE_USER);
-            var result = Common.entity.Factory.toJSON( user, {referenceItems:true} );
+        it('should export an entity', function(){
+            var entity = Common.entity.create(Common.entity.TYPE_TEST_A);
+            var result = Common.entity.Factory.toJSON( entity, {referenceItems:true} );
 
-            result[0].type.should.equal('user');
+            result[0].type.should.equal('test_a');
         });
 
         
         it('should export a team with a game and user', function(){
             var parent, child;
 
-            parent = Common.entity.create(Common.entity.TYPE_TEST);
+            parent = Common.entity.create(Common.entity.TYPE_TEST_A);
             child = Common.entity.create(Common.entity.TYPE_TEST_B);
             parent.test_b.add( child );
 
             var result = Common.entity.Factory.toJSON( parent );
             
-            result[1]['_test:test_b'].should.equal( parent.cid );
+            result[1]['_test_a:test_b'].should.equal( parent.cid );
         });
 
         it('should export a map of entities in the tree', function(){
-            var a = Common.entity.create( Common.entity.TYPE_TEST );
+            var a = Common.entity.create( Common.entity.TYPE_TEST_A );
             var b = Common.entity.create( Common.entity.TYPE_TEST_B );
             var c = Common.entity.create( Common.entity.TYPE_TEST_C );
 
@@ -57,7 +89,7 @@ describe('EntityFactory', function(){
         });
 
         it('should export a map of entities in the tree again', function(){
-            var a = Common.entity.create( Common.entity.TYPE_TEST, {name:'alpha'} );
+            var a = Common.entity.create( Common.entity.TYPE_TEST_A, {name:'alpha'} );
             var b = Common.entity.create( Common.entity.TYPE_TEST_B, {name:'beta'} );
             var c = Common.entity.create( Common.entity.TYPE_TEST_C, {name:'charles'} );
 
@@ -77,7 +109,7 @@ describe('EntityFactory', function(){
 
             // turn this into a json doc
             var json = Common.entity.Factory.toJSON( result, {debug:true} );
-            print_var(json);
+            // print_var(json);
         });
 
 
@@ -111,7 +143,7 @@ describe('EntityFactory', function(){
         it('should export an array of entities', function(){
             var entities = [];
             for( var i=0;i<5;i++ ){
-                entities.push( new Common.entity.create( Common.entity.TYPE_TEST, {name:'entity ' + i}));
+                entities.push( new Common.entity.create( Common.entity.TYPE_TEST_A, {name:'entity ' + i}));
             }
             var json = Common.entity.toJSON( entities );
 

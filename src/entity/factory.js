@@ -60,14 +60,13 @@ exporters.generic = function( result, type, ent, options ){
     // convert any entity references
     _.each( json, function(value,key){
         if( value instanceof Common.entity.Base ){
-            // log('hmm ' + key + ' ' + value.get('name') );
             if( !result[value.cid] ){
                 exporters[value.type] ?
                     exporters[value.type]( result, value.type, value, options ) :
                     exporters.generic( result,value.type, value, options);
             }
             if( options.toJSON ){
-                json[key] = value.cid;
+                json[key] = value.id || value.cid;
             }
         }
     })

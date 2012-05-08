@@ -1,20 +1,17 @@
 module.exports.ids = {};
 module.exports.names = {};
 
+exports.Entity = require('./entity');
+
 exports.entities = {
-    Entity: require('./entity'),
-    // Actor: require('./actor'),
-    Game: require('./game'),
-    Map: require('./map'),
-    Team: require('./team'),
-    User: require('./user'),
-    Order: require('./order'),
-    Unit: require('./unit'),
-    // Poi: require('./poi'),
-    // World: require('./world'),
-    // Mailbox: require('./mailbox'),
-    // Mail: require('./mail'),
-    // Scene: require('./scene'),
+    // Entity: require('./entity'),
+    
+    // Game: require('./game'),
+    // Map: require('./map'),
+    // Team: require('./team'),
+    // User: require('./user'),
+    // Order: require('./order'),
+    // Unit: require('./unit'),
 };
 
 _.extend(module.exports, exports.entities);
@@ -71,16 +68,12 @@ function registerEntityType( entityDef ){
     if( entityDef.schema ){
         // log('schema found for ' + entityDef.schema );//+ ' ' + inspect(entityDef) );
         
-        // schema = Common.schema.getSchemaValue( entityDef.schema );
         var schemaValue = Common.schema.getSchemaValue( entityDef.schema );
-        // print_ins( schemaValue, false, 2 );
         entityDef.type = schemaValue.id.substring(1);
         entityDef.name = (schemaValue.properties.name) ? schemaValue.properties.name : entityDef.type;
         if( schemaValue.er ){
             entityDef.ER = schemaValue.er;
         }
-        // print_ins( schemaValue );
-        // log( JSON.stringify(jsonpointer.get(schemaValue, '/er'),null,'\t') );
     }
     else{
         entityDef.name = entityDef.name || entityDef.type;
