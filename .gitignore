@@ -4,7 +4,7 @@ jstonkers.tmproj
 public/css/*.css
 web/img/tiles
 
-.DS_Store*
+
 ehthumbs.db
 Icon?
 Thumbs.db
@@ -13,7 +13,7 @@ Thumbs.db
 *.gitmodules
 *.gitignore
 
-node_modules/*.git
+node_modules
 var/*
 var/session/*
 
