@@ -6,13 +6,19 @@ var importers = {};
 exporters.generic = function( result, type, ent, options ){
     var o2m = [];
     var o2o = [];
-    var json = ent.toJSON();
+    var json;// = ent.toJSON();
     options || (options={});
     
+    // if( ent.type === 'test_f' ) {
+        // debugger;
+    // }
+    json = ent.toJSON();
+
     var entityDetails = entity.ids[type];
     var entityCollectionOptions = _.extend( {noCounts:true}, options );
 
     if( options.toJSON ){
+
         json['type'] = ent.type;
         json['_cid'] = ent.cid;
         if( ent.id )
@@ -23,9 +29,12 @@ exporters.generic = function( result, type, ent, options ){
         result[ ent.cid ] = ent;
     }
 
-    // log('hey wat ' + json.id)
+    // if( options.special ) log('hey wat ' + json.type + ' ' + JSON.stringify(json) );
+    // print_var( ent );
     
     // if( options.debug ) print_var(json);
+
+    
 
     // oneToMany relationships have a collection which needs to be traversed
     _.each( entityDetails.ER, function(er){
@@ -57,6 +66,7 @@ exporters.generic = function( result, type, ent, options ){
         }
     });
 
+    
     // convert any entity references
     _.each( json, function(value,key){
         if( value instanceof Common.entity.Base ){
@@ -70,6 +80,8 @@ exporters.generic = function( result, type, ent, options ){
             }
         }
     })
+
+
 
     // print_var( result );
     if( options.toJSON ){

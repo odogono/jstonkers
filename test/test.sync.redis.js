@@ -15,10 +15,12 @@ var Common = require( '../src/common.js' );
 describe('Sync.Redis', function(){
 
     var testEntities = [
-        { type: 'test', ER:[ { oneToMany: 'test_b' } ] },
-        { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
-        { type: 'test_c' },
-        { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] }
+        // { type: 'test', ER:[ { oneToMany: 'test_b' } ] },
+        // { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
+        // { type: 'test_c' },
+        // { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
+        { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'} ] },
+        { type: 'test_f' },
     ];
 
     _.each( testEntities.reverse(), function(e){
@@ -94,12 +96,40 @@ describe('Sync.Redis', function(){
             )
         });//*/
 
+        it('should save a o2o relationship', function(done){
+            var a = Common.entity.create( Common.entity.TYPE_TEST_E, {name:'enigma'} );
+            var b = Common.entity.create( Common.entity.TYPE_TEST_F, {name:'foxtrot'} );
+
+            // print_ins(a);
+            a.set( {comrade:b} );
+
+            Step(
+                function(){
+                    assert( a.isNew() );
+                    assert( b.isNew() );
+                    a.saveCB( null, this );
+                },
+                function(err,result){
+                    var aC = Common.entity.create( Common.entity.TYPE_TEST_E, a.id );
+                    aC.fetchRelatedCB( this );
+                },
+                function(err,model,resp){
+                    assert.equal( model.get('comrade').get('name'), 'foxtrot' );
+                    done();
+                }
+            );
+            // print_var( a.get('comrade') );
+
+            // print_ins( a );
+            // done();
+        });
         
+        /*
         it('should save a parent and child entity', function(done){
             var a = Common.entity.create( Common.entity.TYPE_TEST, {name:'alpha'} );
             var b = Common.entity.create( Common.entity.TYPE_TEST_B, {name:'beta'} );
+            
             a.test_b.add( b );
-
             a.test_b.length.should.equal(1);
 
             Step(
@@ -118,6 +148,7 @@ describe('Sync.Redis', function(){
                     var aCopy = Common.entity.create( Common.entity.TYPE_TEST, a.id );
                     assert( aCopy.id === a.id );
                     assert( aCopy instanceof Common.entity.Base );
+                    // fetch the parent and children to a depth of two
                     aCopy.fetch( Bjs2Callback(this,{depth:2}) );
                 },
                 function(err,result){

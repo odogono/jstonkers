@@ -15,17 +15,92 @@ var Entity = Backbone.Model.extend({
         this.set( type, instance, options );
     },
 
-/*
-    set: function(key, value, options) {
-        
-        // var result = this.constructor.__super__.set.call(this,key,value,options);
-        var result = Backbone.Model.prototype.set.call(this,key,value,options);
 
-        if( this.goforit ){
-           log('setting...' + options);
-           print_ins( this ); 
+
+    // converts a single callback function into something backbone compatible 
+    convertCallback: function(options,callback){
+        options || (options={});
+        if( _.isFunction(options) ){
+            callback = options;
+            options = {};
+        }
+        if( callback ){
+            options = _.extend(options,{
+                success: function(model,resp){
+                    callback( null, model, resp );
+                },
+                error: function(model,err,resp){
+                    callback( err, model, resp );
+                }
+            });
+        }
+        return options;
+    },
+
+    // provide a more common success failure style
+    // saveCB( {key:'value'}, function(){} )
+    saveCB: function(key, value, options, callback){
+        var attrs;
+
+        if( _.isObject(key) || key == null){
+            attrs = key;
+            callback = options;
+            options = value;
+        } else {
+            attrs = {};
+            attrs[key] = value;
         }
 
+        options = this.convertCallback( options, callback );
+        return this.save( attrs, options );
+    },
+
+    fetchCB: function(options,callback){
+        options = this.convertCallback( options, callback );
+        return this.fetch( options );
+    },
+
+    fetchRelatedCB: function(options,callback){
+        options = this.convertCallback( options, callback );
+        options.fetchRelated = true;
+        return this.fetch( options );  
+    },
+
+
+    set: function(key, value, options) {
+        var attrs, attr, val;
+        var self = this,
+            entityDef = Common.entity.ids[this.type];
+
+        // Handle both `"key", value` and `{key: value}` -style arguments.
+        if (_.isObject(key) || key == null) {
+            attrs = key;
+            options = value;
+        } else {
+            attrs = {};
+            attrs[key] = value;
+        }
+
+        if( entityDef && entityDef.ER ){
+            // log('setting ' + JSON.stringify(attrs) );
+            _.each( entityDef.ER, function(er){
+                var erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
+                var erData = attrs[erName];
+
+                if( er.oneToOne && erData && !(erData instanceof Common.entity.Base) ){
+                    // TODO AV : could maybe get this model reference from elsewhere?
+                    var subEntity = Common.entity.create( erData );
+                    if( subEntity ) {
+                        attrs[erName] = subEntity;
+                    } else
+                        delete attrs[erName];
+                }
+            });
+        }
+
+        // var result = this.constructor.__super__.set.call(this,key,value,options);
+        // var result = Backbone.Model.prototype.set.call(this,key,value,options);
+        var result = Backbone.Model.prototype.set.apply( this, arguments );
         return result;
     },//*/
 
@@ -38,28 +113,31 @@ var Entity = Backbone.Model.extend({
             entityDef = Common.entity.ids[this.type];
 
         if( resp[this.id] ){
+            // log('parsing from a map');
             resp = resp[this.id];
+            // print_ins( resp );
         }
-        else
-            log('nope ' + this.id);
+        else{
+            // log('nope ' + this.id);
+        }
 
         // set any ER properties
         if( resp !== this ){
             _.each( entityDef.ER, function(er){
                 var erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
-                var collection = self[erName];
+                // var collection = self[erName];
 
                 if( er.oneToOne ){
                     var erId = resp[erName];
-                    log('looking for ' + erId );
+                    // log('looking for ' + erId );
                     // print_ins( origResp );
 
                     if( origResp[erId] ){
                         resp[erName] = origResp[erId];
-                        log('got it')
+                        // log('got it');
                     }
-                }                
-
+                }
+                // print_ins( resp );
                 // log('hey! ' + erName + ' ' + resp[erName] + ' ' + collection);
 
                 // if( er.oneToOne && origResp[resp[erName]] ){
@@ -74,9 +152,6 @@ var Entity = Backbone.Model.extend({
             });//*/
         }
         
-// print_ins( this );
-        
-
         return resp;
     },
 
@@ -149,7 +224,7 @@ exports.create = function( type, attrs, options ) {
     }
 
     if( type === undefined ){
-        throw new Error('undefined type');
+        throw new Error('undefined type' );
     }
 
     // if( attrs.id.indexOf(type) !== 0 )
@@ -192,8 +267,6 @@ exports.create = function( type, attrs, options ) {
         }
         else if( result[collectionName] ){
             result[collectionName].set( props );
-            // if( debug ) log( collectionName );
-            // if( debug ) print_ins( props );
         }
     });
     return result;

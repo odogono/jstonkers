@@ -48,6 +48,10 @@ describe('EntityFactory', function(){
 
             var a = Common.entity.create( Common.entity.TYPE_TEST_D, 'd.001' );
             print_ins(a.parse(data));
+
+            parse converts the incoming data from a id/object map to a hierarchy ready
+            to be set on the model
+            
             // a.set(a.parse(data));
             // assert.strictEqual( a.get('friend').get('name'), 'second' );
         });
@@ -63,7 +67,6 @@ describe('EntityFactory', function(){
             result[0].type.should.equal('test_a');
         });
 
-        
         it('should export a team with a game and user', function(){
             var parent, child;
 

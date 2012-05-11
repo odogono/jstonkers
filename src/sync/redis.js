@@ -355,11 +355,12 @@ _.extend( RedisStorage.prototype, {
                         assignIdToEntity(ent,group());
                     }
                 });
+                // print_var(cidToModel);
             },
             function saveEntities(){
                 // print_ins(cidToModel,false,3);
                 // referenceChildren means that the parents will have references to children
-                var jsonOutput = Common.entity.Factory.toJSON( cidToModel, {referenceItems:false,debug:true} );
+                var jsonOutput = Common.entity.Factory.toJSON( cidToModel, {referenceItems:false,debug:true,special:true} );
 
                 // print_var(jsonOutput);
                 var group = this.group();
@@ -407,7 +408,7 @@ _.extend( RedisStorage.prototype, {
             function(){
                 var group = this.group();
                 for( var i=0;i<entityIdList.length;i++ ){
-                    log('retrieve entity ' + JSON.stringify(entityIdList[i]) );
+                    // log('retrieveEntitiesById ' + JSON.stringify(entityIdList[i]) );
                     self.retrieveEntityById( entityIdList[i], options, group() );
                 }
             },
@@ -418,19 +419,31 @@ _.extend( RedisStorage.prototype, {
     },
 
 
+    /**
+    *
+    */
     retrieveEntityById: function( entity, options, callback ){
         var i,self = this,
             itemCounts = [],
             erCollections = [],
             erEntities = [],
             result,
+            retrievedEntity,
             subOptions,
             retrieveERCounts = true;
         var entityKey = options.key_prefix + ':' + entity.id;
         var entityDef = Common.entity.ids[entity.type];
         var multi = self.client.multi();
+        result = options.result || {};
 
         // log('retrieveEntityById ' + entity.id );
+
+        if( result[entity.id] ){
+            log('retrieveEntityById : already retrieved ' + entity.id );
+            callback( err, result );
+            return;
+        }
+
         // retrieve the entity
         multi.hget( entityKey, 'value' );
 
@@ -450,7 +463,7 @@ _.extend( RedisStorage.prototype, {
                     var o2oName = (er.name || er.oneToOne).toLowerCase();
                     var o2oKey = entityKey + ':' + o2oName;
                     // log('considering ' + o2oName  + ' type ' + er.oneToOne );
-                    if( options._depth < options.depth ){
+                    if( options.fetchRelated || options._depth < options.depth ){
                         erEntities.push( { key:o2oName, type:er.oneToOne} );
                     }
                 }
@@ -460,11 +473,11 @@ _.extend( RedisStorage.prototype, {
         multi.exec( function(err, replies){
             if( err ) throw err;
             if( !replies ) callback( err, entity );
+            // first result will be the entity value itself
             if( replies[0] ){
-                result = JSON.parse(replies[0]);
+                result[ entity.id ] = retrievedEntity = JSON.parse(replies[0]);
             }
-
-            subOptions = _.extend(options,{_depth:options._depth+1});
+            subOptions = _.extend(options,{result:result,_depth:options._depth+1});
 
             // set item counts
             for( i=0;i<itemCounts.length;i++ ){
@@ -473,6 +486,7 @@ _.extend( RedisStorage.prototype, {
                 }
             }
 
+            // log('retrieving assocated entities ' + JSON.stringify(erEntities) );
             if( erCollections.length > 0 || erEntities.length > 0 ){
                 
                 Step(
@@ -480,7 +494,7 @@ _.extend( RedisStorage.prototype, {
                         // assign ids to the entities we are retrieving
                         if( erEntities.length > 0 ){
                             for( i=0;i<erEntities.length;i++ ){
-                                erEntities[i].id = result[erEntities[i].key];
+                                erEntities[i].id = retrievedEntity[erEntities[i].key];
                             }
                             // retrieve referenced entities in a single step
                             self.retrieveEntitiesById( erEntities, subOptions, this );
@@ -489,27 +503,29 @@ _.extend( RedisStorage.prototype, {
                             this();
                     },
                     function(err, entities){
-                        // log('go')
                         if( err ) callback(err);
 
-                        if( erEntities.length > 0 ){
+                        /*if( erEntities.length > 0 ){
                             // use the earlier stored entity details to restore the entity back
                             for( i=0;i<erEntities.length;i++ ){
                                 // result[ erEntities[i].key ] = entities[i];
                             }
-                        }
+                        }//*/
                         
                         var group = this.group();
                         for( i=0;i<erCollections.length;i++ ){
+                            // log('retrieving collection ' + entityKey +':' + erCollections[i] );
                             self.retrieveCollectionBySet( entityKey +':' + erCollections[i], null, subOptions, group() );
                         }
                     },
                     function(err,entities){
                         if( entities ){
+                            // print_var( entities );
                             for( i=0;i<erCollections.length;i++ ){
                                 result[ erCollections[i] ] = entities[i];
                             }
                         }
+                        // log('got it here');
                         // print_ins( result );
                         callback(err,result);
                     }
@@ -546,77 +562,7 @@ _.extend( RedisStorage.prototype, {
             }
         }
         else {
-
             self.retrieveEntityById( model, options, callback );
-            /*
-            var multi = self.client.multi();
-            // first get the base model
-            multi.hgetall( modelKey );
-
-            log('find with ' + inspect(options) );
-
-            // next get the counts for each of the collections
-            _.each( entityDetails.ER, function(er){
-                if( er.oneToMany ){
-                    var collectionName = (er.name || er.oneToMany).toLowerCase();
-                    collectionSetKey = modelKey + ':' + collectionName;
-                    multi.scard( collectionSetKey );
-                    itemCounts.push( collectionName );
-                    if( options._depth < options.depth ){
-                    // if( options['retrieve'+_.capitalize(collectionName)] ){
-                        retrieveChildren.push( collectionName );
-                    }
-                }
-            });
-            
-            // log( collectionName );
-            multi.exec( function(err,replies){
-                var callCallback = true;
-                if( replies ){
-                    var entityFields = replies[0];
-
-                    if( entityFields ){
-                        result = JSON.parse(entityFields.value);
-                        if( entityFields.created_at )
-                            result.created_at = new Date(parseInt(entityFields.created_at,10)).toISOString();
-                        if( entityFields.updated_at )
-                            result.updated_at = new Date(parseInt(entityFields.updated_at,10)).toISOString();
-                    }
-
-
-                    // set item counts
-                    for( i=0;i<itemCounts.length;i++ ){
-                        if( replies[i+1] ){
-                            result[itemCounts[i]] = { item_count:replies[i+1] };
-                        }
-                    }
-
-                    if( retrieveChildren.length > 0 ){
-                        callCallback = false;
-                        Step(
-                            function(){
-                                var group = this.group();
-                                for( i=0;i<retrieveChildren.length;i++ ){
-                                    self.retrieveCollectionBySet( modelKey +':' + retrieveChildren[i], null, options, group() );
-                                }            
-                            },
-                            function(err,entities){
-                                if( entities ){
-                                    for( i=0;i<retrieveChildren.length;i++ ){
-                                        result[ retrieveChildren[i] ] = entities[i];
-                                    }
-                                }
-                                callback(err,result);
-                            }
-                        );
-                    }
-                    
-                }
-
-                if( callCallback ){
-                    callback( err, result );
-                }
-            })//*/
         }
     },
      

@@ -79,13 +79,13 @@ exports.oneToOne = function( entityDef, codomainType, options ){
 
     // log( 'applying 1to1 from ' + entityDef.type + ' to ' + codomainType );
 
-    entityDef.entity.prototype[ 'set' + codomainName ] = function( otherEntity, options ){
-        this.set( '_'+codomainType, otherEntity, options );
-    };
+    // entityDef.entity.prototype[ 'set' + codomainName ] = function( otherEntity, options ){
+    //     this.set( '_'+codomainType, otherEntity, options );
+    // };
 
-    entityDef.entity.prototype[ 'get' + codomainName ] = function(){
-        return this.get('_'+codomainType);
-    }
+    // entityDef.entity.prototype[ 'get' + codomainName ] = function(){
+    //     return this.get('_'+codomainType);
+    // };
 }
 
 
