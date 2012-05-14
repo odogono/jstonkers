@@ -140,11 +140,11 @@ exports.oneToMany = function( entityDef, spec, options ){
         
 
         // add listeners for add and remove
-        collection.on('add', function(childEntity){
+        /*collection.on('add', function(childEntity){
             childEntity.set(childRelationKey, self);
         }).on('remove', function(childEntity){
             childEntity.set(childRelationKey, undefined);
-        });
+        });//*/
 
         existingInitialize.apply(this, arguments);
     }

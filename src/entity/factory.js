@@ -7,15 +7,12 @@ exporters.generic = function( result, type, ent, options ){
     var o2m = [];
     var o2o = [];
     var json;// = ent.toJSON();
+
     options || (options={});
-    
-    // if( ent.type === 'test_f' ) {
-        // debugger;
-    // }
     json = ent.toJSON();
 
     var entityDetails = entity.ids[type];
-    var entityCollectionOptions = _.extend( {noCounts:true}, options );
+    var entityCollectionOptions = _.extend( {noCounts:true,collectionAsIdList:true}, options );
 
     if( options.toJSON ){
 
@@ -34,7 +31,7 @@ exporters.generic = function( result, type, ent, options ){
     
     // if( options.debug ) print_var(json);
 
-    
+
 
     // oneToMany relationships have a collection which needs to be traversed
     _.each( entityDetails.ER, function(er){
@@ -44,8 +41,6 @@ exporters.generic = function( result, type, ent, options ){
 
             var key = er.name || er.oneToMany;
             key = key.toLowerCase();
-
-            // if( options.debug ) log('exporting ' + key + ' from ' + JSON.stringify(er) + ' ' + er.name);
 
             // visit each child, and export each to the result
             if( ent[key] && ent[key] instanceof Common.entity.EntityCollection ){
@@ -59,8 +54,10 @@ exporters.generic = function( result, type, ent, options ){
                 });
 
                 if( options.toJSON ){
-                    if( entityCollectionOptions.referenceItems && ent[key].length > 0 )
-                        o2m.push( ent[key].toJSON( entityCollectionOptions ) );
+                    if( entityCollectionOptions.referenceItems && ent[key].length > 0 ){
+                        json[key] = ent[key].toJSON( entityCollectionOptions );
+                        // o2m.push( ent[key].toJSON( entityCollectionOptions ) );
+                    }
                 }
             }
         }
@@ -68,29 +65,35 @@ exporters.generic = function( result, type, ent, options ){
 
     
     // convert any entity references
+
     _.each( json, function(value,key){
         if( value instanceof Common.entity.Base ){
-            if( !result[value.cid] ){
+            if( options.exportRelations && !result[value.cid] ){
                 exporters[value.type] ?
                     exporters[value.type]( result, value.type, value, options ) :
                     exporters.generic( result,value.type, value, options);
             }
             if( options.toJSON ){
-                json[key] = value.id || value.cid;
+                if( !options.exportRelations )
+                    json[key] = value.id;
+                else
+                    json[key] = value.id || value.cid;
             }
         }
-    })
+    });
+
 
 
 
     // print_var( result );
     if( options.toJSON ){
-        if( o2m.length > 0 )
-            json['o2m'] = o2m;
+        // if( o2m.length > 0 )
+            // json['o2m'] = o2m;
         if( o2o.length > 0 )
             json['o2o'] = o2o;
         return json;
     }
+
     return ent;
 };
 

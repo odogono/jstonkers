@@ -1,24 +1,12 @@
 var Common = require( '../src/common.js' );
 
-// function handleBJSResult( next, options ){
-//     options || (options={});
-//     return _.extend(options,{
-//         success:function(model,resp){
-//             next(null, model, resp);
-//         },
-//         error:function(err,model,resp){
-//             next( err, model, resp);
-//         }
-//     });
-// }
-
 describe('Sync.Redis', function(){
 
     var testEntities = [
-        // { type: 'test', ER:[ { oneToMany: 'test_b' } ] },
-        // { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
-        // { type: 'test_c' },
-        // { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
+        { type: 'test', ER:[ { oneToMany: 'test_b' } ] },
+        { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
+        { type: 'test_c' },
+        { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
         { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'} ] },
         { type: 'test_f' },
     ];
@@ -27,15 +15,6 @@ describe('Sync.Redis', function(){
         Common.entity.registerEntity(e);
     });
 
-    // var testEntity = { type: 'test', ER:[ { oneToMany: 'test_b' } ] };
-    // var testEntityB = { type: 'test_b', ER:[ { oneToMany:'test_c'} ] };
-    // var testEntityC = { type: 'test_c' };
-    // var testEntityD = { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'} ] };
-
-    // Common.entity.registerEntity( testEntityD );
-    // Common.entity.registerEntity( testEntityC );
-    // Common.entity.registerEntity( testEntityB );
-    // Common.entity.registerEntity( testEntity );
 
     Common.sync.set('override','redis');
 
@@ -71,22 +50,21 @@ describe('Sync.Redis', function(){
     
     describe('Entity', function(){
         
-        it('should make the entity belong to a status set');
+        // it('should make the entity belong to a status set');
 
-        it('should delete the entity cleanly');
+        // it('should delete the entity cleanly');
         
-        /*
         it('should save an entity', function(done){
             Step(
                 function(){
                     var user = Common.entity.create(Common.entity.TYPE_TEST, {name:'freddy'}); 
-                    user.save( null, Bjs2Callback(this) );
+                    user.saveCB( null, this );
                 },
                 function(err,user){
                     if( err ) throw err;
                     user.get('name').should.equal('freddy');
                     var restoredUser = Common.entity.create( Common.entity.TYPE_TEST, user.id );
-                    restoredUser.fetch( Bjs2Callback(this) );
+                    restoredUser.fetchCB( this );
                 },
                 function(err,restoredUser){
                     if( err ) throw err;
@@ -94,9 +72,31 @@ describe('Sync.Redis', function(){
                     done();
                 }
             )
-        });//*/
+        });
 
-        it('should save a o2o relationship', function(done){
+        it('should save part of a o2o relationship', function(done){
+            var a = Common.entity.create( Common.entity.TYPE_TEST_E, {name:'enigma'} );
+            var b = Common.entity.create( Common.entity.TYPE_TEST_F, {name:'foxtrot'} );
+            a.set( {comrade:b} );
+
+            Step(
+                function(){
+                    a.saveCB( null, this );
+                },
+                function(err,result){
+                    Common.entity.create( Common.entity.TYPE_TEST_E, a.id ).fetchCB( this );
+                },
+                function(err,model,resp){
+                    assert.equal( model.id, a.id );
+                    assert.equal( model.get('name'), a.get('name') );
+                    assert( !model.get('comrade') );
+                    done();
+                }
+            );
+        });
+
+        
+        it('should save a complete o2o relationship', function(done){
             var a = Common.entity.create( Common.entity.TYPE_TEST_E, {name:'enigma'} );
             var b = Common.entity.create( Common.entity.TYPE_TEST_F, {name:'foxtrot'} );
 
@@ -107,9 +107,11 @@ describe('Sync.Redis', function(){
                 function(){
                     assert( a.isNew() );
                     assert( b.isNew() );
-                    a.saveCB( null, this );
+                    a.saveRelatedCB( null, this );
                 },
                 function(err,result){
+                    assert( !a.isNew() );
+                    assert( !b.isNew() );
                     var aC = Common.entity.create( Common.entity.TYPE_TEST_E, a.id );
                     aC.fetchRelatedCB( this );
                 },
@@ -118,51 +120,48 @@ describe('Sync.Redis', function(){
                     done();
                 }
             );
-            // print_var( a.get('comrade') );
-
-            // print_ins( a );
-            // done();
-        });
+        });//*/
         
-        /*
+        
         it('should save a parent and child entity', function(done){
-            var a = Common.entity.create( Common.entity.TYPE_TEST, {name:'alpha'} );
-            var b = Common.entity.create( Common.entity.TYPE_TEST_B, {name:'beta'} );
+            var a = Common.entity.create( Common.entity.TYPE_TEST, {name:'alex'} );
+            var b = Common.entity.create( Common.entity.TYPE_TEST_B, {name:'beatrix'} );
             
             a.test_b.add( b );
-            a.test_b.length.should.equal(1);
-
+            assert( a.test_b.length, 1 );
+            assert( a.test_b instanceof Common.entity.EntityCollection );
+            // print_ins( a );
             Step(
                 function (){
                     assert( a.isNew() );
                     assert( b.isNew() );
-                    a.save( null, Bjs2Callback(this,{depth:Common.entity.ALL}) );
+                    a.saveRelatedCB( null, this );
                 },
                 function(err,result){
-                    if( err ) throw err;
                     assert( !a.isNew() );
                     assert( !b.isNew() );
                     // should still have the same objects essentially
-                    result.test_b.length.should.equal(1);
+                    assert( result.test_b.length, 1 );
                     // attempt restore
                     var aCopy = Common.entity.create( Common.entity.TYPE_TEST, a.id );
                     assert( aCopy.id === a.id );
                     assert( aCopy instanceof Common.entity.Base );
                     // fetch the parent and children to a depth of two
-                    aCopy.fetch( Bjs2Callback(this,{depth:2}) );
+                    aCopy.fetchRelatedCB( this );
                 },
                 function(err,result){
-                    if( err ) throw err;
-                    result.get('name').should.equal('alpha');
-                    result.test_b.length.should.equal(1);
-                    result.test_b.at(0).get('name').should.equal('beta');
+                    // print_ins( result.test_b );
+                    assert.equal( result.get('name'), 'alex');
+                    assert( result.test_b instanceof Common.entity.EntityCollection );
+                    assert.equal( result.test_b.length, 1 );
+                    assert.equal( result.test_b.at(0).get('name'), 'beatrix' );
                     done();
                 }
             );
 
-        });//*/
+        });
 
-        /*
+        
         it('should retrieve an associated entity', function(done){
             var a = Common.entity.create( Common.entity.TYPE_TEST_D, {name:'alpha'} );
             var b = Common.entity.create( Common.entity.TYPE_TEST_C, {name:'beta'} );
@@ -170,20 +169,27 @@ describe('Sync.Redis', function(){
             a.set('colleague',b);
             Step(
                 function(){
-                    a.save( null, Bjs2Callback(this,{depth:2}) ); 
+                    a.saveRelatedCB( null, this ); 
                 },
                 function(err,result){
                     var copy = Common.entity.create( Common.entity.TYPE_TEST_D, result.id );
-                    copy.fetch( Bjs2Callback(this,{depth:2}) );
+                    copy.fetchRelatedCB( this );
                 },
                 function(err,result){
-                    if( err ) throw err;
                     assert( result.get('name') === a.get('name') );
                     assert( result.get('friend').get('name') === b.get('name') );
                     done();
                 }
             );
-        });//*/
+        });
+
+        it('should logically delete an entity');
+
+        it('should completely delete an entity');
+
+        it('should logically delete an entity and related');
+
+        it('should completely delete an entity and related');        
     });
 
     

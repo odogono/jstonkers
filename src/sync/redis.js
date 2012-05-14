@@ -345,7 +345,9 @@ _.extend( RedisStorage.prototype, {
         Step(
             function(){
                 // A build a map of model cids to models, so that we can later update ids if need be
-                cidToModel = Common.entity.Factory.toJSON( model, {toJSON:false,exportAsMap:true} );
+                var factoryOptions = {toJSON:false,exportAsMap:true};
+                if( options.saveRelated ) factoryOptions.exportRelations = true;
+                cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
 
                 // check the models have ids, if not then generate some for them
                 var group = this.group();
@@ -355,7 +357,7 @@ _.extend( RedisStorage.prototype, {
                         assignIdToEntity(ent,group());
                     }
                 });
-                // print_var(cidToModel);
+                // 
             },
             function saveEntities(){
                 // print_ins(cidToModel,false,3);
@@ -455,7 +457,7 @@ _.extend( RedisStorage.prototype, {
                     var o2mKey = entityKey + ':' + o2mName;
                     multi.scard( o2mKey );
                     itemCounts.push( o2mName );
-                    if( options._depth < options.depth ){
+                    if( options.fetchRelated || options._depth < options.depth ){
                         erCollections.push( o2mName );
                     }
                 }
@@ -490,7 +492,7 @@ _.extend( RedisStorage.prototype, {
             if( erCollections.length > 0 || erEntities.length > 0 ){
                 
                 Step(
-                    function(){
+                    function processEntities(){
                         // assign ids to the entities we are retrieving
                         if( erEntities.length > 0 ){
                             for( i=0;i<erEntities.length;i++ ){
@@ -502,7 +504,7 @@ _.extend( RedisStorage.prototype, {
                         else
                             this();
                     },
-                    function(err, entities){
+                    function processEntityCollections(err, entities){
                         if( err ) callback(err);
 
                         /*if( erEntities.length > 0 ){
@@ -518,15 +520,13 @@ _.extend( RedisStorage.prototype, {
                             self.retrieveCollectionBySet( entityKey +':' + erCollections[i], null, subOptions, group() );
                         }
                     },
-                    function(err,entities){
+                    function assignEntityCollections(err,entities){
                         if( entities ){
                             // print_var( entities );
                             for( i=0;i<erCollections.length;i++ ){
                                 result[ erCollections[i] ] = entities[i];
                             }
                         }
-                        // log('got it here');
-                        // print_ins( result );
                         callback(err,result);
                     }
                 );
@@ -578,7 +578,7 @@ exports.sync = function(method, model, options) {
 
     function forwardResult( err, result ){
         if( err ){
-            print_ins(arguments);
+            // print_ins(arguments);
             if( options.error )
                 options.error(err);
             else

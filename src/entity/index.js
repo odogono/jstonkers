@@ -19,7 +19,7 @@ _.extend(module.exports, exports.entities);
 // base entity class
 module.exports.Base = module.exports.Entity.entity;
 
-module.exports.EntityCollection = require('./entity_collection').entity;
+module.exports.EntityCollection = require('./entity_collection').EntityCollection;
 module.exports.createEntityCollection = require('./entity_collection').create;
 
 // general creation function

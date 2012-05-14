@@ -83,13 +83,10 @@ Common.vm.runInNewContext(Common.fs.readFileSync(path.join(Common.paths.jslib, '
 Backbone = backboneContext.Backbone;
 
 
-
-
-
 Common.schema = require('./schema');
 Common.schema.register( 
     'urn:schemas-opendoorgonorth:jstonkers:entity',
     Common.path.join(Common.paths.schema, 'entity.json') );
 
 Common.sync = require('./sync');
-Common.entity = require('./entity');
+Common.entity = Entity = require('./entity');

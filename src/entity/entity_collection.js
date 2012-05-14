@@ -1,13 +1,13 @@
 
 
-exports.entity = Backbone.Model.extend({
+exports.EntityCollection = Backbone.Model.extend({
     defaults:{
         // name: 'items',
         start: 0, // the starting index
-        page: 1,
-        page_size: 10,
-        item_count: 0,
-        page_count: 0
+        page: 1, // the current page index
+        page_size: 10, // the number of items in each page
+        item_count: 0, // the total number of items
+        page_count: 0 // the number of 'pages'
     },
 
     initialize: function(){
@@ -35,6 +35,33 @@ exports.entity = Backbone.Model.extend({
         if( attr == 'page_count' )
             return Math.ceil( this.items.length / this.get('page_size') );
         return this.constructor.__super__.get.call(this,attr);
+    },
+
+    set: function(key, value, options) {
+        var self=this, attrs, attr, val;
+        // Handle both `"key", value` and `{key: value}` -style arguments.
+        if( _.isArray(key) ){
+            // setting collection values directly
+            this.reset( key );
+            return this;
+            // log('setting array');
+            // print_ins( key );
+        }
+        if( _.isObject(key) || key == null) {
+            attrs = key;
+            options = value;
+        } else {
+            attrs = {};
+            attrs[key] = value;
+        }
+
+        if( attrs.items ){
+            this.reset( attrs.items );
+            delete attrs.items;
+        }
+        
+        var result = Backbone.Model.prototype.set.apply( this, arguments );
+        return result;
     },
 
     parse: function(resp, xhr){
@@ -67,12 +94,17 @@ exports.entity = Backbone.Model.extend({
 
     toJSON: function( options ){
         options || (options = {});
-        var refItems = options.referenceItems,
+        var result,
+            refItems = options.referenceItems,
             noCounts =options.noCounts,
             fullItems = options.fullItems,
             returnDefaults = options.returnDefaults;
 
-        var result = this.constructor.__super__.toJSON.call(this);
+        if( options.collectionAsIdList ){
+            return this.items.map( function(it){ return it.id || it.cid });
+        }
+
+        result = this.constructor.__super__.toJSON.call(this);
 
         if( !noCounts ){
             // log('hmm ' + this.items);
@@ -82,7 +114,7 @@ exports.entity = Backbone.Model.extend({
         }
         if( refItems && this.items.length > 0 ){
             // print_var( this.items );
-            result.items = this.items.map( function(it){ return it.id });
+            result.items = this.items.map( function(it){ return it.id || it.cid });
         }
 
         // print_ins( options );
@@ -96,22 +128,22 @@ exports.entity = Backbone.Model.extend({
     }
 });
 
-exports.entity.prototype.__defineGetter__('length', function(){
+exports.EntityCollection.prototype.__defineGetter__('length', function(){
     return this.items.length;
 });
 
-exports.entity.prototype.__defineSetter__('model', function(model){
+exports.EntityCollection.prototype.__defineSetter__('model', function(model){
     // log('setting model to be ' + model.prototype );
     // print_ins( model.prototype );
     this.items.model = model;
 });
-exports.entity.prototype.__defineGetter__('model', function(){
+exports.EntityCollection.prototype.__defineGetter__('model', function(){
     return this.items.model;
 })
 
 // mix in certain Backbone.Collection methods into our class
 _.each( ['add', 'remove', 'at', 'each', 'map'], function(method){
-    exports.entity.prototype[method] = function(){
+    exports.EntityCollection.prototype[method] = function(){
         // log( method + ' ' + JSON.stringify(_.toArray(arguments)) );
         return this.items[method].apply( this.items, arguments );
     }    
@@ -123,7 +155,7 @@ exports.create = function( attrs, options ){
     // this option has to be set in order to process any passed items/models
     // correctly
     options.parse = true;
-    var result = new exports.entity( attrs, options );
+    var result = new exports.EntityCollection( attrs, options );
     return result;
 }
 
