@@ -83,6 +83,8 @@ function registerEntityType( entityDef ){
         return;
     }
 
+    entityDef.name = _.classify(entityDef.name);
+
     if( !entityDef.entity ){
         entityDef.entity = module.exports.Base.extend({});
     }
@@ -90,14 +92,12 @@ function registerEntityType( entityDef ){
     if( !entityDef.ER )
         entityDef.ER = [];
 
-    var name = _.capitalize(entityDef.name) || _.capitalize( entityDef.type );
-
     // add to entities
-    module.exports[name] = exports.entities[name] = entityDef;
+    module.exports[entityDef.name] = exports.entities[entityDef.name] = entityDef;
     
     module.exports.ids[entityDef.type] = entityDef;
-    module.exports.names[entityDef.type] = name;
-    module.exports['TYPE_' + name.toUpperCase()] = entityDef.type;
+    module.exports.names[entityDef.type] = entityDef.name;
+    module.exports['TYPE_' + _.underscored(entityDef.name).toUpperCase()] = entityDef.type;
 }
 
 

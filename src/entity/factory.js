@@ -17,9 +17,11 @@ exporters.generic = function( result, type, ent, options ){
     if( options.toJSON ){
 
         json['type'] = ent.type;
-        json['_cid'] = ent.cid;
-        if( ent.id )
+        if( ent.id ){
             json['id'] = ent.id;
+        } else {
+            json['_cid'] = ent.cid;
+        }
         result[ ent.cid ] = json;
     }
     else {

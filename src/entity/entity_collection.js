@@ -54,12 +54,13 @@ exports.EntityCollection = Backbone.Model.extend({
             attrs = {};
             attrs[key] = value;
         }
+        if (!attrs) return this;
 
         if( attrs.items ){
             this.reset( attrs.items );
             delete attrs.items;
         }
-        
+
         var result = Backbone.Model.prototype.set.apply( this, arguments );
         return result;
     },

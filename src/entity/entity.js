@@ -2,13 +2,12 @@
 
 var Entity = Backbone.Model.extend({
     defaults:{
+        status: Common.Status.INACTIVE,
         created_at:new Date(),
         updated_at:new Date()
     },
 
     initialize: function(){
-        this.set( 'status', Common.Status.INACTIVE );
-        // log('initialize ' + this.id + ' ' + this.type );
     },
 
     setEntity: function( type, instance, options ){
@@ -82,19 +81,21 @@ var Entity = Backbone.Model.extend({
         return this.fetch( options );  
     },
 
+    destroyCB:function(options,callback){
+        options = this.convertCallback(options,callback);
+        return this.destroy(options);
+    },
+
+    destroyRelatedCB: function( options,callback ){
+        options = this.convertCallback(options,callback);
+        options.destroyRelated = true;
+        return this.destroy(options);  
+    },
 
     set: function(key, value, options) {
         var attrs, attr, val;
-        var self = this,
-            entityDef = Common.entity.ids[this.type];
+        var self = this,entityDef;
 
-        /*if( options && options.debug ){
-            log('got it here');
-            print_ins( key,false,9 );
-            process.exit();
-        }//*/
-
-        // Handle both `"key", value` and `{key: value}` -style arguments.
         if (_.isObject(key) || key == null) {
             attrs = key;
             options = value;
@@ -102,23 +103,40 @@ var Entity = Backbone.Model.extend({
             attrs = {};
             attrs[key] = value;
         }
+        if (!attrs) return this;
+
+        entityDef = Common.entity.ids[this.type || attrs.type];
+
+        if( options && options.setRelated ) log('set ' + JSON.stringify(attrs));
 
         if( entityDef && entityDef.ER ){
-            // log('setting ' + JSON.stringify(attrs) );
             _.each( entityDef.ER, function(er){
                 var erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 var erData = attrs[erName];
 
+                if( options && options.setRelated ) log('set ' + JSON.stringify(attrs) + ' ' + erName);
+
                 if( !erData )
                     return;
 
-                if( er.oneToOne && !(erData instanceof Common.entity.Base) ){
-                    // TODO AV : could maybe get this model reference from elsewhere?
-                    var subEntity = Common.entity.create( erData );
-                    if( subEntity ) {
-                        attrs[erName] = subEntity;
-                    } else
-                        delete attrs[erName];
+                if( er.oneToOne ){
+
+                    // if( options && options.debug ) log('set ' + JSON.stringify(attrs));
+                    // if( options && options.debug ) print_ins( erData );
+                    // if( options && options.debug ) log( erData instanceof Common.entity.Base );
+
+                    if(!(erData instanceof Common.entity.Base)){
+                        // if( options && options.debug ) log('eh wot');
+                        // TODO AV : could maybe get this model reference from elsewhere?
+                        var subEntity = Common.entity.create( erData );
+                        if( subEntity ) {
+                            attrs[erName] = subEntity;
+                        } else
+                            delete attrs[erName];
+                    } else if( options && options.setRelated ){
+                        erData.set.call(erData, arguments);
+                        print_var( erData );
+                    }//*/
                 }
                 else if( er.oneToMany && !(erData instanceof Common.entity.EntityCollection)){
                     if( !self[erName] ){
@@ -134,8 +152,6 @@ var Entity = Backbone.Model.extend({
             });
         }
 
-        // var result = this.constructor.__super__.set.call(this,key,value,options);
-        // var result = Backbone.Model.prototype.set.call(this,key,value,options);
         var result = Backbone.Model.prototype.set.apply( this, arguments );
         return result;
     },//*/
@@ -207,8 +223,13 @@ exports.splitId = function( id ){
 exports.create = function( type, attrs, options ) {
     var result;
     var debug = options && options.debug;
-    
-    if( _.isObject(type) && _.isObject(attrs) && type.type ){
+
+    if( _.isObject(type) ){
+        options = attrs;
+        attrs = type;
+        type = attrs.type;
+    }
+    else if( _.isObject(type) && _.isObject(attrs) && type.type ){
         type = type.type;
     }
     else if( _.isObject(type) ){
@@ -273,11 +294,12 @@ exports.create = function( type, attrs, options ) {
     if( entityDef.create ){
         result = entityDef.create( attrs, options );
     }else{
+        // if( options && options.debug ) log('creating with ' + JSON.stringify(attrs) );
         result = new entityDef.entity( attrs, options );
+        // if( options && options.debug ) print_ins( result );
     }
     result.type = type;
     
-
     // apply any sub properties that were found earlier
     _.each( erProperties, function(props,collectionName){
         var setFn = 'set' + _.capitalize(collectionName); 

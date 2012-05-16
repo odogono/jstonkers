@@ -15,50 +15,55 @@ describe('Entity', function(){
         Common.entity.registerEntity(e);
     });
 
-    /*describe('create', function(){
+    describe('create', function(){
 
         it('should create from a type', function(){
-            var inst = Common.entity.create( Common.entity.TYPE_MAIL );
-            inst.should.be.an.instanceof( Common.entity.Mail.entity );
+            var inst = Common.entity.create( Common.entity.TYPE_TEST_A );
+            assert( inst instanceof Common.entity.TestA.entity );
         });
 
         it('should create from a hash', function(){
-            var inst = Common.entity.create( { id:'mail.001'} );
-            inst.should.be.an.instanceof( Common.entity.Mail.entity );
-        });
-
-        it('should create from an id', function(){
-            var inst = Common.entity.create( "mail.001" );
-            inst.should.be.an.instanceof( Common.entity.Mail.entity ); 
+            var inst = Common.entity.create( { type:'test_a', id:'mail.001'} );
+            assert( inst instanceof Common.entity.TestA.entity );
         });
 
         it('should create from an entity', function(){
-            var inst = Common.entity.create( "mail.001" );
+            var inst = Common.entity.create( 'test_a', "mail.001" );
             var oinst = Common.entity.create( inst );
-            oinst.should.be.an.instanceof( Common.entity.Mail.entity ); 
+            assert( oinst instanceof Common.entity.TestA.entity );
         });
 
         it('should create with a valid id', function(){
-            var inst = Common.entity.create( Common.entity.TYPE_MAIL, '001' );
-            inst.id.should.equal('mail.001');
-            inst.should.be.an.instanceof( Common.entity.Mail.entity);
-            inst = Common.entity.create( Common.entity.TYPE_MAIL, {id:'002'} );
-            inst.id.should.equal('mail.002');
+            var inst = Common.entity.create( Common.entity.TYPE_TEST_A, '001' );
+            assert.equal( inst.id, '001');
+            assert( inst instanceof Common.entity.TestA.entity);
+            inst = Common.entity.create( Common.entity.TYPE_TEST_A, {id:'002'} );
+            assert.equal( inst.id, '002');
         });
 
         it('should create from attr', function(){
-            var inst = Common.entity.create( {id:'001', type:Common.entity.TYPE_MAIL} );
-            inst.id.should.equal('mail.001');
+            var inst = Common.entity.create( {id:'001', type:Common.entity.TYPE_TEST_A} );
+            assert.equal( inst.id, '001');
         });
 
         it('should create from a def and attr', function(){
-            var inst = Common.entity.create( {type:Common.entity.TYPE_MAIL}, {name:'pink', id:'001'} );
-            inst.id.should.equal('mail.001'); 
-            inst.get('name').should.equal('pink');
-        })
+            var inst = Common.entity.create( Common.entity.TYPE_TEST_A, {name:'pink', id:'001'} );
+            assert.equal( inst.id, '001');
+            assert.equal( inst.get('name'), 'pink');
+        });
+
+        it('should have a default status of inactive', function(){
+            var inst = Common.entity.create( {type:'test_a', id:'101'} );
+            assert.equal( inst.get('status'), Common.Status.INACTIVE );
+        });
+
+        it('should set status', function(){
+            var inst = Common.entity.create( {type:'test_a', status:Common.Status.ACTIVE, id:'101', debug:true} );
+            assert.equal( inst.get('status'), Common.Status.ACTIVE );
+        });
     });
 
-
+    /*
     describe('register', function(){
 
         it('can', function(){
@@ -234,6 +239,30 @@ describe('Entity', function(){
             var b = a.test_b.at(0);
             assert.equal( b.id, "beta_1" );
             assert.equal( b.type, "test_b" );
+        });
+
+        it('should set an attribute on one2one associations', function(){
+            // log('go from here');
+            var a = Common.entity.create({
+                id:"enigma_e",
+                name: "enigma",
+                status: "atv",
+                type: "test_e",
+                comrade:{
+                    id:"foxtrot_f",
+                    name: "foxtrot",
+                    status: "atv",
+                    type:"test_f"
+                }
+            });
+            assert.equal( a.type, Common.entity.TYPE_TEST_E );
+            assert.equal( a.get('comrade').type, Common.entity.TYPE_TEST_F );
+            assert.equal( a.get('status'), Common.Status.ACTIVE );
+            assert.equal( a.get('comrade').get('status'), Common.Status.ACTIVE );
+
+            a.set('status', Common.Status.INACTIVE, {setRelated:true,debug:true} );
+            assert.equal( a.get('status'), Common.Status.INACTIVE );
+            assert.equal( a.get('comrade').get('status'), Common.Status.INACTIVE );
         });
     });
 
