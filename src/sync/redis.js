@@ -29,6 +29,7 @@ _.extend( RedisStorage.prototype, {
             date,
             self = this,
             keyPrefix = self.options.key_prefix,
+            initiateMulti = redisHandle instanceof redis.RedisClient,
             key;
 
         if( !entity.id ){
@@ -45,7 +46,7 @@ _.extend( RedisStorage.prototype, {
             return;
         }
 
-        if( redisHandle instanceof redis.RedisClient ){
+        if( initiateMulti ) { //redisHandle instanceof redis.RedisClient ){
             multi = redisHandle.multi();
         }
 
@@ -93,10 +94,14 @@ _.extend( RedisStorage.prototype, {
         if( options.collectionSetKey )
             multi.sadd( options.collectionSetKey, entity.id );
 
-        if( redisHandle instanceof redis.RedisClient ){
+        if( initiateMulti ) {//redisHandle instanceof redis.RedisClient ){
+            if( options.debug ) log('ok done!');
+            log( multi.exec );
+            // multi.sadd( keyPrefix + ':poobum', 'bingo');
             multi.exec( function(err, replies){
                 callback( err, entity );
             });
+            // if( options.debug ) log('ok done!');
         }
     },
 
@@ -324,6 +329,48 @@ _.extend( RedisStorage.prototype, {
 });
 
 _.extend( RedisStorage.prototype, {
+    delete: function(model,options,callback){
+        var i, self = this;
+        var keyPrefix = self.options.key_prefix;
+        var entityDetails = Common.entity.ids[model.type];
+        var factoryOptions = {toJSON:true,exportAsMap:false};
+        if( options.destroyRelated ) {
+            factoryOptions.exportRelations = true;
+        }
+
+        var cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
+
+        // a normal delete is actually setting the status of each model to logically deleted
+        // try{
+        for( var i in cidToModel ){
+            cidToModel[i].status = Common.Status.LOGICALLY_DELETED;
+        }
+        // }catch( err ){
+        //     log( err );
+        // }
+        Step(
+            function(){
+                var group = this.group();
+                options.debug = true;
+                for( i in cidToModel ){
+                    self.saveEntity( self.client, cidToModel[i], options, group() );
+                    log('saved');
+                }
+                log('next? WHY ISNT THE NEXT FN BEING CALLED?');
+            },
+            function(err,result){
+                log('hello?');
+                print_ins( arguments );
+                // callback(err,model);
+            }
+        );
+        log('done');
+        // print_ins( cidToModel );
+        process.exit();
+    }
+});
+
+_.extend( RedisStorage.prototype, {
 
     // Update a model by replacing its copy in `this.data`.
     update: function(model, options, callback) {
@@ -362,11 +409,12 @@ _.extend( RedisStorage.prototype, {
             function saveEntities(){
                 // print_ins(cidToModel,false,3);
                 // referenceChildren means that the parents will have references to children
-                var jsonOutput = Common.entity.Factory.toJSON( cidToModel, {referenceItems:false,debug:true,special:true} );
+                var jsonOutput = Common.entity.Factory.toJSON( cidToModel, {referenceItems:false,special:true} );
 
                 // print_var(jsonOutput);
                 var group = this.group();
                 _.each( jsonOutput, function(ent){
+                    // log('saving ' + ent.id + ' ' + (ent instanceof Common.entity.Base) );
                     self.saveEntity( self.client, ent, options, group() );
                 });
             },
@@ -479,6 +527,11 @@ _.extend( RedisStorage.prototype, {
             if( replies[0] ){
                 result[ entity.id ] = retrievedEntity = JSON.parse(replies[0]);
             }
+            else{
+                // error!
+                callback(entity.id + ' not found');
+                return;
+            }
             subOptions = _.extend(options,{result:result,_depth:options._depth+1});
 
             // set item counts
@@ -589,7 +642,7 @@ exports.sync = function(method, model, options) {
         }
     };
 
-    // log('sync with ' + method );
+    log('sync with ' + method );
     switch( method ){
         case 'read':
             concluded = true;
@@ -609,6 +662,9 @@ exports.sync = function(method, model, options) {
             store.update( model, config, forwardResult );
             break;
         case 'delete':
+            concluded = true;
+            store.delete( model, config, forwardResult );
+            // log('uh deleting?');
             break;
     }
 

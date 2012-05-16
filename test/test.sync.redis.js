@@ -3,7 +3,7 @@ var Common = require( '../src/common.js' );
 describe('Sync.Redis', function(){
 
     var testEntities = [
-        { type: 'test', ER:[ { oneToMany: 'test_b' } ] },
+        { type: 'test_a', ER:[ { oneToMany: 'test_b' } ] },
         { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
         { type: 'test_c' },
         { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
@@ -53,17 +53,17 @@ describe('Sync.Redis', function(){
         // it('should make the entity belong to a status set');
 
         // it('should delete the entity cleanly');
-        
+        /*
         it('should save an entity', function(done){
             Step(
                 function(){
-                    var user = Common.entity.create(Common.entity.TYPE_TEST, {name:'freddy'}); 
+                    var user = Common.entity.create(Common.entity.TYPE_TEST_A, {name:'freddy'}); 
                     user.saveCB( null, this );
                 },
                 function(err,user){
                     if( err ) throw err;
                     user.get('name').should.equal('freddy');
-                    var restoredUser = Common.entity.create( Common.entity.TYPE_TEST, user.id );
+                    var restoredUser = Common.entity.create( Common.entity.TYPE_TEST_A, user.id );
                     restoredUser.fetchCB( this );
                 },
                 function(err,restoredUser){
@@ -120,11 +120,11 @@ describe('Sync.Redis', function(){
                     done();
                 }
             );
-        });//*/
+        });
         
         
         it('should save a parent and child entity', function(done){
-            var a = Common.entity.create( Common.entity.TYPE_TEST, {name:'alex'} );
+            var a = Common.entity.create( Common.entity.TYPE_TEST_A, {name:'alex'} );
             var b = Common.entity.create( Common.entity.TYPE_TEST_B, {name:'beatrix'} );
             
             a.test_b.add( b );
@@ -143,7 +143,7 @@ describe('Sync.Redis', function(){
                     // should still have the same objects essentially
                     assert( result.test_b.length, 1 );
                     // attempt restore
-                    var aCopy = Common.entity.create( Common.entity.TYPE_TEST, a.id );
+                    var aCopy = Common.entity.create( Common.entity.TYPE_TEST_A, a.id );
                     assert( aCopy.id === a.id );
                     assert( aCopy instanceof Common.entity.Base );
                     // fetch the parent and children to a depth of two
@@ -183,7 +183,56 @@ describe('Sync.Redis', function(){
             );
         });
 
-        it('should logically delete an entity');
+        it('should respond correctly to fetching a nonexistent entity', function(done){
+            Step(
+                function(){
+                    Common.entity.create( Common.entity.TYPE_TEST_A, 'unknown.001' ).fetchCB( this );
+                },
+                function(err, result){
+                    assert.equal( err, 'unknown.001 not found');
+                    done();
+                }
+            );
+        });//*/
+
+        
+        it('should logically delete an entity', function(done){
+            var a = Common.entity.create( Common.entity.TYPE_TEST_A, {name:'alf',status:Common.Status.ACTIVE} );
+            assert.equal( a.get('status'), Common.Status.ACTIVE );
+            
+            Step(
+                function(){
+                    a.saveCB( null, this);
+                },
+                function(err,result){
+                    Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( this );
+                },
+                function(err,result){
+                    assert.equal(result.get('name'), 'alf');
+                    assert.equal(result.get('status'),Common.Status.ACTIVE);
+                    log('destroying here');
+                    result.destroyCB(this);
+                },
+                function(err,result){
+                    assert( !err );
+                    // if( err ){ log('destroyResult: ' + err); throw err;}
+                    // this call will fail because its status is logically deleted
+                    Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( this );
+                },
+                function(err,result){
+                    assert.equal(err, a.id + ' not found');
+                    assert( !result.get('name') );
+                    // retrieve by ignoring status will succeed
+                    Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( {ignoreStatus:true}, this );
+                },
+                function(err, result){
+                    if( err ) throw err;
+                    assert( result.get('name'), 'alf' );
+                    assert( result.get('status'), Common.Status.LOGICALLY_DELETED );
+                    done();
+                }
+            );
+        });//*/
 
         it('should completely delete an entity');
 
@@ -428,7 +477,7 @@ describe('Sync.Redis', function(){
                 function(){
                     var col = Common.entity.createEntityCollection({entity:Common.entity.TYPE_TEST});
                     for( var i=0;i<5;i++ )
-                        col.add( Common.entity.create( Common.entity.TYPE_TEST, {name:'test entity ' + i, status:Common.Status.INACTIVE} ) );
+                        col.add( Common.entity.create( Common.entity.TYPE_TEST_A, {name:'test entity ' + i, status:Common.Status.INACTIVE} ) );
                     retrieveId = col.at(2).id;
                     col.save( null, {success:this});
                 },
@@ -463,7 +512,7 @@ describe('Sync.Redis', function(){
                 function(){
                     var col = Common.entity.createEntityCollection({entity:Common.entity.TYPE_TEST});
                     for( var i=0;i<5;i++ )
-                        col.add( Common.entity.create( Common.entity.TYPE_TEST, {name:'test entity ' + i, status:Common.Status.INACTIVE} ) );
+                        col.add( Common.entity.create( Common.entity.TYPE_TEST_A, {name:'test entity ' + i, status:Common.Status.INACTIVE} ) );
 
                     col.at(1).set('status', Common.Status.ACTIVE );
                     col.at(3).set('status', Common.Status.ACTIVE );
