@@ -190,15 +190,35 @@ var Entity = Backbone.Model.extend({
         return resp;
     },
 
-    /*
-    toJSON: function( options ){
-        options || (options = {});
-        // var result = this.constructor.__super__.toJSON.call(this);
-        // log('hey calling');
-        // result.pink = true;
-        return {};
-    },//*/
 
+    // flattens this instance to a map of entity ids entities
+    flatten: function( options ){
+        var er, erName,child
+        options = options || {};
+        var result = options.result = (options.result || {});
+        var id = this.id || this.cid;
+
+        if( !result[id] ){
+            result[id] = this;
+
+            var entityDef = Common.entity.ids[this.type];
+
+            for( var i in entityDef.ER ){
+                er = entityDef.ER[i];
+                erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
+
+                if( er.oneToOne ){
+                    if( (child = this.get(erName)) ){
+                        child.flatten( options );
+                    }
+                }
+            }
+
+        }
+
+        return result;
+    }
+    
 });
 
 

@@ -188,8 +188,25 @@ describe('Entity', function(){
         print_ins( user, false, 2, true );
     })//*/
 
-    describe('entity.parse', function(){
-
+    describe('flatten', function(){
+        it('should produce a flattened map of a one2one relation', function(){
+            var a = Common.entity.create({
+                id:"enigma_1",
+                name: "enigma",
+                status: "atv",
+                type: "test_e",
+                comrade:{
+                    id:"foxtrot_1",
+                    name: "foxtrot",
+                    status: "atv",
+                    type:"test_f"
+                }
+            });
+            
+            var result = a.flatten();
+            assert( result.enigma_1 );
+            assert( result.foxtrot_1 );
+        });
     });
 
     describe('entity.set', function(){
@@ -241,7 +258,7 @@ describe('Entity', function(){
             assert.equal( b.type, "test_b" );
         });
 
-        it('should set an attribute on one2one associations', function(){
+        /*it('should set an attribute on one2one associations', function(){
             // log('go from here');
             var a = Common.entity.create({
                 id:"enigma_e",
@@ -263,7 +280,7 @@ describe('Entity', function(){
             a.set('status', Common.Status.INACTIVE, {setRelated:true,debug:true} );
             assert.equal( a.get('status'), Common.Status.INACTIVE );
             assert.equal( a.get('comrade').get('status'), Common.Status.INACTIVE );
-        });
+        });//*/
     });
 
 });
