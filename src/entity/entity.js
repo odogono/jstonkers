@@ -93,8 +93,8 @@ var Entity = Backbone.Model.extend({
     },
 
     set: function(key, value, options) {
-        var attrs, attr, val;
-        var self = this,entityDef;
+        var attrs, attr, val,entity;
+        var self = this, entityDef;
 
         if (_.isObject(key) || key == null) {
             attrs = key;
@@ -105,16 +105,29 @@ var Entity = Backbone.Model.extend({
         }
         if (!attrs) return this;
 
+        if( options && options.setRelated ){
+            var relatedMap = this.flatten();
+            var relatedOptions = _.clone(options);
+            delete relatedOptions.setRelated;
+
+            for(var id in relatedMap){
+                entity = relatedMap[id];
+                entity.set( attrs, relatedOptions );
+            }
+
+            return this;
+        }
+
         entityDef = Common.entity.ids[this.type || attrs.type];
 
-        if( options && options.setRelated ) log('set ' + JSON.stringify(attrs));
+        // if( options && options.setRelated ) log('set ' + JSON.stringify(attrs));
 
         if( entityDef && entityDef.ER ){
             _.each( entityDef.ER, function(er){
                 var erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 var erData = attrs[erName];
 
-                if( options && options.setRelated ) log('set ' + JSON.stringify(attrs) + ' ' + erName);
+                // if( options && options.setRelated ) log('set ' + JSON.stringify(attrs) + ' ' + erName);
 
                 if( !erData )
                     return;
@@ -133,9 +146,11 @@ var Entity = Backbone.Model.extend({
                             attrs[erName] = subEntity;
                         } else
                             delete attrs[erName];
-                    } else if( options && options.setRelated ){
+                    }/* else if( options && options.setRelated ){
+                        log('what');
                         erData.set.call(erData, arguments);
-                        print_var( erData );
+                        // log('here!');
+                        // print_var( erData );
                     }//*/
                 }
                 else if( er.oneToMany && !(erData instanceof Common.entity.EntityCollection)){
@@ -218,7 +233,7 @@ var Entity = Backbone.Model.extend({
 
         return result;
     }
-    
+
 });
 
 
