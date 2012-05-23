@@ -89,9 +89,19 @@ exports.EntityCollection = Backbone.Model.extend({
                 i.type = self.entityType;
         });
     },
-    // getItemsName: function(){
-    //     return 'items';
-    // },
+    
+    flatten: function( options ){
+        var id,item,i,len;
+        options = options || {};
+        var result = options.result = (options.result || {});
+
+        for( i=0,len=this.items.length;i<len;i++ ){
+            item = this.items.at(i);
+            item.flatten(options);
+        }
+
+        return result;
+    },
 
     toJSON: function( options ){
         options || (options = {});
@@ -108,13 +118,10 @@ exports.EntityCollection = Backbone.Model.extend({
         result = this.constructor.__super__.toJSON.call(this);
 
         if( !noCounts ){
-            // log('hmm ' + this.items);
-            // print_ins(this);
             result.item_count = this.items.length;
             result.page_count = Math.ceil(result.item_count / result.page_size);
         }
         if( refItems && this.items.length > 0 ){
-            // print_var( this.items );
             result.items = this.items.map( function(it){ return it.id || it.cid });
         }
 

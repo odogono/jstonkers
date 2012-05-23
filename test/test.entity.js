@@ -8,7 +8,7 @@ describe('Entity', function(){
         // { type: 'test_c' },
         // { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
         { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'} ] },
-        { type: 'test_f' },
+        { type: 'test_f', ER:[ {oneToOne:'test_a', name:'associate'} ] }
     ];
 
     _.each( testEntities.reverse(), function(e){
@@ -199,13 +199,20 @@ describe('Entity', function(){
                     id:"foxtrot_1",
                     name: "foxtrot",
                     status: "atv",
-                    type:"test_f"
+                    type:"test_f",
+                    associate:{
+                        id:'alpha_a',
+                        status:'atv',
+                        type:'test_a'
+                    }
                 }
             });
             
             var result = a.flatten();
+            assert.equal( _.keys(result).length, 3 );
             assert( result.enigma_1 );
             assert( result.foxtrot_1 );
+            assert( result.alpha_a );
         });
     });
 
@@ -258,8 +265,7 @@ describe('Entity', function(){
             assert.equal( b.type, "test_b" );
         });
 
-        /*it('should set an attribute on one2one associations', function(){
-            // log('go from here');
+        it('should set an attribute on one2one associations', function(){
             var a = Common.entity.create({
                 id:"enigma_e",
                 name: "enigma",
