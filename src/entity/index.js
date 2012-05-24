@@ -1,7 +1,7 @@
 module.exports.ids = {};
 module.exports.names = {};
 
-exports.Entity = require('./entity');
+exports.entity = require('./entity');
 
 exports.entities = {
     // Entity: require('./entity'),
@@ -17,13 +17,13 @@ exports.entities = {
 _.extend(module.exports, exports.entities);
 
 // base entity class
-module.exports.Base = module.exports.Entity.entity;
+module.exports.Base = module.exports.entity.Entity;
 
 module.exports.EntityCollection = require('./entity_collection').EntityCollection;
 module.exports.createEntityCollection = require('./entity_collection').create;
 
 // general creation function
-module.exports.create = module.exports.Entity.create;
+module.exports.create = module.exports.entity.create;
 
 module.exports.Factory = require('./factory');
 module.exports.toJSON = module.exports.Factory.toJSON;

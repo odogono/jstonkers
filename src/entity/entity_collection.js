@@ -1,4 +1,4 @@
-
+var entity = require('./entity');
 
 exports.EntityCollection = Backbone.Model.extend({
     defaults:{

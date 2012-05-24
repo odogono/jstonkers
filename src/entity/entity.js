@@ -18,17 +18,33 @@ var Entity = Backbone.Model.extend({
 
     // converts a single callback function into something backbone compatible 
     convertCallback: function(options,callback){
+        // log('convertCallback ' + JSON.stringify(options ) );
         options || (options={});
         if( _.isFunction(options) ){
             callback = options;
             options = {};
         }
+        var debugit = options.debugB;
         if( callback ){
             options = _.extend(options,{
                 success: function(model,resp){
-                    callback( null, model, resp );
+                    // if( options.ignoreStatus ){
+                    //     log('ignoreStatus from here ' + model.cid );
+                    // }
+                    // if( Common.debug ) log('success cb ' + model.cid + ' ' + JSON.stringify(options) );
+                    callback( null, model, resp, options );
+                    // if( debugit ){
+                    //     log('Common.debug')
+                    //     print_ins( arguments );
+                    //     process.exit();
+                    // }
                 },
                 error: function(model,err,resp){
+                    // if( debugit ){
+                    //     log('error called');
+                    //     print_ins( arguments );
+                    //     process.exit();
+                    // }
                     callback( err, model, resp );
                 }
             });
@@ -118,6 +134,9 @@ var Entity = Backbone.Model.extend({
             return this;
         }
 
+        // log('hey but ' + this.cid );
+        // print_var( attrs );
+
         entityDef = Common.entity.ids[this.type || attrs.type];
 
         // if( options && options.setRelated ) log('set ' + JSON.stringify(attrs));
@@ -181,8 +200,8 @@ var Entity = Backbone.Model.extend({
 
         if( resp[this.id] ){
             resp = resp[this.id];
-        }
-
+        } 
+        
         // set any ER properties
         if( resp !== this ){
             _.each( entityDef.ER, function(er){
@@ -237,7 +256,7 @@ var Entity = Backbone.Model.extend({
 });
 
 
-exports.entity = Entity;
+exports.Entity = Entity;
 
 
 

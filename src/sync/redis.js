@@ -68,6 +68,8 @@ _.extend( RedisStorage.prototype, {
             // delete entity.updated_at;
         }
 
+        // multi.hmset( key, 'status', entity.status );
+
         // add entity fields to entity hash
         _.each( entityHashFields, function(field){
             if( entity[field] )
@@ -95,8 +97,8 @@ _.extend( RedisStorage.prototype, {
             multi.sadd( options.collectionSetKey, entity.id );
 
         if( initiateMulti ) {//redisHandle instanceof redis.RedisClient ){
-            if( options.debug ) log('ok done!');
-            log( multi.exec );
+            // if( options.debug ) log('ok done!');
+            // log( multi.exec );
             // multi.sadd( keyPrefix + ':poobum', 'bingo');
             multi.exec( function(err, replies){
                 callback( err, entity );
@@ -287,7 +289,11 @@ _.extend( RedisStorage.prototype, {
                             multi.scard(diffKey);
 
                             // retrieve values back for the entities
-                            self.executeSort( multi, diffKey, null, valueKey, {offset:collection.get('offset'), limit:collection.get('limit')} );
+                            self.executeSort( multi, 
+                                            diffKey, 
+                                            null, 
+                                            valueKey, 
+                                            { offset:collection.get('offset'), limit:collection.get('limit')} );
 
                             // self.retrieveCollectionBySet( diffKey, options, callback  );
 
@@ -341,32 +347,24 @@ _.extend( RedisStorage.prototype, {
         var cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
 
         // a normal delete is actually setting the status of each model to logically deleted
-        // try{
         for( var i in cidToModel ){
             cidToModel[i].status = Common.Status.LOGICALLY_DELETED;
         }
-        // }catch( err ){
-        //     log( err );
-        // }
+
         Step(
             function(){
                 var group = this.group();
                 options.debug = true;
                 for( i in cidToModel ){
                     self.saveEntity( self.client, cidToModel[i], options, group() );
-                    log('saved');
                 }
-                log('next? WHY ISNT THE NEXT FN BEING CALLED?');
             },
             function(err,result){
-                log('hello?');
-                print_ins( arguments );
-                // callback(err,model);
+                callback(err,model);
             }
         );
-        log('done');
-        // print_ins( cidToModel );
-        process.exit();
+
+        return model;
     }
 });
 
@@ -525,13 +523,29 @@ _.extend( RedisStorage.prototype, {
             if( !replies ) callback( err, entity );
             // first result will be the entity value itself
             if( replies[0] ){
-                result[ entity.id ] = retrievedEntity = JSON.parse(replies[0]);
+                // log('hello?');
+                retrievedEntity = JSON.parse(replies[0]);
+
+                // determine whether the status is valid for the criteria supplied
+                if( !options.ignoreStatus && retrievedEntity.status === Common.Status.LOGICALLY_DELETED ){
+                    // log('failed status check');
+                    // log(entity.id + ' not found because of ' + retrievedEntity.status );
+                    callback(entity.id + ' not found');
+                    return;
+                }
+
+                // if( options.ignoreStatus ){
+                //     log('ignoring status for ' + replies[0] );
+                //     print_ins( retrievedEntity );
+                // }
+                result[ entity.id ] = retrievedEntity;
             }
             else{
                 // error!
                 callback(entity.id + ' not found');
                 return;
             }
+
             subOptions = _.extend(options,{result:result,_depth:options._depth+1});
 
             // set item counts
@@ -617,12 +631,12 @@ _.extend( RedisStorage.prototype, {
         else {
             self.retrieveEntityById( model, options, callback );
         }
-    },
+    }
      
 });
 
 var store = new RedisStorage(Common.config.sync.redis);
-
+var fwdCount = 0;
 
 exports.sync = function(method, model, options) {
     var config = _.extend( _.clone(Common.config.sync.redis), options );
@@ -630,19 +644,29 @@ exports.sync = function(method, model, options) {
     var resp, modelID;
 
     function forwardResult( err, result ){
+        fwdCount++;
         if( err ){
+            // log('fwd err ' + err );
             // print_ins(arguments);
+            // log( options.error );
             if( options.error )
                 options.error(err);
             else
                 throw err;
+            return;
         }
         if( options.success ){
+            // if( Common.debug ) {
+            //     log( fwdCount + ' success here ' + model.cid + ' ' + JSON.stringify(result) );
+            //     print_ins(arguments);
+            //     print_stack();
+            // }
             options.success(result);
         }
     };
 
-    log('sync with ' + method );
+    // log('sync with ' + method );
+
     switch( method ){
         case 'read':
             concluded = true;
@@ -675,6 +699,8 @@ exports.sync = function(method, model, options) {
             options.error('Record not found');
         }
     }
+
+    return model;
 }
 
 exports.generateUuid = function( options, callback ){

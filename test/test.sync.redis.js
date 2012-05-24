@@ -53,7 +53,7 @@ describe('Sync.Redis', function(){
         // it('should make the entity belong to a status set');
 
         // it('should delete the entity cleanly');
-        /*
+        
         it('should save an entity', function(done){
             Step(
                 function(){
@@ -210,29 +210,26 @@ describe('Sync.Redis', function(){
                 function(err,result){
                     assert.equal(result.get('name'), 'alf');
                     assert.equal(result.get('status'),Common.Status.ACTIVE);
-                    log('destroying here');
+                    // log('destroying here');
                     result.destroyCB(this);
                 },
                 function(err,result){
                     assert( !err );
-                    // if( err ){ log('destroyResult: ' + err); throw err;}
-                    // this call will fail because its status is logically deleted
                     Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( this );
                 },
                 function(err,result){
                     assert.equal(err, a.id + ' not found');
-                    assert( !result.get('name') );
-                    // retrieve by ignoring status will succeed
-                    Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( {ignoreStatus:true}, this );
+                    Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( {debug:true,ignoreStatus:true}, this );
                 },
-                function(err, result){
+                function(err, finalResult ){
                     if( err ) throw err;
-                    assert( result.get('name'), 'alf' );
-                    assert( result.get('status'), Common.Status.LOGICALLY_DELETED );
+                    assert( finalResult.get('name'), 'alf' );
+                    assert( finalResult.get('status'), Common.Status.LOGICALLY_DELETED );
                     done();
-                }
+                }//*/
             );
         });//*/
+
 
         it('should completely delete an entity');
 
@@ -243,10 +240,10 @@ describe('Sync.Redis', function(){
 
     
     
-    /*
+    
 
     describe('EntityCollection', function(){
-        
+        /*
         it('should save contained entities', function(done){
             var entityIds = [];
 
@@ -254,35 +251,40 @@ describe('Sync.Redis', function(){
                 function(){
                     var col = Common.entity.createEntityCollection();
                     for( var i=0;i<3;i++ ){
-                        col.add( Common.entity.create( {id:'test.00'+(i+1), name:'test entity ' + i} ) );    
+                        col.add( Common.entity.create( {id:'test.00'+(i+1), type:'test_a', name:'test entity ' + i} ) );    
                     }
                     col.at(2).set('created_at', '1974-09-05T15:32Z');
                     col.length.should.equal(3);
                     col.get('item_count').should.equal(3);
-
                     entityIds = col.items.map( function(i){ return i.id; });
 
-                    col.save( null, {success:this});
+                    col.saveCB( this );
                 },
+                function(err,result){
+                    print_ins( arguments );
+                    done();
+                }
+                /*
                 function(col){
                     var group = this.group();
 
                     // verify the entites were saved
                     _.each( entityIds, function(eid){
-                        var entity = Common.entity.create( eid );
-                        entity.fetch( Bjs2Callback(group()) );
+                        var entity = Common.entity.create( 'test_a', eid );
+                        entity.fetchCB( group() );
                     });
                 },
                 function(err,entities){
-                    entities[1].get('name').should.equal('test entity 1');
-                    entities[2].get('created_at').should.equal('1974-09-05T15:32:00.000Z');
+                    print_ins( arguments );
+                    assert.equal( entities[1].get('name'), 'test entity 1');
+                    assert.equal( entities[2].get('created_at'), '1974-09-05T15:32:00.000Z')
                     done();
                 }
             );
-        });
+        });//*/
 
         
-        
+        /*
         it('should work as part of an entity', function(done){
             var entityDef = {
                 type: 'ecenta',
@@ -537,8 +539,8 @@ describe('Sync.Redis', function(){
                     done(); 
                 }
             );
-        });
-    });//*/
+        });//*/
+    });
     
 
 
