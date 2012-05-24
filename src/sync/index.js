@@ -35,6 +35,14 @@ exports.clear = function( callback, options ){
     state.defaultSync.clear( callback, options );
 }
 
+exports.count = function( options, callback ){
+    state.defaultSync.count( options, callback );
+};
+
+exports.keys = function(callback){
+    state.defaultSync.keys( callback );
+}
+
 exports.generateUuid = function( callback, options ){
     // log('generate_uuid on');
     state.defaultSync.generateUuid( callback, options );

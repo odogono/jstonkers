@@ -235,26 +235,90 @@ var Entity = Backbone.Model.extend({
 
     // flattens this instance to a map of entity ids entities
     flatten: function( options ){
-        var er, erName,child
+        var i, er, erName,child,childId;
         options = options || {};
         var result = options.result = (options.result || {});
         var id = this.id || this.cid;
+        var self = this, outgoing;
+        
+        // recursing through found relations is the default
+        var doRecurse = (options.recurse === void 0) ? true : options.recurse;
 
         if( !result[id] ){
-            result[id] = this;
+            if( options.toJSON ){
+                result[id] = outgoing = this.toJSON(options);
+
+                outgoing['type'] = this.type;
+                if( this.id )
+                    outgoing['id'] = this.id;
+                else
+                    outgoing['_cid'] = this.cid;
+
+            }else
+                result[id] = outgoing = this;
 
             var entityDef = Common.entity.ids[this.type];
 
-            for( var i in entityDef.ER ){
+            var o2oNames = {};
+            var o2mNames = {};
+
+            for( i in entityDef.ER ){
+                er = entityDef.ER[i];
+                erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
+
+                if( er.oneToOne )
+                    o2oNames[ erName ] = erName;
+                else if( er.oneToMany )
+                    o2mNames[ erName ] = erName;
+            }
+
+
+            
+            for( i in entityDef.ER ){
                 er = entityDef.ER[i];
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
 
                 if( er.oneToOne ){
-                    if( (child = this.get(erName)) ){
+                    if( doRecurse && (child = this.get(erName)) ){
                         child.flatten( options );
                     }
+                } else if( er.oneToMany ){
+                    if( doRecurse && (child = this[erName]) ){
+                        child.flatten(options);
+                    }
+                    if( options.toJSON && options.referenceItems && this[erName].length > 0 ){
+                        outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
+                    }
                 }
-            }
+            }//*/
+
+            // if( options.allEntities ){
+                for( i in this.attributes ){
+                    child = this.attributes[i];
+
+                    /*if( o2oNames[i] ){
+                        if( doRecurse && (child = this.get(erName)) ){
+                            child.flatten( options );
+                        }
+                    }
+                    else if( o2mNames[i] ){
+                        if( doRecurse && (child = this[erName]) ){
+                            child.flatten(options);
+                        }
+                        if( options.toJSON && options.referenceItems && this[erName].length > 0 ){
+                            outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
+                        }
+                    }
+                    else//*/
+                    if( child instanceof exports.Entity ){
+                        childId = child.id || child.cid;
+                        if( options.allEntities && doRecurse )
+                            child.flatten(options);
+                        if( options.toJSON )
+                            outgoing[i] = child.id || child.cid;
+                    }
+                }
+            // }
 
         }
 

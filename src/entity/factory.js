@@ -15,7 +15,6 @@ exporters.generic = function( result, type, ent, options ){
     var entityCollectionOptions = _.extend( {noCounts:true,collectionAsIdList:true}, options );
 
     if( options.toJSON ){
-
         json['type'] = ent.type;
         if( ent.id ){
             json['id'] = ent.id;

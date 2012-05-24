@@ -15,3 +15,9 @@ exports.entity = entity.Entity.extend({
         // print_ins( this );
     }
 });
+
+exports.create = function(attrs, options){
+    var result = new exports.entity( attrs, options );
+
+    return result;
+};

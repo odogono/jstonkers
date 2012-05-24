@@ -60,8 +60,8 @@ describe('EntityFactory', function(){
         
         it('should export an entity', function(){
             var entity = Common.entity.create(Common.entity.TYPE_TEST_A);
-            var result = Common.entity.Factory.toJSON( entity, {referenceItems:true} );
-
+            // var result = Common.entity.Factory.toJSON( entity, {referenceItems:true} );
+            var result = _.values( entity.flatten({toJSON:true}) );
             assert.equal( result[0].type, 'test_a' );
         });
 
@@ -70,10 +70,12 @@ describe('EntityFactory', function(){
             var d = Common.entity.create( Common.entity.TYPE_TEST_D, {name:'darren'} );
             d.set('friend', c);
 
-            var result = Common.entity.Factory.toJSON( d );//, {toJSON:false,exportRelations:false} );
+            // var oresult = Common.entity.Factory.toJSON( d );//, {toJSON:false,exportRelations:false} );
+            var result = _.values( d.flatten({toJSON:true,recurse:false}) );
+            
             assert.equal( result.length, 1 );
             assert.equal( result[0].name, 'darren' );
-            assert( !result[0].friend );
+            assert.equal( result[0].friend, c.cid );
         });
 
         it('should export only the root entity with a reference', function(){
@@ -81,7 +83,10 @@ describe('EntityFactory', function(){
             var d = Common.entity.create( Common.entity.TYPE_TEST_D, {name:'darren', id:'id_d'} );
             d.set('friend', c);
 
-            var result = Common.entity.Factory.toJSON( d );
+            // var oresult = Common.entity.Factory.toJSON( d );
+            var result = _.values( d.flatten({toJSON:true,recurse:false}) );
+
+            // print_var( oresult );
             // print_var( result );
             assert.equal( result.length, 1 );
             assert.equal( result[0].name, 'darren' );
@@ -98,7 +103,8 @@ describe('EntityFactory', function(){
             parent.kinder.add( child );
             parent.kinder.add( ochild );
 
-            var result = Common.entity.Factory.toJSON( parent, {debug:true, referenceItems:true, toJSON:true, exportRelations:true} );
+            // var result = Common.entity.Factory.toJSON( parent, {referenceItems:true, toJSON:true, exportRelations:true} );
+            var result = _.values( parent.flatten({debug:true, referenceItems:true, toJSON:true}) );
             assert.deepEqual( result[0].kinder, [child.cid, ochild.cid] );
         });
 
@@ -110,9 +116,11 @@ describe('EntityFactory', function(){
 
             a.kinder.add( b );
             b.test_c.add( c ); 
-            var result = Common.entity.Factory.toJSON( a, {exportAsMap:true,exportRelations:true} );
+            // var result = Common.entity.Factory.toJSON( a, {exportAsMap:true,exportRelations:true} );
+            var result = a.flatten({toJSON:true});
             assert.equal( _.keys(result).length, 3 );
             // print_var( result );
+            // print_var( oresult );
         });
 
         
@@ -127,8 +135,12 @@ describe('EntityFactory', function(){
             c.set('other', a);
 
             // serialise the hierarchy into a map of cids to entities
-            var result = Common.entity.Factory.toJSON( a, {toJSON:false,exportAsMap:true,exportRelations:true} );
+            // var result = Common.entity.Factory.toJSON( a, {toJSON:false,exportAsMap:true,exportRelations:true} );
+            var result = a.flatten({allEntities:true});
+            // print_ins( result );
+            // print_ins( oresult );
             _.keys(result).length.should.equal(3);
+
             var values = _.values(result);
             // print_ins(values[0].cid);
             values[0].cid.should.equal( a.cid );
@@ -152,7 +164,8 @@ describe('EntityFactory', function(){
             var json = Common.entity.toJSON( entities );
             // print_var( json );
             for( var i=0;i<5;i++ ){
-                json.should.have.property( entities[i].cid );
+                assert( entities[i].cid );
+                // json.should.have.property( entities[i].cid );
             }
         });
 

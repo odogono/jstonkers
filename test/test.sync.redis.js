@@ -48,7 +48,7 @@ describe('Sync.Redis', function(){
     });//*/
 
     describe('Entity', function(){
-        
+        /*
         // it('should make the entity belong to a status set');
 
         // it('should delete the entity cleanly');
@@ -220,7 +220,7 @@ describe('Sync.Redis', function(){
                 },
                 function(err,result){
                     assert.equal(err, a.id + ' not found');
-                    Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( {debug:true,ignoreStatus:true}, this );
+                    Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( {ignoreStatus:true}, this );
                 },
                 function(err, finalResult ){
                     if( err ) throw err;
@@ -229,10 +229,44 @@ describe('Sync.Redis', function(){
                     done();
                 }
             );
+        });//*/
+
+
+        it('should completely delete an entity', function(done){
+            var a = Common.entity.create( {type:Common.entity.TYPE_TEST_A, name:'ash', status:Common.Status.ACTIVE} );
+            var initialCount;
+            var initialKeys;
+            Step(
+                function(){
+                    Common.sync.keys( this );
+                },
+                function(err, result){
+                    initialKeys = result;
+                    initialCount = result.length;
+                    a.saveCB( null, this );
+                },
+                function(err,result){
+                    result.destroyCB({debug:true,destroyHard:true},this);
+                },
+                function(){
+                    Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( {ignoreStatus:true}, this );
+                },
+                function(err,result){
+                    assert.equal(err, a.id + ' not found');
+                    Common.sync.keys( this );
+                },
+                function(err, keys){
+                    var config = Common.config.sync.redis;
+                    var key = config.key_prefix + ':' + config.uuid.key;
+
+                    // the only difference should be the uuid key
+                    assert.equal(key, _.difference( keys, initialKeys )[0] );
+                    // same count minus the uuid key
+                    assert.equal( initialCount, keys.length-1 );
+                    done();
+                }
+            );
         });
-
-
-        it('should completely delete an entity');
 
         it('should logically delete an entity and related');
 
@@ -242,7 +276,7 @@ describe('Sync.Redis', function(){
     
     
     
-
+    /*
     describe('EntityCollection', function(){
         
         it('should save contained entities', function(done){
@@ -534,8 +568,8 @@ describe('Sync.Redis', function(){
                     done(); 
                 }
             );
-        });//*/
-    });
+        });
+    });//*/
     
 
 

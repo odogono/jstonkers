@@ -338,18 +338,54 @@ _.extend( RedisStorage.prototype, {
 
 _.extend( RedisStorage.prototype, {
     delete: function(model,options,callback){
-        var i, self = this;
+        var i, j, entity, self = this;
         var keyPrefix = self.options.key_prefix;
         var entityDetails = Common.entity.ids[model.type];
-        var factoryOptions = {toJSON:true,exportAsMap:false};
+        var flattenOptions = {toJSON:true,recurse:false};
+        // var factoryOptions = {toJSON:true,exportAsMap:false};
         if( options.destroyRelated ) {
-            factoryOptions.exportRelations = true;
+            flattenOptions.recurse = true;
         }
 
-        var cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
+        var cidToModel = _.values( model.flatten(flattenOptions) );
+        // var cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
+
+        if( options.destroyHard ){
+
+            // delete each model from the db
+            var multi = self.client.multi();
+
+            // print_var( cidToModel );
+
+            for( i in cidToModel ){
+                entity = cidToModel[i];
+
+                // delete the values hash
+                multi.del( keyPrefix + ':' + entity.id );
+
+                // delete from the type set
+                multi.srem( keyPrefix + ':' + entity.type, entity.id );
+
+                // delete from the status set for this model
+                for( j in Common.Status ){
+                    multi.srem( keyPrefix + ':status:' + Common.Status[j], entity.id );
+                }
+            }
+
+            multi.exec( function(err, replies){
+                callback( err, entity );
+            });
+
+            return model;
+        }
+
+        if( options.debug ){
+            // print_ins( cidToModel );
+            // print_ins( _.values( model.flatten({toJSON:true}) ) );
+        }
 
         // a normal delete is actually setting the status of each model to logically deleted
-        for( var i in cidToModel ){
+        for( i in cidToModel ){
             cidToModel[i].status = Common.Status.LOGICALLY_DELETED;
         }
 
@@ -720,6 +756,47 @@ exports.generateUuid = function( options, callback ){
     // store.client.incr( key, callback );
     store.client.incr( key, function(err,id){
         callback(err,id,options);
+    });
+}
+
+exports.keys = function( callback ){
+    store.client.keys( '*', function(err,result){
+        callback( err, result );
+    });
+}
+
+exports.count = function( options, callback ){
+    if( _.isUndefined(callback) ){
+        callback = options;
+        options = {};
+    }
+    store.client.info( function(err, res){
+
+        var self = this, obj = {}, lines, retry_time;
+
+        if (err) {
+            callback( "Ready check failed: " + err.message );
+            return;
+        }
+
+        lines = res.toString().split("\r\n");
+
+        lines.forEach(function (line) {
+            var parts = line.split(':');
+            if (parts[1]) {
+                obj[parts[0]] = parts[1];
+            }
+        });
+
+        // counts = [];
+        if( obj.db0 ){
+            var matches = obj.db0.match(/keys=(\d+)/)
+            // var parts = obj.db0.split(',');
+            callback( null, parseInt( matches[1], 10 ) );
+            return;
+        }
+
+        callback( err, obj );
     });
 }
 
