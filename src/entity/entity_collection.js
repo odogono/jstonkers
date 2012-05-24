@@ -1,6 +1,6 @@
 var entity = require('./entity');
 
-exports.EntityCollection = Backbone.Model.extend({
+exports.EntityCollection = entity.Entity.extend({
     defaults:{
         // name: 'items',
         start: 0, // the starting index
@@ -64,6 +64,25 @@ exports.EntityCollection = Backbone.Model.extend({
         var result = Backbone.Model.prototype.set.apply( this, arguments );
         return result;
     },
+
+    // save: function(key, value, options) {
+    //     var entities = this.flatten();
+    //     Step(
+    //         function(){
+    //             var group = this.group();
+    //             for( var id in entities ){
+    //                 entities[id].save({success:function(){
+    //                     group();
+    //                 },error:function(){
+    //                     group();
+    //                 }});
+    //             }
+    //         },
+    //         function(){
+                
+    //         }
+    //     );
+    // },
 
     parse: function(resp, xhr){
         if( !this.items )

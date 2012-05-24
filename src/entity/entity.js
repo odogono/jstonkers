@@ -32,6 +32,7 @@ var Entity = Backbone.Model.extend({
                     //     log('ignoreStatus from here ' + model.cid );
                     // }
                     // if( Common.debug ) log('success cb ' + model.cid + ' ' + JSON.stringify(options) );
+                    // log('finished success');
                     callback( null, model, resp, options );
                     // if( debugit ){
                     //     log('Common.debug')
@@ -56,11 +57,17 @@ var Entity = Backbone.Model.extend({
     // saveCB( {key:'value'}, function(){} )
     saveCB: function(key, value, options, callback){
         var attrs;
-
-        if( _.isObject(key) || key == null){
+        // log('saveCB with ');
+        // print_ins( arguments );
+        if( arguments.length === 1 ){
+            callback = key;
+            options = {};
+        }
+        else if( _.isObject(key) || key == null){
             attrs = key;
             callback = options;
             options = value;
+            // log('cb?' + arguments.length );
         } else {
             attrs = {};
             attrs[key] = value;

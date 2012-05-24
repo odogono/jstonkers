@@ -193,7 +193,7 @@ describe('Sync.Redis', function(){
                     done();
                 }
             );
-        });//*/
+        });
 
         
         it('should logically delete an entity', function(done){
@@ -226,9 +226,9 @@ describe('Sync.Redis', function(){
                     assert( finalResult.get('name'), 'alf' );
                     assert( finalResult.get('status'), Common.Status.LOGICALLY_DELETED );
                     done();
-                }//*/
+                }
             );
-        });//*/
+        });
 
 
         it('should completely delete an entity');
@@ -236,14 +236,14 @@ describe('Sync.Redis', function(){
         it('should logically delete an entity and related');
 
         it('should completely delete an entity and related');        
-    });
+    });//*/
 
     
     
     
 
     describe('EntityCollection', function(){
-        /*
+        
         it('should save contained entities', function(done){
             var entityIds = [];
 
@@ -260,11 +260,6 @@ describe('Sync.Redis', function(){
 
                     col.saveCB( this );
                 },
-                function(err,result){
-                    print_ins( arguments );
-                    done();
-                }
-                /*
                 function(col){
                     var group = this.group();
 
@@ -275,13 +270,12 @@ describe('Sync.Redis', function(){
                     });
                 },
                 function(err,entities){
-                    print_ins( arguments );
                     assert.equal( entities[1].get('name'), 'test entity 1');
-                    assert.equal( entities[2].get('created_at'), '1974-09-05T15:32:00.000Z')
+                    assert.equal( new Date(entities[2].get('created_at')).toUTCString(), new Date('1974-09-05T15:32:00.000Z').toUTCString() );
                     done();
                 }
             );
-        });//*/
+        });
 
         
         /*

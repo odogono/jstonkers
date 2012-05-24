@@ -125,7 +125,7 @@ _.extend( RedisStorage.prototype, {
 
         // log('creating collection');
 
-        collection.set('id',uuid());
+        // collection.set('id',uuid());
         
         // var collectionJSON = collection.toJSON({noCounts:true});
         // var json = Common.entity.Factory.toJSON( collection );
@@ -136,10 +136,10 @@ _.extend( RedisStorage.prototype, {
         var multi = self.client.multi();
 
         // save the collection
-        if( collection.get('name') ){
-            // multi.set( keyPrefix + ':' + collection.id, JSON.stringify(collectionJSON) );
-            collectionSetKey = keyPrefix + ':' + collection.id + ':' + collection.get('name');
-        }
+        // if( collection.get('name') ){
+        //     // multi.set( keyPrefix + ':' + collection.id, JSON.stringify(collectionJSON) );
+        //     collectionSetKey = keyPrefix + ':' + collection.id + ':' + collection.get('name');
+        // }
 
         var itemsJSON = Common.entity.Factory.toJSON( collection.items.models );
 
@@ -148,6 +148,8 @@ _.extend( RedisStorage.prototype, {
         });
 
         multi.exec( function(err, replies){
+            // log('finished collection save');
+            // print_ins( arguments );
             callback(err, replies);
         });
     },
@@ -636,7 +638,7 @@ _.extend( RedisStorage.prototype, {
 });
 
 var store = new RedisStorage(Common.config.sync.redis);
-var fwdCount = 0;
+// var fwdCount = 0;
 
 exports.sync = function(method, model, options) {
     var config = _.extend( _.clone(Common.config.sync.redis), options );
@@ -644,7 +646,7 @@ exports.sync = function(method, model, options) {
     var resp, modelID;
 
     function forwardResult( err, result ){
-        fwdCount++;
+        // fwdCount++;
         if( err ){
             // log('fwd err ' + err );
             // print_ins(arguments);
@@ -656,6 +658,9 @@ exports.sync = function(method, model, options) {
             return;
         }
         if( options.success ){
+            // log('fwdResult done');
+            // print_ins(arguments);
+            // log( options.success );
             // if( Common.debug ) {
             //     log( fwdCount + ' success here ' + model.cid + ' ' + JSON.stringify(result) );
             //     print_ins(arguments);
