@@ -1,3 +1,4 @@
+var erFuncs = require('./entity_relationship');
 // exports.schema = 'urn:schemas-opendoorgonorth:heroes:entity#';
 
 var Entity = Backbone.Model.extend({
@@ -164,10 +165,10 @@ var Entity = Backbone.Model.extend({
                     // if( options && options.debug ) print_ins( erData );
                     // if( options && options.debug ) log( erData instanceof Common.entity.Base );
 
-                    if(!(erData instanceof Common.entity.Base)){
+                    if(!(erData instanceof Entity)){
                         // if( options && options.debug ) log('eh wot');
                         // TODO AV : could maybe get this model reference from elsewhere?
-                        var subEntity = Common.entity.create( erData );
+                        var subEntity = exports.create( erData );
                         if( subEntity ) {
                             attrs[erName] = subEntity;
                         } else
@@ -373,3 +374,88 @@ exports.create = function( type, attrs, options ) {
     });
     return result;
 };
+
+
+exports.ids = {};
+exports.names = {};
+exports.entities = {};
+
+
+// normalises the type of an entity
+exports.getEntityFromType = function( type ){
+    if( type === null || type === undefined )
+        return null;
+    if( _.isObject(type) && type.type )
+        type = type.type;
+    if( !_.isString(type) )
+        return null;
+    if( exports.ids[type.toLowerCase()] ){
+        return exports.ids[type.toLowerCase()];
+    }
+    if( exports[type.toUpperCase()] ){
+        return exports[type.toUpperCase()];
+    }
+    if( exports['TYPE_' + type.toUpperCase()] ){
+        return  exports.ids[exports['TYPE_' + type.toUpperCase()]];
+    }
+    // look for schema
+    return null;
+}
+
+// returns entity relationship details for a given type
+exports.getER = function( type ){
+    type = exports.getEntityFromType( type );
+    return type.ER;
+}
+
+function registerEntityType( entityDef ){
+    var schema;
+    if( entityDef.schema ){
+        // log('schema found for ' + entityDef.schema );//+ ' ' + inspect(entityDef) );
+        
+        var schemaValue = Common.schema.getSchemaValue( entityDef.schema );
+        entityDef.type = schemaValue.id.substring(1);
+        entityDef.name = (schemaValue.properties.name) ? schemaValue.properties.name : entityDef.type;
+        if( schemaValue.er ){
+            entityDef.ER = schemaValue.er;
+        }
+    }
+    else{
+        entityDef.name = entityDef.name || entityDef.type;
+    }
+    
+    if( !entityDef.type ){
+        return;
+    }
+
+    entityDef.name = _.classify(entityDef.name);
+
+    if( !entityDef.entity ){
+        entityDef.entity = exports.Entity.extend({});
+    }
+
+    if( !entityDef.ER )
+        entityDef.ER = [];
+
+    // add to entities
+    exports[entityDef.name] = exports.entities[entityDef.name] = entityDef;
+    
+    exports.ids[entityDef.type] = entityDef;
+    exports.names[entityDef.type] = entityDef.name;
+    // log('exporting ' + 'TYPE_' + _.underscored(entityDef.name).toUpperCase() );
+    exports['TYPE_' + _.underscored(entityDef.name).toUpperCase()] = entityDef.type;
+}
+
+
+/**
+*   Registers a new entity type 
+*   - the incoming object must have a type and entity field
+*/
+exports.registerEntity = function( entityDef, options ){
+    if( _.isString(entityDef) ){
+        // attempt to load
+        entityDef = require('./' + entityDef);
+    }
+    registerEntityType( entityDef );
+    erFuncs.initEntityER( entityDef, options );
+}

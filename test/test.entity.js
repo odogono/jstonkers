@@ -69,7 +69,7 @@ describe('Entity', function(){
         it('can', function(){
             var myEntity = {
                 type: 'test',
-                entity: Common.entity.Base.extend({})
+                entity: Common.entity.Entity.extend({})
             };
 
             Common.entity.registerEntity( myEntity );
@@ -87,14 +87,14 @@ describe('Entity', function(){
         it('can', function(){
             var defA = {
                 type: 'defa',
-                entity: Common.entity.Base.extend({}),
+                entity: Common.entity.Entity.extend({}),
                 ER:[
                     { oneToOne: 'defb' }
                 ]
             };
             var defB = {
                 type: 'defb',
-                entity: Common.entity.Base.extend({})
+                entity: Common.entity.Entity.extend({})
             };
 
             // register backwards because of referencing
@@ -112,7 +112,7 @@ describe('Entity', function(){
 
         var otmA = {
             type: 'otma',
-            entity: Common.entity.Base.extend({}),
+            entity: Common.entity.Entity.extend({}),
             ER:[
                 { oneToMany: 'otmb', name:'friends', notes:'fromtest' }
             ]
@@ -120,7 +120,7 @@ describe('Entity', function(){
 
         var otmB = {
             type: 'otmb',
-            entity: Common.entity.Base.extend({})
+            entity: Common.entity.Entity.extend({})
         };
 
         // register backwards because of referencing
@@ -130,7 +130,7 @@ describe('Entity', function(){
         it('should have a 1toM field', function(){
             Common.debug = true;
             var instA = Common.entity.create( 'otma.001' );
-            instA.should.be.an.instanceof( Common.entity.Base );
+            instA.should.be.an.instanceof( Common.entity.Entity );
             Common.should.exist( instA.friends );
             instA.friends.should.be.an.instanceof( Common.entity.EntityCollection );
             Common.debug = false;
@@ -236,7 +236,7 @@ describe('Entity', function(){
             assert.equal( a.id, 'enigma_1');
 
             var b = a.get('comrade');
-            assert( b instanceof Common.entity.Base );
+            assert( b instanceof Common.entity.Entity );
             assert.equal( b.id, 'foxtrot_1');
             assert.equal( b.type, Common.entity.TYPE_TEST_F );
             assert.equal( b.get('name'), 'foxtrot' );

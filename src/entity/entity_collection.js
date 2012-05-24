@@ -79,7 +79,7 @@ exports.EntityCollection = entity.Entity.extend({
     //             }
     //         },
     //         function(){
-                
+
     //         }
     //     );
     // },
@@ -89,6 +89,9 @@ exports.EntityCollection = entity.Entity.extend({
             this.initialize();
         if( resp.entity ){
             var entityDef = Common.entity.getEntityFromType( resp.entity );
+            if( !entityDef )
+                throw new Error('no entity found called ' + resp.entity );
+            // log('hmm, nothing for ' + resp.entity );
             this.entityType = entityDef.type;
             this.items.model = entityDef.entity;
             delete resp.entity;

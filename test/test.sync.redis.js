@@ -47,7 +47,6 @@ describe('Sync.Redis', function(){
         });
     });//*/
 
-    
     describe('Entity', function(){
         
         // it('should make the entity belong to a status set');
@@ -145,11 +144,13 @@ describe('Sync.Redis', function(){
                     // attempt restore
                     var aCopy = Common.entity.create( Common.entity.TYPE_TEST_A, a.id );
                     assert( aCopy.id === a.id );
-                    assert( aCopy instanceof Common.entity.Base );
+                    assert( aCopy instanceof Common.entity.Entity );
                     // fetch the parent and children to a depth of two
                     aCopy.fetchRelatedCB( this );
                 },
                 function(err,result){
+                    if( err ) throw err;
+                    // print_ins(arguments);
                     // print_ins( result.test_b );
                     assert.equal( result.get('name'), 'alex');
                     assert( result.test_b instanceof Common.entity.EntityCollection );

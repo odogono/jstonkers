@@ -13,7 +13,7 @@ print_var = function(arg, options){
     if( !arg )
         log( JSON.stringify({},null,'\t') );
     else if( _.isObject(arg) ){
-        if(arg instanceof Common.entity.Base ) 
+        if(arg instanceof Common.entity.Entity ) 
             log( JSON.stringify(Common.entity.Factory.toEntityJSON(arg,options),null,'\t') );
         else if( arg instanceof Common.entity.EntityCollection )
             log( JSON.stringify(Common.entity.Factory.collectionToJSON(arg, options),null,'\t') );

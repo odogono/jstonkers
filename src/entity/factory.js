@@ -69,7 +69,7 @@ exporters.generic = function( result, type, ent, options ){
     // convert any entity references
 
     _.each( json, function(value,key){
-        if( value instanceof Common.entity.Base ){
+        if( value instanceof Common.entity.Entity ){
             if( options.exportRelations && !result[value.cid] ){
                 exporters[value.type] ?
                     exporters[value.type]( result, value.type, value, options ) :
@@ -131,7 +131,7 @@ exports.toJSON = function( exportEntity, options ){
         options.toJSON = true;
 
     // if we have a map of ids to entities, then break out the entities into an array
-    if( _.isObject(exportEntity) && !(exportEntity instanceof Common.entity.Base) ){
+    if( _.isObject(exportEntity) && !(exportEntity instanceof Common.entity.Entity) ){
         exportEntity = _.values(exportEntity);
     }
 

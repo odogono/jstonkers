@@ -89,4 +89,4 @@ Common.schema.register(
     Common.path.join(Common.paths.schema, 'entity.json') );
 
 Common.sync = require('./sync');
-Common.entity = Entity = require('./entity');
+Common.entity = entity = require('./entity');

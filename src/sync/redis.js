@@ -414,7 +414,6 @@ _.extend( RedisStorage.prototype, {
                 // print_var(jsonOutput);
                 var group = this.group();
                 _.each( jsonOutput, function(ent){
-                    // log('saving ' + ent.id + ' ' + (ent instanceof Common.entity.Base) );
                     self.saveEntity( self.client, ent, options, group() );
                 });
             },
