@@ -14,7 +14,7 @@ describe('Entity', function(){
     _.each( testEntities.reverse(), function(e){
         Common.entity.registerEntity(e);
     });
-
+    
     describe('create', function(){
 
         it('should create from a type', function(){
@@ -188,6 +188,81 @@ describe('Entity', function(){
         print_ins( user, false, 2, true );
     })//*/
 
+    describe('parsing', function(){
+        it('should parse correctly', function(){
+            var data = { 
+                enigma_1: { 
+                    status: 'atv',
+                    id: 'enigma_1',
+                    name: 'enigma',
+                    type: 'test_e',
+                    comrade: 'foxtrot_1' },
+                foxtrot_1: { 
+                    status: 'atv',
+                    id: 'foxtrot_1',
+                    name: 'foxtrot',
+                    type: 'test_f',
+                    associate: 'alpha_a' },
+                alpha_a: { 
+                    status: 'atv',
+                    id: 'alpha_a',
+                    type: 'test_a',
+                    name: 'arnold' } 
+                };
+
+            var a = Common.entity.create({type:'test_a'});
+            var parsed = a.parse( data, null, {parseFor:'enigma_1',removeId:true} );
+            
+            assert.equal( parsed.name, 'enigma' );
+            assert.equal( parsed.comrade.name, 'foxtrot' );
+            assert.equal( parsed.comrade.associate.name, 'arnold' );
+        });
+    });
+    
+    describe('cloning', function(){
+        it('should clone an entity', function(){
+            var a = Common.entity.create({
+                id:'euro',
+                name:'eurovision',
+                type:'test_e',
+                status:'atv'
+            });
+
+            var b = a.clone();
+            assert.equal( b.get('name'), 'eurovision' );
+            assert( !b.id );
+            assert( !b.get('id') );
+        });//*/
+
+        it('should clone an entity with a one2one relation', function(){
+            var a = Common.entity.create({
+                id:"enigma_1",
+                name: "enigma",
+                status: "atv",
+                type: "test_e",
+                comrade:{
+                    id:"foxtrot_1",
+                    name: "foxtrot",
+                    status: "atv",
+                    type:"test_f",
+                    associate:{
+                        id:'alpha_a',
+                        status:'atv',
+                        type:'test_a',
+                        name:'arnold'
+                    }
+                }
+            });
+
+            var b = a.clone({recurse:true,debug:true});
+            assert.equal( b.get('comrade').get('name'), 'foxtrot' );
+            assert.equal( b.get('comrade').get('associate').get('name'), 'arnold' );
+            assert( !b.get('comrade').id );
+            assert( b.get('comrade').get('associate') );
+        });
+    });
+
+    
     describe('flatten', function(){
         it('should produce a flattened map of a one2one relation', function(){
             var a = Common.entity.create({
@@ -227,12 +302,20 @@ describe('Entity', function(){
                     id:"foxtrot_1",
                     name: "foxtrot",
                     status: "atv",
-                    type:"test_f"
+                    type:"test_f",
+                    associate:{
+                        id:'alfred_1',
+                        type:'test_a',
+                        name:'alfred',
+                        status:'atv'
+                    }
                 }
             };
+
             var a = Common.entity.create( Common.entity.TYPE_TEST_E, {name:'enigma'} );
             assert.equal( a.type, Common.entity.TYPE_TEST_E );
             a.set( ser );
+
             assert.equal( a.id, 'enigma_1');
 
             var b = a.get('comrade');
@@ -240,6 +323,12 @@ describe('Entity', function(){
             assert.equal( b.id, 'foxtrot_1');
             assert.equal( b.type, Common.entity.TYPE_TEST_F );
             assert.equal( b.get('name'), 'foxtrot' );
+
+            var c = b.get('associate');
+            assert( c instanceof Common.entity.Entity );
+            assert.equal( c.id, 'alfred_1');
+            assert.equal( c.type, Common.entity.TYPE_TEST_A );
+            assert.equal( c.get('name'), 'alfred' );            
         });
 
         it('should set a one2many from a serialised form', function(){

@@ -246,7 +246,7 @@ describe('Sync.Redis', function(){
                     a.saveCB( null, this );
                 },
                 function(err,result){
-                    result.destroyCB({debug:true,destroyHard:true},this);
+                    result.destroyCB({destroyHard:true},this);
                 },
                 function(){
                     Common.entity.create( Common.entity.TYPE_TEST_A, a.id ).fetchCB( {ignoreStatus:true}, this );
