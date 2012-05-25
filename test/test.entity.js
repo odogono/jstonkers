@@ -210,12 +210,86 @@ describe('Entity', function(){
                     name: 'arnold' } 
                 };
 
-            var a = Common.entity.create({type:'test_a'});
+            var a = Common.entity.create({type:'test_e'});
             var parsed = a.parse( data, null, {parseFor:'enigma_1',removeId:true} );
             
             assert.equal( parsed.name, 'enigma' );
             assert.equal( parsed.comrade.name, 'foxtrot' );
             assert.equal( parsed.comrade.associate.name, 'arnold' );
+        });//*/
+
+        it('should parse a o2m relationship', function(){
+            var data = {
+                alpha_1:{
+                    id: 'alpha_1',
+                    type:'test_a',
+                    name:'alfred',
+                    test_b:[ 'beta_1', 'beta_2' ]
+                },
+                beta_1:{
+                    id:'beta_1',
+                    type:'test_b',
+                    name:'ben'
+                },
+                beta_2:{
+                    id:'beta_2',
+                    type:'test_b',
+                    name:'bernard'
+                }
+            };
+            var expected = {
+                id: 'alpha_1',
+                type:'test_a',
+                name:'alfred',
+                test_b:{
+                    items:[
+                        { id:'beta_1', type:'test_b', name:'ben' },
+                        { id:'beta_2', type:'test_b', name:'bernard' }
+                    ]
+                }
+            };
+
+            var a = Common.entity.create({type:'test_a'});
+            var parsed = a.parse( data, null, {parseFor:'alpha_1'} );
+            // print_ins( parsed );
+            assert.deepEqual( parsed, expected );
+        });
+
+        it('should parse a different form of o2m relationship', function(){
+            var data = {
+                alpha_1:{
+                    id: 'alpha_1',
+                    type:'test_a',
+                    name:'alfred',
+                    test_b:{ debug:true, items:['beta_1', 'beta_2'] }
+                },
+                beta_1:{
+                    id:'beta_1',
+                    type:'test_b',
+                    name:'ben'
+                },
+                beta_2:{
+                    id:'beta_2',
+                    type:'test_b',
+                    name:'bernard'
+                }
+            };
+            var expected = {
+                id: 'alpha_1',
+                type:'test_a',
+                name:'alfred',
+                test_b:{
+                    debug:true,
+                    items:[
+                        { id:'beta_1', type:'test_b', name:'ben' },
+                        { id:'beta_2', type:'test_b', name:'bernard' }
+                    ]
+                }
+            };
+
+            var a = Common.entity.create({type:'test_a'});
+            var parsed = a.parse( data, null, {parseFor:'alpha_1'} );
+            assert.deepEqual( parsed, expected );
         });
     });
     

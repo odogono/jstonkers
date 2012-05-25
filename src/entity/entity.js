@@ -102,7 +102,7 @@ var Entity = Backbone.Model.extend({
     fetchRelatedCB: function(options,callback){
         options = this.convertCallback( options, callback );
         options.fetchRelated = true;
-        return this.fetch( options );  
+        return this.fetch( options );
     },
 
     destroyCB:function(options,callback){
@@ -216,7 +216,7 @@ var Entity = Backbone.Model.extend({
 
 
         var associateRelations = function(data){
-            var i, er, erId, erName, entityDef;
+            var i, er, erId, items, erName, entityDef;
             if( !data.type )
                 return;
             if( !(entityDef = exports.ids[ data.type ]) )
@@ -227,18 +227,30 @@ var Entity = Backbone.Model.extend({
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
+                erId = data[erName];
 
                 // log('looking at ' + erName );
                 if( er.oneToOne ){
-                    erId = data[erName];
+                    
                     if( origResp[erId] ){
                         // log('looking at ' + erName + ' ' + erId );
                         data[erName] = associateRelations( origResp[erId] );
                     }
                 }
-                else if( er.oneToMany ){
-                    if( origResp[erName] ){
-                        data[erName] = associateRelations( origResp[erName] );
+                else if( er.oneToMany && erId ){
+                    if( _.isArray(erId) ){
+                        items = _.map( erId, function(eid){
+                            return associateRelations( origResp[eid] );
+                        });
+                        data[erName] = { items:items };
+                    } else{
+                        if( erId.items ){
+                            erId.items = _.map( erId.items, function(eid){
+                                if( _.isString(eid) )
+                                    return associateRelations( origResp[eid] );
+                                return eid;
+                            });
+                        }
                     }
                 }
             }
