@@ -48,7 +48,7 @@ describe('Sync.Redis', function(){
     });//*/
 
     describe('Entity', function(){
-        /*
+        
         // it('should make the entity belong to a status set');
 
         // it('should delete the entity cleanly');
@@ -143,15 +143,13 @@ describe('Sync.Redis', function(){
                     assert( result.test_b.length, 1 );
                     // attempt restore
                     var aCopy = Common.entity.create( Common.entity.TYPE_TEST_A, a.id );
-                    assert( aCopy.id === a.id );
+                    assert.equal( aCopy.id, a.id );
                     assert( aCopy instanceof Common.entity.Entity );
                     // fetch the parent and children to a depth of two
-                    aCopy.fetchRelatedCB( this );
+                    aCopy.fetchRelatedCB( {debug:true}, this );
                 },
                 function(err,result){
                     if( err ) throw err;
-                    // print_ins(arguments);
-                    // print_ins( result.test_b );
                     assert.equal( result.get('name'), 'alex');
                     assert( result.test_b instanceof Common.entity.EntityCollection );
                     assert.equal( result.test_b.length, 1 );
@@ -229,7 +227,7 @@ describe('Sync.Redis', function(){
                     done();
                 }
             );
-        });//*/
+        });
 
 
         it('should completely delete an entity', function(done){

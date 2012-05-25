@@ -198,6 +198,8 @@ var Entity = Backbone.Model.extend({
     parse: function(resp, xhr, options){
         if( !resp )
             return resp;
+
+
         
         var i, er, self = this,
             targetId = this.id,
@@ -229,15 +231,15 @@ var Entity = Backbone.Model.extend({
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 erId = data[erName];
 
-                // log('looking at ' + erName );
+                
                 if( er.oneToOne ){
                     
                     if( origResp[erId] ){
-                        // log('looking at ' + erName + ' ' + erId );
                         data[erName] = associateRelations( origResp[erId] );
                     }
                 }
                 else if( er.oneToMany && erId ){
+
                     if( _.isArray(erId) ){
                         items = _.map( erId, function(eid){
                             return associateRelations( origResp[eid] );
@@ -246,7 +248,7 @@ var Entity = Backbone.Model.extend({
                     } else{
                         if( erId.items ){
                             erId.items = _.map( erId.items, function(eid){
-                                if( _.isString(eid) )
+                                if( !_.isObject(eid) )
                                     return associateRelations( origResp[eid] );
                                 return eid;
                             });
@@ -261,6 +263,11 @@ var Entity = Backbone.Model.extend({
         if( resp !== this ){
             associateRelations( resp );
         }
+
+        // if( Common.debug ){
+        //     log('parsing');
+        //     print_ins( resp );
+        // }
         
         return resp;
     },
