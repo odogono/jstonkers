@@ -3,7 +3,7 @@ var EntityCollection = require('./entity/entity_collection');
 exports.CommandQueue = EntityCollection.EntityCollection.extend({
 
     process: function(options,callback){
-        var i, cmd, removes = [];
+        var i, cmd, eTime, time = this.time(), removes = [];
         if( !callback && _.isFunction(options) ){
             callback = options;
         }
@@ -12,6 +12,9 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
         // walk the queue until we meet the first time that is later than the current
         for( var i=0,len=this.items.length;i<len;i++ ){
             cmd = this.items.models[i];
+            // eTime = cmd.get('execute_time');
+            if( cmd.get('execute_time') > time )
+                break;
             this.executeCommand( cmd );            
             removes.push( cmd );
         }

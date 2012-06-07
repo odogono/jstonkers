@@ -15,33 +15,65 @@ describe('Command Queue', function(){
     });
 
     describe('process', function(){
-        it('should execute a command', function(done){
-            var cmd = new Backbone.Model();
+        it('should process multiple commands', function(done){
+            var self = this, processCount = 0;
+            var Cmd = Backbone.Model.extend({
+                execute: function(){
+                    processCount++;
+                }
+            });
+            this.queue.add( new Cmd() );
+            this.queue.add( new Cmd() );
+            this.queue.add( new Cmd() );
 
-            cmd.execute = function(){
+            assert.equal( this.queue.length, 3 );
+            this.queue.process(function(){
+                assert.equal( processCount, 3 );
+                assert.equal( self.queue.length, 0 );
                 done();
-            };
-
-            this.queue.add( cmd );
-            assert.equal( q.length, 1 );
-            this.queue.process();
+            }); 
         });
 
         it('should run the callback', function(done){
-            var processed = false;
+            var self = this, processed = false;
             var cmd = new Backbone.Model();
             cmd.execute = function(){
                 processed = true;
             };
 
             this.queue.add( cmd );
-            assert.equal( q.length, 1 );
+            assert.equal( this.queue.length, 1 );
             this.queue.process(function(){
                 assert( processed );
-                assert.equal( q.length, 0 );
+                assert.equal( self.queue.length, 0 );
                 done();
             });
         });
+
+        it('should process multiple commands', function(done){
+            var self = this, processCount = 0;
+            var Cmd = Backbone.Model.extend({
+                execute: function(){
+                    processCount++;
+                }
+            });
+            // override the time function to return a specific time
+            this.queue.time = function(){
+                return 50;
+            }
+
+            this.queue.add( new Cmd({execute_time:0}) );
+            this.queue.add( new Cmd({execute_time:100}) );
+            this.queue.add( new Cmd({execute_time:200}) );
+            
+            assert.equal( this.queue.length, 3 );
+            this.queue.process(function(){
+                assert.equal( processCount, 1 );
+                assert.equal( self.queue.length, 2 );
+                done();
+            });
+
+        });   
 
     });
 });
