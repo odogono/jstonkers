@@ -1,7 +1,8 @@
 var erFuncs = require('./entity_relationship');
 // exports.schema = 'urn:schemas-opendoorgonorth:heroes:entity#';
 
-var Entity = Backbone.Model.extend({
+var Entity = exports.Entity = Backbone.Model.extend({
+
     defaults:{
         status: Common.Status.INACTIVE,
         created_at:new Date(),
@@ -14,8 +15,6 @@ var Entity = Backbone.Model.extend({
     setEntity: function( type, instance, options ){
         this.set( type, instance, options );
     },
-
-
 
     // converts a single callback function into something backbone compatible 
     convertCallback: function(options,callback){
@@ -366,7 +365,6 @@ var Entity = Backbone.Model.extend({
                     o2mNames[ erName ] = erName;
             }//*/
 
-
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
@@ -383,7 +381,7 @@ var Entity = Backbone.Model.extend({
                         outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
                     }
                 }
-            }//*/
+            }
 
             // if( options.allEntities ){
                 for( i in this.attributes ){
@@ -427,7 +425,7 @@ var Entity = Backbone.Model.extend({
 });
 
 
-exports.Entity = Entity;
+// exports.Entity = Entity;
 
 
 
@@ -516,13 +514,13 @@ exports.create = function( type, attrs, options ) {
         }
     });
 
-    if( entityDef.create ){
-        result = entityDef.create( attrs, options );
-    }else{
+    // if( entityDef.create ){
+        // result = entityDef.create( attrs, options );
+    // }else{
         // if( options && options.debug ) log('creating with ' + JSON.stringify(attrs) );
         result = new entityDef.entity( attrs, options );
         // if( options && options.debug ) print_ins( result );
-    }
+    // }
     result.type = type;
     
     // apply any sub properties that were found earlier
@@ -614,11 +612,22 @@ function registerEntityType( entityDef ){
 *   Registers a new entity type 
 *   - the incoming object must have a type and entity field
 */
-exports.registerEntity = function( entityDef, options ){
-    if( _.isString(entityDef) ){
+exports.registerEntity = function( entityDef, entity, options ){
+
+    // check for a direct registration of an entity
+    if( _.isObject(entity) && entity.__super__ ){
+        // the first arg may be the type of the entity
+        if( _.isString(entityDef) ){
+            entityDef = { type:entityDef };
+        }
+        entityDef.entity = entity;
+        options = options || {};
+    }
+    else if( _.isString(entityDef) ){
         // attempt to load
         entityDef = require('./' + entityDef);
     }
+
     registerEntityType( entityDef );
     erFuncs.initEntityER( entityDef, options );
 }
