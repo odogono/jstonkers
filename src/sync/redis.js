@@ -19,18 +19,16 @@ _.extend( RedisStorage.prototype, {
 
     },
 
-
-
     //
     // The entity is assumed to be ready to save (JSON exported)
     saveEntity: function( redisHandle, entity, options, callback ){
         options || (options={});
         var multi = redisHandle,
-            date,
-            self = this,
+            i, len, date, status, serialised,
+            self = this, 
             keyPrefix = self.options.key_prefix,
             initiateMulti = redisHandle instanceof redis.RedisClient,
-            key;
+            key,keys,val;
 
         if( !entity.id ){
             // get a new id for the entity
@@ -38,7 +36,7 @@ _.extend( RedisStorage.prototype, {
                 if( err ) throw err;
                 entity.id = id; //entity.type + '.' + id;
                 entity._uuidgen = true;
-                // log('saving entity ' + entity.id);
+                // log('saving changed entity ' + entity.id);
                 // call ourselves again
                 self.saveEntity( redisHandle, entity, options, callback );
             });
@@ -47,28 +45,34 @@ _.extend( RedisStorage.prototype, {
         }
 
         if( initiateMulti ) { //redisHandle instanceof redis.RedisClient ){
+
             multi = redisHandle.multi();
+        } else {
+            // log('not initiating multi for saveEntity');
+            // print_ins( redisHandle.queue );
         }
 
-
+        // log('saving entity ' + entity.id );
         // print_var(entity);
         // delete entity._cid;
+
+        serialised = entity.toJSON({referenceCollections:true});
+        // print_var(serialised);
 
         key = keyPrefix + ':' + entity.id;
         var entityHashFields = Common.config.sync.redis.entity_hset;
 
         // convert date fields to times (for sorting purposes)
-        if( entity.created_at ){
-            multi.hmset( key, 'created_at', new Date(entity.created_at).getTime() );
-            // delete entity.created_at;
+        if( serialised.created_at ){
+            multi.hmset( key, 'created_at', new Date(serialised.created_at).getTime() );
         }
 
-        if( entity.updated_at ){
-            multi.hmset( key, 'updated_at', new Date(entity.updated_at).getTime() );
-            // delete entity.updated_at;
+        if( serialised.updated_at ){
+            multi.hmset( key, 'updated_at', new Date(serialised.updated_at).getTime() );
         }
 
         // multi.hmset( key, 'status', entity.status );
+
 
         // add entity fields to entity hash
         _.each( entityHashFields, function(field){
@@ -76,25 +80,57 @@ _.extend( RedisStorage.prototype, {
                 multi.hmset( key, field, entity[field] );
         });
 
+
+        // if the entity has specific keys it wants as fields, then apply so now
+        if( entity.storeKeys ){
+            keys = entity.storeKeys();
+            for( i=0,len=keys.length;i<len;i++ ){
+                // if( (val=entity[keys[i]]) || (val = entity.get([keys[i]])) )
+                if( (val = serialised[keys[i]]) )
+                    multi.hmset( key, keys[i], val );
+            }
+        }
+
         // add entity value to entity hash
         // print_ins(entity);
-        var value = _.clone(entity); 
-        delete value._cid;
-        multi.hmset(key, 'value', JSON.stringify(value) );
+        // var value = _.clone(entity); 
+        // delete value._cid;
+        multi.hmset(key, 'value', JSON.stringify(serialised) ); //JSON.stringify(value) );
 
         // entity status index
-        _.each(Common.Status, function(v,k){
-            if( entity.status === v )
-                multi.sadd( keyPrefix + ':status:' + v, entity.id );
-            else    
-                multi.srem( keyPrefix + ':status:' + v, entity.id );
-        });
+        // print_ins( Common.status );
+        // print_var( entity.attributes );
+        status = entity.get('status');
+
+        for( i in Common.Status ){
+            // status = entity.get('status') || entity.status;
+            if( status === Common.Status[i] )
+                multi.sadd( keyPrefix + ':status:' + Common.Status[i], entity.id );
+            else
+                multi.srem( keyPrefix + ':status:' + Common.Status[i], entity.id );
+            // log(entity.id + ' ' + Common.Status[i] );
+        }
+
+
+
+        // _.each(Common.Status, function(v,k){
+        //     if( entity.status === v )
+        //         multi.sadd( keyPrefix + ':status:' + v, entity.id );
+        //     else    
+        //         multi.srem( keyPrefix + ':status:' + v, entity.id );
+        // });
         
+
         // entity type index
         multi.sadd( keyPrefix + ':' + entity.type, entity.id );
 
-        if( options.collectionSetKey )
-            multi.sadd( options.collectionSetKey, entity.id );
+        if( entity.entityCollection ){
+            multi.sadd( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
+        }
+
+
+        // if( options.collectionSetKey )
+            // multi.sadd( options.collectionSetKey, entity.id );
 
         if( initiateMulti ) {//redisHandle instanceof redis.RedisClient ){
             // if( options.debug ) log('ok done!');
@@ -104,7 +140,16 @@ _.extend( RedisStorage.prototype, {
                 callback( err, entity );
             });
             // if( options.debug ) log('ok done!');
+        } else {
+            // log('well no');
         }
+
+        if( callback ){
+            callback( null, entity );
+        }
+
+        // log('ok then ' + entity.id );
+        // log( mu)
     },
 
 
@@ -118,40 +163,32 @@ _.extend( RedisStorage.prototype, {
 
     createCollection: function(collection, options, callback){
         var self = this,
-            key,
-            collectionSetKey,
-            keyPrefix = self.options.key_prefix,
-            entityHashFields = Common.config.sync.redis.entity_hset;
-
-        // log('creating collection');
-
-        // collection.set('id',uuid());
-        
-        // var collectionJSON = collection.toJSON({noCounts:true});
-        // var json = Common.entity.Factory.toJSON( collection );
-
-        // print_ins( collectionJSON );
-        // create a set for the collection
+            key, i;
 
         var multi = self.client.multi();
-
-        // save the collection
-        // if( collection.get('name') ){
-        //     // multi.set( keyPrefix + ':' + collection.id, JSON.stringify(collectionJSON) );
-        //     collectionSetKey = keyPrefix + ':' + collection.id + ':' + collection.get('name');
-        // }
-
-        var itemsJSON = Common.entity.Factory.toJSON( collection.items.models );
-
-        _.each( itemsJSON, function(ent){
-            self.saveEntity( multi, ent );
-        });
-
-        multi.exec( function(err, replies){
-            // log('finished collection save');
-            // print_ins( arguments );
-            callback(err, replies);
-        });
+        // flatten the collection and any contained models
+        var cidToModel = collection.flatten();
+        
+        Step(
+            function saveCollection(){
+                self.saveEntity( multi, collection, options, this );
+            },
+            function(){
+                var group = this.group();
+                for( i in cidToModel ){
+                    entity = cidToModel[i];
+                    if( entity !== collection )
+                        self.saveEntity( multi, entity, options, group() );
+                }
+            },
+            function(err, result){
+                if( err ) throw err;
+                multi.exec( this );
+            },
+            function(err,replies){
+                callback(err, collection);
+            }
+        );
     },
 
     
@@ -410,11 +447,48 @@ _.extend( RedisStorage.prototype, {
 
     // Update a model by replacing its copy in `this.data`.
     update: function(model, options, callback) {
-        var self = this;
+        var self = this,i;
         var keyPrefix = self.options.key_prefix;
         var entityDetails = Common.entity.ids[model.type];        
         var collectionSetKey;
-        var cidToModel;
+        var cidToModel,entity;
+
+
+        var multi = self.client.multi();
+        // flatten the collection and any contained models
+        var cidToModel = model.flatten();
+
+        // log('redis.update with ' + JSON.stringify(options) );
+        // print_var( cidToModel );
+        
+        
+        Step(
+            function ensureIds(){
+                var group = this.group();
+                for( i in cidToModel ){
+                    entity = cidToModel[i];
+                    if( entity.isNew() ){
+                        exports.generateUuid({entity:entity}, group() );
+                    }
+                }
+            },
+            function saveEntities(){
+                var group = this.group();
+                for( i in cidToModel ){
+                    entity = cidToModel[i];
+                    self.saveEntity( multi, entity, options, group() );
+                    // log('saved entity ' + i );
+                }
+            },
+            function executeStatements(err, result){
+                if( err ) throw err;
+                multi.exec( this );
+            },
+            function(err,replies){
+                callback(err, model);
+            }
+        );//*/
+        /*
 
 
         var assignIdToEntity = function(entity, callback){
@@ -482,7 +556,7 @@ _.extend( RedisStorage.prototype, {
                 // process.exit();
                 callback(err,model);
             }
-        );
+        );//*/
 
         return model;
     },
@@ -586,15 +660,7 @@ _.extend( RedisStorage.prototype, {
 
             subOptions = _.extend(options,{result:result,_depth:options._depth+1});
 
-            // set item counts
-            // for( i=0;i<itemCounts.length;i++ ){
-            //     if( replies[i+1] ){
-            //         retrievedEntity[ itemCounts[i] ] = { item_count:replies[i+1], items:[] };
-            //         // result[itemCounts[i]] = { item_count:replies[i+1] };
-            //     }
-            // }
-
-            if( options.debug ) log('retrieving assocated entities ' + JSON.stringify(erCollections) );
+            // if( options.debug ) log('retrieving assocated entities ' + JSON.stringify(erCollections) );
             if( erCollections.length > 0 || erEntities.length > 0 ){
                 
                 Step(
@@ -708,7 +774,7 @@ exports.sync = function(method, model, options) {
         }
     };
 
-    // log('sync with ' + method );
+    log('sync with ' + method );
 
     switch( method ){
         case 'read':
@@ -716,13 +782,13 @@ exports.sync = function(method, model, options) {
             store.find( model, config, forwardResult );
             return;
         case 'create':
-            if( model instanceof Common.entity.EntityCollection ){
-                concluded = true;
-                store.createCollection( model, config, forwardResult );
-            } else {
+            // if( model instanceof Common.entity.EntityCollection ){
+                // concluded = true;
+                // store.createCollection( model, config, forwardResult );
+            // } else {
                 concluded = true;
                 store.update( model, config, forwardResult );
-            }
+            // }
             break;
         case 'update':
             concluded = true;
@@ -751,13 +817,19 @@ exports.generateUuid = function( options, callback ){
     var prefix = config.key_prefix;
     var key = prefix + ':' + config.uuid.key;
 
-    if( _.isFunction(options) && callback === undefined ){
+    if( _.isFunction(options) && _.isUndefined(callback) ){
         callback = options;
-        options = undefined;
+        options = {};
     }
 
     // store.client.incr( key, callback );
     store.client.incr( key, function(err,id){
+        if( options.entity ){
+            options.entity.id = id;
+            // print_ins( entity );
+            // process.exit();
+            options.entity._uuidgen = true;
+        }
         callback(err,id,options);
     });
 }

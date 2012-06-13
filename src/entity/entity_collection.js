@@ -34,11 +34,13 @@ exports.EntityCollection = entity.Entity.extend({
             return Math.max( this.items.length, this.attributes.item_count );
         if( attr == 'page_count' )
             return Math.ceil( this.items.length / this.get('page_size') );
-        return this.constructor.__super__.get.call(this,attr);
+        return entity.Entity.prototype.get.apply(this,arguments);
     },
 
     set: function(key, value, options) {
         var self=this, attrs, attr, val;
+        if( key === this )
+            return this;
         // Handle both `"key", value` and `{key: value}` -style arguments.
         if( _.isArray(key) ){
             // setting collection values directly
@@ -61,7 +63,7 @@ exports.EntityCollection = entity.Entity.extend({
             delete attrs.items;
         }
 
-        var result = Backbone.Model.prototype.set.apply( this, arguments );
+        var result = entity.Entity.prototype.set.apply( this, arguments );
         return result;
     },
 
@@ -85,6 +87,10 @@ exports.EntityCollection = entity.Entity.extend({
     // },
 
     parse: function(resp, xhr){
+        if( resp === this )
+            return resp;
+        // log('EntityCollection.parse:');
+        // print_ins( resp );
         if( !this.items )
             this.initialize();
         if( resp.entity ){
@@ -113,9 +119,33 @@ exports.EntityCollection = entity.Entity.extend({
     },
     
     flatten: function( options ){
-        var id,item,i,len;
+        var id,item,i,len,outgoing;
         options = options || {};
         var result = options.result = (options.result || {});
+        var id = this.id || this.cid;
+        // flatten ourselves
+
+        // if we are holding no items, and there are no non-default values, then just return
+        if( !this.items || this.items.length <= 0 ){
+            return result;
+        }
+        
+        // log('flattening collection ' + id + ' with options ' + JSON.stringify(options) );
+
+        if( options.toJSON ){
+            outgoing = this.toJSON({referenceItems:true,includeCounts:false,returnDefaults:false});
+
+            if( this.type ) 
+                outgoing['type'] = this.type;
+            if( this.id )
+                outgoing['id'] = this.id;
+            else
+                outgoing['_cid'] = this.cid;
+
+            result[id] = outgoing;
+
+        }else
+            result[id] = outgoing = this;
 
         for( i=0,len=this.items.length;i<len;i++ ){
             item = this.items.at(i);
@@ -129,7 +159,7 @@ exports.EntityCollection = entity.Entity.extend({
         options || (options = {});
         var result,
             refItems = options.referenceItems,
-            noCounts =options.noCounts,
+            includeCounts = options.includeCounts,
             fullItems = options.fullItems,
             returnDefaults = options.returnDefaults;
 
@@ -137,12 +167,17 @@ exports.EntityCollection = entity.Entity.extend({
             return this.items.map( function(it){ return it.id || it.cid });
         }
 
-        result = this.constructor.__super__.toJSON.call(this);
+        result = entity.Entity.prototype.toJSON.apply(this,arguments);
 
-        if( !noCounts ){
+        if( includeCounts ){
             result.item_count = this.items.length;
             result.page_count = Math.ceil(result.item_count / result.page_size);
+            // log('adding counts');
+        } else {
+            // delete result.item_count;
+            // delete result.page_count;
         }
+
         if( refItems && this.items.length > 0 ){
             result.items = this.items.map( function(it){ return it.id || it.cid });
         }
@@ -188,4 +223,3 @@ exports.create = function( attrs, options ){
     var result = new exports.EntityCollection( attrs, options );
     return result;
 }
-

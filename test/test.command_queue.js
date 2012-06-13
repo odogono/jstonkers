@@ -1,13 +1,31 @@
 var Common = require( '../src/common.js' );
-log( Common.path.join(Common.paths.src,'command_queue') );
 var CommandQueue = require( Common.path.join(Common.paths.src,'command_queue') );
+
+var CmdTestA = CommandQueue.Command.extend({
+    execute: function(options,callback){
+        return true;
+    }
+});
+
+Common.entity.registerEntity( 'cmd_test_a', CmdTestA );
+
+Common.entity.registerEntity({
+    type: 'test_container', ER:[ { type:'cmd_queue'} ]
+});
+// print_ins( Common.entity.TestContainer );
+// process.exit();
 
 describe('Command Queue', function(){
 
-    beforeEach( function(){
+    beforeEach( function(done){
         this.queue = CommandQueue.create();
+        Common.sync.clear( function(err){
+            if( err ) return done(err);
+            done();
+        });
     });
 
+    /*
     describe('create', function(){
         it('should create', function(){
             
@@ -72,8 +90,68 @@ describe('Command Queue', function(){
                 assert.equal( self.queue.length, 2 );
                 done();
             });
+        });
+    });//*/
 
-        });   
+    describe('persistence', function(){
+        /*it('should', function(done){
+            var self = this;
+            var a = Common.entity.create( CmdTestA, {execute_time:101} );
+            var b = Common.entity.create( CmdTestA, {execute_time:201} );
 
+            this.queue.add( a );
+            this.queue.add( b );
+            // print_var( self.queue.flatten({toJSON:true}) );
+
+            Step(
+                function(){
+                    self.queue.saveCB(this);
+                },
+                function(err,result){
+                    if( err ) throw( err );
+                    // log('saved');
+                    // print_ins( self.queue );
+                    // print_var( self.queue.flatten({toJSON:true}) );
+                    // print_ins( a );
+                    done();
+                }
+            );
+        });//*/
+
+        it('should persist as part of a parent entity', function(done){
+            var self = this;
+
+            var container = Common.entity.create( Common.entity.TYPE_TEST_CONTAINER, {name:'game', colour:'red'} );
+
+            assert.equal( container.type, Common.entity.TYPE_TEST_CONTAINER );
+            assert.equal( container.cmd_queue.type, Common.entity.TYPE_CMD_QUEUE );
+
+            var a = Common.entity.create( CmdTestA, {execute_time:201} );
+            var b = Common.entity.create( CmdTestA, {execute_time:101} );
+
+            container.cmd_queue.add( a );
+            container.cmd_queue.add( b );
+            
+            Step(
+                function(){
+                    container.saveCB(this);
+                },
+                function(err,result){
+                    if( err ) throw( err );
+                    // print_var( result.flatten({toJSON:true}) );
+                    var newContainer = Common.entity.create( Common.entity.TYPE_TEST_CONTAINER, {id:result.id} );
+                    // print_var( result );
+                    newContainer.fetchRelatedCB( {debug:true}, this );
+                },
+                function(err,result){
+                    // log('saved');
+                    // print_ins( self.queue );
+                    // print_var( result.flatten({toJSON:true}) );
+                    // print_ins( a );
+                    done();
+                }
+            );
+        });
     });
+
 });

@@ -274,7 +274,7 @@ describe('Sync.Redis', function(){
     
     
     
-    /*
+    
     describe('EntityCollection', function(){
         
         it('should save contained entities', function(done){
@@ -566,8 +566,8 @@ describe('Sync.Redis', function(){
                     done(); 
                 }
             );
-        });
-    });//*/
+        });//*/
+    });
     
 
 

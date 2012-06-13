@@ -80,11 +80,23 @@ describe('EntityCollection', function(){
         collection.set( incoming );
         assert.equal( collection.length, 2 );
         assert.equal( collection.get('item_count'), 200 );
-        assert.equal( collection.at(1).id, 'test.002' );
-        
+        assert.equal( collection.at(1).id, 'test.002' );    
     });
 
     describe('flatten', function(){
+        /*it('should produce a map', function(){
+            var i,entities = [];
+            for( i=0;i<10;i++ )
+                entities.push( Common.entity.create({
+                        id:_.sprintf('test.%03d', i+1),
+                        type:'test_a',
+                        name:'test entity ' + (i+1)}  ));
+            var collection = Common.entity.createEntityCollection( {items:entities} );
+
+            var result = collection.flatten();
+            assert.equal( _.keys(result).length, 10 );
+        });
+
         it('should produce a map', function(){
             var i,entities = [];
             for( i=0;i<10;i++ )
@@ -96,6 +108,20 @@ describe('EntityCollection', function(){
 
             var result = collection.flatten();
             assert.equal( _.keys(result).length, 10 );
+        });//*/
+
+        it('should', function(){
+            var i,entities = [];
+            for( i=0;i<1;i++ )
+                entities.push( Common.entity.create({
+                        id:_.sprintf('test.%03d', i+1),
+                        type:'test_a', name:'test entity ' + (i+1)}  ));
+
+            var collection = Common.entity.createEntityCollection( {id:'col.001', items:entities} );
+            var result = collection.flatten({toJSON:true});
+            // assert.equal( _.keys(result).length, 10 );
+            print_var( result );
+            // log('wah!');
         });
     });
 });

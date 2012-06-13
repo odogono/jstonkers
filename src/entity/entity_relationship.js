@@ -1,6 +1,6 @@
 
 exports.initEntityER = function( entityDef, options ){
-    options || (options={});
+    options = (options || {});
     // the ER spec matches the key to a TYPE string - string because the types usually
     // aren't set up at the time of creation
     var getEntityFromType = module.parent.exports.getEntityFromType;
@@ -24,16 +24,22 @@ exports.initEntityER = function( entityDef, options ){
         }
 
         // resort to looking up entity from entity registry
-        refEntity = getEntityFromType(entityId);
-        // if( entityDef.type === 'otma' ) log('looking up ' + entityId );
-        // if( entityDef.type === 'otma' ) log( 'oh hia ' + inspect(refEntity) );
-        if( refEntity ){
-            result.type = refEntity.type;
-            result.name = refEntity.name || refEntity.type;
+        result = getEntityFromType(entityId);
+        if( result ){
+            result = _.clone( result );
+            result.name = result.name || result.type;
+        }
+        // if( entityDef.type === 'o2m' ) log('looking up ' + entityId );
+        // if( entityDef.type === 'o2m' ) log( 'oh hia ' + inspect(refEntity) );
+        // if( refEntity ){
+            // result.type = refEntity.type;
+            // result.name = refEntity.name || refEntity.type;
+
+            // result.other = refEntity;
             // if( refEntity.name ) 
                 // result.name = refEntity.name;
             // return result;
-        }
+        // }
         return result;    
     }
 
@@ -50,12 +56,12 @@ exports.initEntityER = function( entityDef, options ){
             // log('found entity ' + spec.oneToMany + inspect(spec) );
             // }
             // print_ins( refEntity );
-            // if( entityDef.type === 'otma' ) print_ins( spec );
-            // if( entityDef.type === 'otma' ) log( 'regER ' + inspect(entityDef.ER) );
+            // if( entityDef.type === 'o2m' ) print_ins( spec );
+            // if( entityDef.type === 'o2m' ) log( 'regER ' + inspect(entityDef.ER) );
             // spec = _.extend( spec,  );
             // refEntity = resolveEntity( spec.oneToMany );
             // spec.type = spec.type || refEntity.type;
-            // if( entityDef.type === 'otma' ) log( 'regER ' + inspect(entityDef.ER) );
+            // if( entityDef.type === 'o2m' ) log( 'regER ' + inspect(entityDef.ER) );
             module.exports.oneToMany( entityDef, spec, options );
         }
         if( spec.oneToOne ){
@@ -67,7 +73,24 @@ exports.initEntityER = function( entityDef, options ){
             // spec = _.extend( spec, resolveEntity( spec.oneToOne ) );
             module.exports.oneToOne( entityDef, spec.type );
         }
+
+        if( spec.type ){
+            refEntity = resolveEntity( spec.type );
+            if( refEntity ){
+                spec.name = refEntity.name = spec.name || refEntity.type;
+            }
+            if( refEntity.oneToMany ){
+                spec.oneToMany = true;
+                module.exports.oneToMany( entityDef, refEntity, options );
+            }
+            // log( 'using ');
+            // print_ins( refEntity );
+        }
     });
+
+    // if( options.oneToMany ){
+    //     log('requested as o2m');
+    // }
 }
 
 exports.oneToOne = function( entityDef, codomainType, options ){
@@ -99,7 +122,7 @@ exports.oneToMany = function( entityDef, spec, options ){
         codomainName = _.capitalize( spec.name || entity.names[spec.type]),
         codomainNameLower = codomainName.toLowerCase();
 
-    debug = entityDef.type === 'otma';
+    debug = entityDef.type === 'o2m';
     // log( '1tom ' + entityDef.type );
     // if( debug )log('applying 1toM on ' + entityDef.type + ' to ' + JSON.stringify(spec) );
 
@@ -119,11 +142,14 @@ exports.oneToMany = function( entityDef, spec, options ){
     // be instantiated
     entityDef.entity.prototype.initialize = function(){
         // log('initialize ' + entityDef.type);
-        // print_ins( entityDef.type );
+        // log('oh:');
+        // print_ins( spec );
         // if( debug ) log( entityDef );
+        // log('creating with ' + spec.create );
         var self = this,
             entityName = codomainName.toLowerCase(),
-            collection = Common.entity.createEntityCollection({entity:codomainType});
+            // collection = 
+            collection = spec.create ? spec.create({entity:codomainType}) : Common.entity.createEntityCollection({entity:codomainType});
         
         // print_ins( module.parent.exports.getEntityFromType(codomainType) );
         // collection.model = module.parent.exports.getEntityFromType(codomainType).entity;
@@ -131,7 +157,9 @@ exports.oneToMany = function( entityDef, spec, options ){
         // log('set name on collection to ' + codomainType);
         var collectionName = entityName != codomainType ? entityName : codomainType;
         var childRelationKey = '_'+ entityDef.type+':'+collectionName;
-        collection.set( {name:collectionName, entity:self.id} );
+        // log('adding ' + JSON.stringify({name:collectionName, entity:self.id}) );
+        // collection.set( {name:collectionName, entity:self.id} );
+        // log('huh');
         
         this[ codomainNameLower ] = collection;
         // if( debug ) log('added collection .' + codomainNameLower);

@@ -111,7 +111,7 @@ describe('Entity', function(){
     describe('one to many', function(){
 
         var otmA = {
-            type: 'otma',
+            type: 'o2m',
             entity: Common.entity.Entity.extend({}),
             ER:[
                 { oneToMany: 'otmb', name:'friends', notes:'fromtest' }

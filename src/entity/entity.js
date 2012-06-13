@@ -320,6 +320,43 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return result;
     },
 
+    toJSON: function( options ){
+        var i, entityDef, er, erName;
+        options || (options = {});
+        var doRelations = options.referenceCollections;//options.relations;
+        var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
+
+        if( doRelations ){
+            entityDef = Common.entity.ids[this.type];
+
+            for( i in entityDef.ER ){
+                er = entityDef.ER[i];
+                erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
+                // def = Common.entity.ids[ er.type ];
+                // log('entity.toJSON: ' + erName + ' ' + JSON.stringify(er) );
+
+                if( er.oneToOne ){
+                    // if( doRecurse && (child = this.get(erName)) ){
+                        // child.flatten( options );
+                    // }
+                } else if( er.oneToMany ){
+                    // if( doRecurse && (child = this[erName]) ){
+                        // child.flatten(options);
+                    // }
+                    
+                    // if( options.toJSON && options.referenceItems && this[erName].length > 0 ){
+                        // outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
+                    // }
+                    // print_ins( this[erName] );
+                    result[erName] = this[erName].id;// || this[erName].cid;
+                }
+            }
+            // print_var( result );
+        }
+
+        return result;
+    },
+
     // flattens this instance to a map of entity ids entities
     // 
     // options:
@@ -331,6 +368,8 @@ var Entity = exports.Entity = Backbone.Model.extend({
         var id = this.id || this.cid;
         var self = this, outgoing;
         
+        // log('flattening entity ' + id);
+
         // recursing through found relations is the default
         var doRecurse = _.isUndefined(options.recurse) ? true : options.recurse;
         // exporting relation references is the default
@@ -367,8 +406,10 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
+                // def = Common.entity.ids[ er.type ];
+                // log('exam ER ' + JSON.stringify(entityDef) + ' ' + JSON.stringify(er) );
+                // print_ins( Common.entity.ids );
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
-
                 if( er.oneToOne ){
                     if( doRecurse && (child = this.get(erName)) ){
                         child.flatten( options );
@@ -377,6 +418,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
                     if( doRecurse && (child = this[erName]) ){
                         child.flatten(options);
                     }
+                    
                     if( options.toJSON && options.referenceItems && this[erName].length > 0 ){
                         outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
                     }
@@ -418,7 +460,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
             // }
 
         }
-
         return result;
     }
 
@@ -444,10 +485,10 @@ exports.splitId = function( id ){
 *   The preferred means of creating a POI
 */
 exports.create = function( type, attrs, options ) {
-    var result;
+    var i,result;
     var debug = options && options.debug;
 
-    if( _.isObject(type) ){
+    if( _.isObject(type) && !type.__super__ ){
         options = attrs;
         attrs = type;
         type = attrs.type;
@@ -472,9 +513,12 @@ exports.create = function( type, attrs, options ) {
     attrs.created_at = new Date();
     attrs.updated_at = new Date();
 
-    if( _.isObject(type) && type instanceof Backbone.Model && type.type ){
+    if( _.isObject(type) ){
         // attrs.id = type.type + '.' + uuid();
-        type = type.type;
+        // if( type instanceof Backbone.Model && type.type )
+        if( type.type )
+            type = type.type;
+        // else if( type.__super__ )
     }
     else {
         if( _.isString(type) && type.indexOf('.') != -1 ){
@@ -513,6 +557,8 @@ exports.create = function( type, attrs, options ) {
             }
         }
     });
+
+
 
     // if( entityDef.create ){
         // result = entityDef.create( attrs, options );
@@ -569,8 +615,11 @@ exports.getER = function( type ){
     return type.ER;
 }
 
-function registerEntityType( entityDef ){
+function registerEntityType( entityDef, options ){
     var schema;
+
+    options = (options || {});
+
     if( entityDef.schema ){
         // log('schema found for ' + entityDef.schema );//+ ' ' + inspect(entityDef) );
         
@@ -598,6 +647,16 @@ function registerEntityType( entityDef ){
     if( !entityDef.ER )
         entityDef.ER = [];
 
+    // entityDef.spoon = true;
+    if( options.oneToMany ){
+        entityDef.oneToMany = options.oneToMany;
+    }
+    if( options.create ){
+        entityDef.create = options.create;
+    }
+
+    // print_ins(entityDef);
+
     // add to entities
     exports[entityDef.name] = exports.entities[entityDef.name] = entityDef;
     
@@ -613,12 +672,12 @@ function registerEntityType( entityDef ){
 *   - the incoming object must have a type and entity field
 */
 exports.registerEntity = function( entityDef, entity, options ){
-
     // check for a direct registration of an entity
     if( _.isObject(entity) && entity.__super__ ){
         // the first arg may be the type of the entity
         if( _.isString(entityDef) ){
             entityDef = { type:entityDef };
+            entity.type = entityDef.type;
         }
         entityDef.entity = entity;
         options = options || {};
@@ -628,6 +687,6 @@ exports.registerEntity = function( entityDef, entity, options ){
         entityDef = require('./' + entityDef);
     }
 
-    registerEntityType( entityDef );
+    registerEntityType( entityDef, options );
     erFuncs.initEntityER( entityDef, options );
 }
