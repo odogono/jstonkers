@@ -1,5 +1,5 @@
 var redis = require("redis");
-
+var Entity = require('../entity/entity');
 
 exports.info = 'redis based sync';
 
@@ -57,6 +57,7 @@ _.extend( RedisStorage.prototype, {
         // delete entity._cid;
 
         serialised = entity.toJSON({referenceCollections:true});
+        serialised.type = entity.type;
         // print_var(serialised);
 
         key = keyPrefix + ':' + entity.id;
@@ -198,7 +199,7 @@ _.extend( RedisStorage.prototype, {
         var collectionKey = options.key_prefix + ':' + collection.id;
 
         // get the total number of items in the collection
-        multi.scard( collectionKey + ':' + collection.get('name') );
+        multi.scard( collectionKey + ':items' );// + collection.get('name') );
         // log( key + ':' + model.getItemsName() );
         multi.get( collectionKey );
         multi.exec( function(err, replies){
@@ -262,9 +263,15 @@ _.extend( RedisStorage.prototype, {
 
         if( collection ){
             options || (options={});
-            options.offset = collection.get('offset');
-            options.limit = collection.get('page_size');    
+            if( Entity.isEntity(collection) ){
+                options.offset = collection.get('offset');
+                options.limit = collection.get('page_size');    
+            } else {
+                options.offset = collection.offset;
+                options.limit = collection.page_size;
+            }
         }
+
         multi.scard(setKey);
 
         self.executeSort( multi, setKey, sortBy, options.key_prefix + ':*->value', options );
@@ -577,11 +584,91 @@ _.extend( RedisStorage.prototype, {
         );
     },
 
+    retrieveEntityById: function( entity, options, callback ){
+        var self = this, i, er, name, type, key, targetId;
+        var entityId = _.isObject(entity) ? entity.id : entity;
+        var entityKey = options.key_prefix + ':' + entityId;
+        var entityDef;// = Common.entity.ids[entity.type];
+        // var result = options.result;
+
+        if(options.debug) log('retrieveEntityById ' + entityId + ' ' + entityKey);
+
+        // retrieve the entity
+        this.client.hget( entityKey, 'value', function(err, data){
+            if( !data ){
+                callback(entityId + ' not found');
+                return;
+            }
+            var entityAttr = JSON.parse(data);
+            entityAttr.id = entityId;
+
+            type = entityAttr.type || (_.isObject(entity) ? entity.type : null);
+            // delete entityAttr.type;
+            entityDef = Common.entity.ids[type];
+
+            // log('hmm plinkyplonk ' + JSON.stringify(entityDef) );
+            
+            // look for other relations that we should retrieve
+            // if there are any collections associated with this entity then fetch their details
+            if( entityDef.oneToMany && options.fetchRelated ){
+                // this is a collection - look for members
+                self.client.smembers( entityKey + ':items', function(err,result){
+                    if( err ) throw err;
+
+                    // add the member IDs to the list of entities that should also be retrieved
+                    if( options.fetchList ){
+                        for( i in result ){
+                            // only add to list to be fetched if we haven't already seen it
+                            if( !options.result[result[i]] )
+                                options.fetchList.push( result[i] );
+                        }
+                    }
+
+                    entityAttr.items = result;
+
+                    // log('set members: ' + JSON.stringify(options.fetchList));
+                    callback( null, entityAttr );
+                });
+                // self.retrieveCollectionBySet( entityKey + ':items', entityAttr, options, function(err,result){
+                    // 
+                // });
+                return;
+            }
+            else if( entityDef.ER ){
+                for( i in entityDef.ER ){
+                    er = entityDef.ER[i];
+                    if( er.oneToMany ){
+
+                        name = (er.name || er.oneToMany).toLowerCase();
+                        targetId = entityAttr[name];
+                        // key = entityKey + ':' + name;
+                        if( (options.fetchRelated || options._depth < options.depth) && !options.result[targetId] ){
+                            // erCollections.push( name );
+                            // log('adding ' + name + ' ' + targetId );
+                            options.fetchList.push( targetId );
+                        }
+                    }
+                    else if( er.oneToOne ){
+                        name = (er.name || er.oneToOne).toLowerCase();
+                        targetId = entityAttr[name];
+                        // key = entityKey + ':' + name;
+                        // log('considering ' + o2oName  + ' type ' + er.oneToOne );
+                        if( options.fetchRelated || options._depth < options.depth && !options.result[targetId] ){
+                            // erEntities.push( { key:name, type:er.oneToOne} );
+                            options.fetchList.push( targetId );
+                        }
+                    }
+                }
+            }
+
+            callback( null, entityAttr );
+        });
+    },
 
     /**
     *
     */
-    retrieveEntityById: function( entity, options, callback ){
+    retrieveEntityByIdOld: function( entity, options, callback ){
         var i,j,self = this,
             itemCounts = [],
             erCollections = [],
@@ -596,7 +683,7 @@ _.extend( RedisStorage.prototype, {
         var multi = self.client.multi();
         result = options.result || {};
 
-        // if(options.debug) log('retrieveEntityById ' + entity.id );
+        if(options.debug) log('retrieveEntityById ' + entity.id );
 
         if( result[entity.id] ){
             log('retrieveEntityById : already retrieved ' + entity.id );
@@ -715,7 +802,7 @@ _.extend( RedisStorage.prototype, {
     // Retrieve a model from `this.data` by id.
     find: function(model, options, callback) {
         var i, self = this,
-            info,
+            info, entityId,
             collectionSetKey,
             result;
         var entityDetails = Common.entity.ids[model.type];
@@ -725,7 +812,10 @@ _.extend( RedisStorage.prototype, {
         var modelKey = [self.options.key_prefix, model.id].join(':');
 
         options._depth = options._depth || 1;
+        options.fetchList = [ model.id ];
+        options.result = {};
 
+        /*
         if( model instanceof Common.entity.EntityCollection ){
             if( !model.id ){
                 this.retrieveCollectionByType( model, options, callback );
@@ -736,7 +826,29 @@ _.extend( RedisStorage.prototype, {
         }
         else {
             self.retrieveEntityById( model, options, callback );
-        }
+        }//*/
+
+        var evalFetchList = function(){
+            if( options.fetchList.length === 0 ) {
+                callback( null, options.result );
+            }else {
+                // pull the next
+                entityId = options.fetchList.shift();
+                self.retrieveEntityById( entityId, options, function(err,data){
+                    // store result
+                    options.result[ entityId ] = data;
+                    // re-check if we need to fetch anything
+                    evalFetchList();
+                });
+            }
+        };
+
+        evalFetchList();
+
+        // this.retrieveEntityById( model, options, function(err,data){
+        //     log( 'fetchList is now ' + JSON.stringify(options.fetchList) );
+        //     callback( err, data );
+        // });
     }
      
 });
@@ -774,7 +886,7 @@ exports.sync = function(method, model, options) {
         }
     };
 
-    log('sync with ' + method );
+    // log('sync with ' + method );
 
     switch( method ){
         case 'read':

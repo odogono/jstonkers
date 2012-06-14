@@ -4,6 +4,9 @@ var CommandQueue = require( Common.path.join(Common.paths.src,'command_queue') )
 var CmdTestA = CommandQueue.Command.extend({
     execute: function(options,callback){
         return true;
+    },
+    isCmdTestA: function(){
+        return true;
     }
 });
 
@@ -118,6 +121,16 @@ describe('Command Queue', function(){
             );
         });//*/
 
+
+        it('should add commands correctly', function(){
+            // var a = Common.entity.create( CmdTestA, {execute_time:201} );
+            this.queue.add( { id:'cmd_001', type:'cmd_test_a', execute_time:201 } );
+            // print_ins( this.queue.at(0) );
+
+            assert( this.queue.at(0).isCmdTestA() );
+        });
+
+        
         it('should persist as part of a parent entity', function(done){
             var self = this;
 
@@ -138,20 +151,21 @@ describe('Command Queue', function(){
                 },
                 function(err,result){
                     if( err ) throw( err );
-                    // print_var( result.flatten({toJSON:true}) );
+                    var flat = result.flatten({toJSON:true});
+                    assert.equal( flat['2'].type, 'cmd_queue' );
                     var newContainer = Common.entity.create( Common.entity.TYPE_TEST_CONTAINER, {id:result.id} );
-                    // print_var( result );
-                    newContainer.fetchRelatedCB( {debug:true}, this );
+                    newContainer.fetchRelatedCB( this );
                 },
                 function(err,result){
-                    // log('saved');
-                    // print_ins( self.queue );
-                    // print_var( result.flatten({toJSON:true}) );
-                    // print_ins( a );
+                    if( err ) throw err;
+                    var flat = result.flatten({toJSON:true});
+                    assert.equal( flat['2'].type, 'cmd_queue' );
+                    // print_var( flat );
+                    assert( result.cmd_queue.at(0).isCmdTestA() );
                     done();
                 }
             );
-        });
+        });//*/
     });
 
 });

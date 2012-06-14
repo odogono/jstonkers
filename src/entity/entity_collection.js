@@ -1,6 +1,6 @@
-var entity = require('./entity');
+var Entity = require('./entity');
 
-exports.EntityCollection = entity.Entity.extend({
+exports.EntityCollection = Entity.Entity.extend({
     defaults:{
         // name: 'items',
         start: 0, // the starting index
@@ -16,6 +16,8 @@ exports.EntityCollection = entity.Entity.extend({
         if( !this.items ){
             this.items = new Backbone.Collection();
             this.items.entityCollection = this;
+            // override default behaviour to create types of item
+            this.items.model = this.createItemsModel;
             this.items.on('add', function(model){
                 model.entityCollection = self;
                 // log('added ' + model.id + ' '  );
@@ -27,6 +29,13 @@ exports.EntityCollection = entity.Entity.extend({
         }
     },
 
+    createItemsModel: function( attrs, options ){
+        if( attrs.type ){
+            return Entity.create( attrs, options );
+        }
+        return new Backbone.Model( attrs, options );
+    },
+
     get: function(attr){
         if( attr == 'offset' )
             return this.get('page_size') * (this.get('page')-1);
@@ -34,7 +43,7 @@ exports.EntityCollection = entity.Entity.extend({
             return Math.max( this.items.length, this.attributes.item_count );
         if( attr == 'page_count' )
             return Math.ceil( this.items.length / this.get('page_size') );
-        return entity.Entity.prototype.get.apply(this,arguments);
+        return Entity.Entity.prototype.get.apply(this,arguments);
     },
 
     set: function(key, value, options) {
@@ -59,11 +68,13 @@ exports.EntityCollection = entity.Entity.extend({
         if (!attrs) return this;
 
         if( attrs.items ){
+            // log('set entC');
             this.reset( attrs.items );
+            // print_ins( this.items.at(0).attributes );
             delete attrs.items;
         }
 
-        var result = entity.Entity.prototype.set.apply( this, arguments );
+        var result = Entity.Entity.prototype.set.apply( this, arguments );
         return result;
     },
 
@@ -86,6 +97,24 @@ exports.EntityCollection = entity.Entity.extend({
     //     );
     // },
 
+    
+    
+    // Prepare a model or hash of attributes to be added to this collection.
+    /*_prepareModel: function(model, options) {
+        log("YO");
+      options || (options = {});
+      if (!(model instanceof Model)) {
+        var attrs = model;
+        options.collection = this;
+        log('overriden _prepareModel with ' + JSON.stringify(attrs) );
+        model = new this.model(attrs, options);
+        if (!model._validate(model.attributes, options)) model = false;
+      } else if (!model.collection) {
+        model.collection = this;
+      }
+      return model;
+    },//*/
+
     parse: function(resp, xhr){
         if( resp === this )
             return resp;
@@ -99,7 +128,8 @@ exports.EntityCollection = entity.Entity.extend({
                 throw new Error('no entity found called ' + resp.entity );
             // log('hmm, nothing for ' + resp.entity );
             this.entityType = entityDef.type;
-            this.items.model = entityDef.entity;
+            // log('setting items model to ' + entityDef.type + ' ' + JSON.stringify(entityDef));
+            // this.items.model = entityDef.entity;
             delete resp.entity;
         }
         if( resp.items ){
@@ -167,7 +197,7 @@ exports.EntityCollection = entity.Entity.extend({
             return this.items.map( function(it){ return it.id || it.cid });
         }
 
-        result = entity.Entity.prototype.toJSON.apply(this,arguments);
+        result = Entity.Entity.prototype.toJSON.apply(this,arguments);
 
         if( includeCounts ){
             result.item_count = this.items.length;
@@ -197,14 +227,14 @@ exports.EntityCollection.prototype.__defineGetter__('length', function(){
     return this.items.length;
 });
 
-exports.EntityCollection.prototype.__defineSetter__('model', function(model){
-    // log('setting model to be ' + model.prototype );
-    // print_ins( model.prototype );
-    this.items.model = model;
-});
-exports.EntityCollection.prototype.__defineGetter__('model', function(){
-    return this.items.model;
-})
+// exports.EntityCollection.prototype.__defineSetter__('model', function(model){
+//     // log('setting model to be ' + model.prototype );
+//     // print_ins( model.prototype );
+//     this.items.model = model;
+// });
+// exports.EntityCollection.prototype.__defineGetter__('model', function(){
+//     return this.items.model;
+// })
 
 // mix in certain Backbone.Collection methods into our class
 _.each( ['add', 'remove', 'at', 'each', 'map'], function(method){

@@ -1,7 +1,19 @@
+var Entity = require('./entity/entity');
 var EntityCollection = require('./entity/entity_collection');
 
-exports.CommandQueue = EntityCollection.EntityCollection.extend({
 
+exports.Command = Entity.Entity.extend({
+    execute: function(options,callback){
+        // returns true if the command is finished
+        return true;
+    },
+
+    storeKeys: function(){
+        return [ "execute_time" ];
+    }
+});
+
+exports.CommandQueue = EntityCollection.EntityCollection.extend({
     process: function(options,callback){
         var i, cmd, eTime, time = this.time(), removes = [];
         if( !callback && _.isFunction(options) ){
@@ -46,14 +58,28 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
         return Date.now();
     },
 
+    // flatten: function( options ){
+    //     options = (options || {});
+    //     var result = EntityCollection.EntityCollection.prototype.flatten.apply( this, arguments );
+    //     return result;
+    // },
 });
 
 
 exports.create = function( attrs, options ){
+    // log('creating command queue with ' + JSON.stringify(attrs) );
+    // TODO : create with standard entity create
+    attrs = (attrs || {});
     options || (options = {});
     // this option has to be set in order to process any passed items/models
     // correctly
     options.parse = true;
+    attrs.created_at = new Date();
+    attrs.updated_at = new Date();
+    attrs.status = Common.Status.ACTIVE;
     var result = new exports.CommandQueue( attrs, options );
+    result.type = 'cmd_queue';
     return result;
 }
+
+Entity.registerEntity('cmd_queue', exports.CommandQueue, {oneToMany:true,create:exports.create} );
