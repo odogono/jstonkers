@@ -30,6 +30,9 @@ _.extend( RedisStorage.prototype, {
             initiateMulti = redisHandle instanceof redis.RedisClient,
             key,keys,val;
 
+        // if(options.debug) log('saving entity ' );
+        // if(options.debug) print_var( entity );
+
         if( !entity.id ){
             // get a new id for the entity
             exports.generateUuid(function(err,id){
@@ -112,22 +115,22 @@ _.extend( RedisStorage.prototype, {
             // log(entity.id + ' ' + Common.Status[i] );
         }
 
-
-
-        // _.each(Common.Status, function(v,k){
-        //     if( entity.status === v )
-        //         multi.sadd( keyPrefix + ':status:' + v, entity.id );
-        //     else    
-        //         multi.srem( keyPrefix + ':status:' + v, entity.id );
-        // });
-        
-
-        // entity type index
-        multi.sadd( keyPrefix + ':' + entity.type, entity.id );
-
-        if( entity.entityCollection ){
-            multi.sadd( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
-        }
+        // NOTE : logically deleting something does not remove from type and collection sets
+        // - retrieving usually 
+        // if( status === Common.Status.LOGICALLY_DELETED ){
+        //     multi.srem( keyPrefix + ':' + entity.type, entity.id );
+        //     if( entity.entityCollection ){
+        //         if( options.debug ) log('removing from entityCollection set');
+        //         multi.srem( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
+        //     }
+        // } else {
+            // add to entity type set
+            multi.sadd( keyPrefix + ':' + entity.type, entity.id );
+            if( entity.entityCollection ){
+                // if( options.debug ) log('adding to entityCollection set ' + status);
+                multi.sadd( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
+            }
+        // }
 
 
         // if( options.collectionSetKey )
@@ -385,13 +388,14 @@ _.extend( RedisStorage.prototype, {
         var i, j, entity, self = this;
         var keyPrefix = self.options.key_prefix;
         var entityDetails = Common.entity.ids[model.type];
-        var flattenOptions = {toJSON:true,recurse:false};
+        var flattenOptions = {toJSON:false,recurse:false};
         // var factoryOptions = {toJSON:true,exportAsMap:false};
         if( options.destroyRelated ) {
             flattenOptions.recurse = true;
         }
 
         var cidToModel = _.values( model.flatten(flattenOptions) );
+        // print_ins( cidToModel );
         // var cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
 
         if( options.destroyHard ){
@@ -414,6 +418,14 @@ _.extend( RedisStorage.prototype, {
                 for( j in Common.Status ){
                     multi.srem( keyPrefix + ':status:' + Common.Status[j], entity.id );
                 }
+
+                // log('the entity doesnt have its entityCollection set!' );
+                // log('hard deleting ' + entity.id );
+                // print_ins( entity );
+                if( entity.entityCollection ){
+                    
+                    multi.srem( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
+                }
             }
 
             multi.exec( function(err, replies){
@@ -423,15 +435,16 @@ _.extend( RedisStorage.prototype, {
             return model;
         }
 
-        if( options.debug ){
+        // if( options.debug ){
             // print_ins( cidToModel );
             // print_ins( _.values( model.flatten({toJSON:true}) ) );
-        }
+        // }
 
         // a normal delete is actually setting the status of each model to logically deleted
         for( i in cidToModel ){
-            cidToModel[i].status = Common.Status.LOGICALLY_DELETED;
+            cidToModel[i].set( 'status', Common.Status.LOGICALLY_DELETED );
         }
+
 
         Step(
             function(){
@@ -467,7 +480,6 @@ _.extend( RedisStorage.prototype, {
 
         // log('redis.update with ' + JSON.stringify(options) );
         // print_var( cidToModel );
-        
         
         Step(
             function ensureIds(){
@@ -588,6 +600,7 @@ _.extend( RedisStorage.prototype, {
         var self = this, i, er, name, type, key, targetId;
         var entityId = _.isObject(entity) ? entity.id : entity;
         var entityKey = options.key_prefix + ':' + entityId;
+        var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
         var entityDef;// = Common.entity.ids[entity.type];
         // var result = options.result;
 
@@ -612,7 +625,7 @@ _.extend( RedisStorage.prototype, {
             // if there are any collections associated with this entity then fetch their details
             if( entityDef.oneToMany && options.fetchRelated ){
                 // this is a collection - look for members
-                self.client.smembers( entityKey + ':items', function(err,result){
+                self.client.sdiff( entityKey + ':items', ldlKey, function(err,result){
                     if( err ) throw err;
 
                     // add the member IDs to the list of entities that should also be retrieved
@@ -833,6 +846,7 @@ _.extend( RedisStorage.prototype, {
                 callback( null, options.result );
             }else {
                 // pull the next
+                // if( options.debug ) log('going for retrieve');
                 entityId = options.fetchList.shift();
                 self.retrieveEntityById( entityId, options, function(err,data){
                     // store result
@@ -886,7 +900,7 @@ exports.sync = function(method, model, options) {
         }
     };
 
-    // log('sync with ' + method );
+    if( options.debug )  log('sync with ' + method );
 
     switch( method ){
         case 'read':

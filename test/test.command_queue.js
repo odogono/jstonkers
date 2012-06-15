@@ -3,7 +3,7 @@ var CommandQueue = require( Common.path.join(Common.paths.src,'command_queue') )
 
 var CmdTestA = CommandQueue.Command.extend({
     execute: function(options,callback){
-        return true;
+        callback( null, true, this );
     },
     isCmdTestA: function(){
         return true;
@@ -28,19 +28,31 @@ describe('Command Queue', function(){
         });
     });
 
-    /*
+    
     describe('create', function(){
         it('should create', function(){
             
         });
+
+        
+        it('should add commands correctly', function(){
+            // var a = Common.entity.create( CmdTestA, {execute_time:201} );
+            this.queue.add( { id:'cmd_001', type:'cmd_test_a', execute_time:201 } );
+            // print_ins( this.queue.at(0) );
+
+            assert( this.queue.at(0).isCmdTestA() );
+        });//*/
     });
 
+    
     describe('process', function(){
+        
         it('should process multiple commands', function(done){
             var self = this, processCount = 0;
-            var Cmd = Backbone.Model.extend({
-                execute: function(){
+            var Cmd = CommandQueue.Command.extend({
+                execute: function(options,callback){
                     processCount++;
+                    callback();
                 }
             });
             this.queue.add( new Cmd() );
@@ -48,6 +60,7 @@ describe('Command Queue', function(){
             this.queue.add( new Cmd() );
 
             assert.equal( this.queue.length, 3 );
+
             this.queue.process(function(){
                 assert.equal( processCount, 3 );
                 assert.equal( self.queue.length, 0 );
@@ -55,11 +68,13 @@ describe('Command Queue', function(){
             }); 
         });
 
+        
         it('should run the callback', function(done){
             var self = this, processed = false;
-            var cmd = new Backbone.Model();
-            cmd.execute = function(){
+            var cmd = new CommandQueue.Command();
+            cmd.execute = function(options,callback){
                 processed = true;
+                callback();
             };
 
             this.queue.add( cmd );
@@ -73,11 +88,13 @@ describe('Command Queue', function(){
 
         it('should process multiple commands', function(done){
             var self = this, processCount = 0;
-            var Cmd = Backbone.Model.extend({
-                execute: function(){
+            var Cmd = CommandQueue.Command.extend({
+                execute: function(options,callback){
                     processCount++;
+                    callback();
                 }
             });
+
             // override the time function to return a specific time
             this.queue.time = function(){
                 return 50;
@@ -94,43 +111,110 @@ describe('Command Queue', function(){
                 done();
             });
         });
+
+        it('should order added commands', function(){
+            this.queue.add( { id:'cmd_001', type:'cmd_test_a', execute_time:201 } );
+            this.queue.add( { id:'cmd_002', type:'cmd_test_a', execute_time:0 } );
+            this.queue.add( { id:'cmd_003', type:'cmd_test_a', execute_time:20 } );
+            this.queue.add( { id:'cmd_004', type:'cmd_test_a', execute_time:-1 } );
+
+            assert.equal( this.queue.at(0).id, 'cmd_004' );
+            assert.equal( this.queue.at(1).id, 'cmd_002' );
+            assert.equal( this.queue.at(2).id, 'cmd_003' );
+            assert.equal( this.queue.at(3).id, 'cmd_001' );
+        });
+
+        it('should cope with re-occuring commands', function(done){
+            var Cmd = CommandQueue.Command.extend({
+                execute: function(options,callback){
+                    this.isFinished = false;
+                    callback();
+                }
+            });
+
+            this.queue.add( new Cmd({execute_time:0}) );
+            this.queue.process( function(err, executeCount, finishedCount){
+                assert.equal( executeCount, 1 );
+                assert.equal( finishedCount, 0 );
+                done();
+            });
+        });
+
     });//*/
 
-    describe('persistence', function(){
-        /*it('should', function(done){
-            var self = this;
-            var a = Common.entity.create( CmdTestA, {execute_time:101} );
-            var b = Common.entity.create( CmdTestA, {execute_time:201} );
 
-            this.queue.add( a );
-            this.queue.add( b );
-            // print_var( self.queue.flatten({toJSON:true}) );
+    describe('serialisation', function(){
+
+    });
+
+    describe('persistence', function(){
+        
+        it('should add and remove commands', function(done){
+            var self = this;
+            var cmd;
+            // this.queue.set('auto_save',true);
 
             Step(
-                function(){
-                    self.queue.saveCB(this);
+                function saveQueueFirst(){
+                    self.queue.saveCB( this );
+                },
+                function createCommandAndAdd(err,result){
+                    cmd = Common.entity.create( CmdTestA, {execute_time:-1} );
+                    self.queue.add( cmd );
+                    assert.equal( self.queue.length, 1 );
+                    self.queue.saveCB( this );
+                },
+                function destroyCommand(err,result){
+                    if( err ) throw err;
+                    cmd.destroyCB({destroyHard:true},this);
+                },
+                function retrieveQueue(err,result){
+                    if( err ) throw err;
+                    var q = CommandQueue.create({id:self.queue.id});
+                    q.fetchRelatedCB(this);
                 },
                 function(err,result){
-                    if( err ) throw( err );
-                    // log('saved');
-                    // print_ins( self.queue );
-                    // print_var( self.queue.flatten({toJSON:true}) );
-                    // print_ins( a );
+                    if( err ) throw err;
+                    assert.equal( result.items.length, 0)
                     done();
                 }
             );
         });//*/
 
+        it('should destroy processed commands', function(done){
+            var self = this;
+            Step(
+                function saveQueueFirst(){
+                    self.queue.saveCB( this );
+                },
+                function createCommandAndAdd(err,result){
+                    if( err ) throw err;
+                    var cmd = Common.entity.create( CmdTestA, {execute_time:-1} );
+                    self.queue.add( cmd );
+                    assert.equal( self.queue.length, 1 );
+                    self.queue.saveCB( this );
+                },
+                function processQueue(err,result){
+                    if( err ) throw err;
+                    self.queue.process( this );
+                },
+                function recreateQueue(err,result){
+                    if( err ) throw err;
+                    assert.equal( self.queue.length, 0)
+                    var q = CommandQueue.create({id:self.queue.id});
+                    // the fetched queue should contain no items
+                    q.fetchRelatedCB(this);
+                },
+                function(err,result){
+                    if( err ) throw err;
+                    // print_var( result.flatten() );
+                    assert.equal( result.length, 0)
+                    done();
+                }
+            );
 
-        it('should add commands correctly', function(){
-            // var a = Common.entity.create( CmdTestA, {execute_time:201} );
-            this.queue.add( { id:'cmd_001', type:'cmd_test_a', execute_time:201 } );
-            // print_ins( this.queue.at(0) );
-
-            assert( this.queue.at(0).isCmdTestA() );
         });
 
-        
         it('should persist as part of a parent entity', function(done){
             var self = this;
 

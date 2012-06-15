@@ -20,13 +20,15 @@ exports.EntityCollection = Entity.Entity.extend({
             this.items.model = this.createItemsModel;
             this.items.on('add', function(model){
                 model.entityCollection = self;
-                // log('added ' + model.id + ' '  );
             }).on('remove', function(model){
                 model.entityCollection = null;
             }).on('all', function(){
                 self.trigger.apply(self, arguments);
             });
+
+            return true;
         }
+        return false;
     },
 
     createItemsModel: function( attrs, options ){
@@ -118,8 +120,7 @@ exports.EntityCollection = Entity.Entity.extend({
     parse: function(resp, xhr){
         if( resp === this )
             return resp;
-        // log('EntityCollection.parse:');
-        // print_ins( resp );
+        // print_ins( arguments );
         if( !this.items )
             this.initialize();
         if( resp.entity ){
@@ -135,6 +136,10 @@ exports.EntityCollection = Entity.Entity.extend({
         if( resp.items ){
             this.reset( resp.items );
             delete resp.items;
+        } else {
+            // log('EntityCollection.parse:');
+            resp = Entity.Entity.prototype.parse.apply( this, arguments );
+            // print_ins( resp );
         }
         return resp;
     },
@@ -153,12 +158,6 @@ exports.EntityCollection = Entity.Entity.extend({
         options = options || {};
         var result = options.result = (options.result || {});
         var id = this.id || this.cid;
-        // flatten ourselves
-
-        // if we are holding no items, and there are no non-default values, then just return
-        if( !this.items || this.items.length <= 0 ){
-            return result;
-        }
         
         // log('flattening collection ' + id + ' with options ' + JSON.stringify(options) );
 

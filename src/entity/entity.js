@@ -4,7 +4,7 @@ var erFuncs = require('./entity_relationship');
 var Entity = exports.Entity = Backbone.Model.extend({
 
     defaults:{
-        status: Common.Status.INACTIVE,
+        status: Common.Status.ACTIVE,
         created_at:new Date(),
         updated_at:new Date()
     },
@@ -57,8 +57,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
     // saveCB( {key:'value'}, function(){} )
     saveCB: function(key, value, options, callback){
         var attrs;
-        // log('saveCB with ');
-        // print_ins( arguments );
         if( arguments.length === 1 ){
             callback = key;
             options = {};
@@ -67,7 +65,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
             attrs = key;
             callback = options;
             options = value;
-            // log('cb?' + arguments.length );
         } else {
             attrs = {};
             attrs[key] = value;
@@ -224,7 +221,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
         var associateRelations = function(data){
             var i, er, erId, items, erName, entityDef;
-            if( !data.type )
+            if( !data || !data.type )
                 return;
             if( !(entityDef = exports.ids[ data.type ]) )
                 return;
