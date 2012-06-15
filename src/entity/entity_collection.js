@@ -7,7 +7,8 @@ exports.EntityCollection = Entity.Entity.extend({
         page: 1, // the current page index
         page_size: 10, // the number of items in each page
         item_count: 0, // the total number of items
-        page_count: 0 // the number of 'pages'
+        page_count: 0, // the number of 'pages'
+        status:Common.Status.ACTIVE
     },
 
     initialize: function(){
@@ -162,7 +163,7 @@ exports.EntityCollection = Entity.Entity.extend({
         // log('flattening collection ' + id + ' with options ' + JSON.stringify(options) );
 
         if( options.toJSON ){
-            outgoing = this.toJSON({referenceItems:true,includeCounts:false,returnDefaults:false});
+            outgoing = this.toJSON(_.extend(options,{referenceItems:true,includeCounts:false,returnDefaults:false}));
 
             if( this.type ) 
                 outgoing['type'] = this.type;
@@ -172,7 +173,6 @@ exports.EntityCollection = Entity.Entity.extend({
                 outgoing['_cid'] = this.cid;
 
             result[id] = outgoing;
-
         }else
             result[id] = outgoing = this;
 
@@ -207,17 +207,14 @@ exports.EntityCollection = Entity.Entity.extend({
             // delete result.page_count;
         }
 
-        if( refItems && this.items.length > 0 ){
-            result.items = this.items.map( function(it){ return it.id || it.cid });
+        if( this.items.length > 0 ){
+            if( refItems )
+                result.items = this.items.map( function(it){ return it.id || it.cid });
+            else
+                result.items = this.items.map( function(it){ return it.toJSON(options); });
         }
 
-        // print_ins( options );
-        if( !returnDefaults ){
-            _.each( this.defaults, function(val,key){
-                if( result[key] == val )
-                    delete result[key];
-            });
-        }
+        
         return result;
     }
 });

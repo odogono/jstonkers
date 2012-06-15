@@ -145,7 +145,103 @@ describe('Command Queue', function(){
 
     describe('serialisation', function(){
 
+        it('should persist to JSON', function(){
+            this.queue.set('id', 'cq_000');
+            this.queue.add( [{ id:'cmd_001', type:'cmd_test_a', execute_time:201 },
+                            { id:'cmd_002', type:'cmd_test_a', execute_time:0 },
+                            { id:'cmd_003', type:'cmd_test_a', execute_time:20 },
+                            { id:'cmd_004', type:'cmd_test_a', execute_time:-1 }] );
+
+            var expected = {
+                "id": "cq_000",
+                "items": [
+                    {
+                        "id": "cmd_004",
+                        "type": "cmd_test_a",
+                        "execute_time": -1
+                    },
+                    {
+                        "id": "cmd_002",
+                        "type": "cmd_test_a",
+                        "execute_time": 0
+                    },
+                    {
+                        "id": "cmd_003",
+                        "type": "cmd_test_a",
+                        "execute_time": 20
+                    },
+                    {
+                        "id": "cmd_001",
+                        "type": "cmd_test_a",
+                        "execute_time": 201
+                    }
+                ]
+            };
+            
+            assert.deepEqual( this.queue.toJSON({noDates:true}), expected );
+            // print_var( this.queue.toJSON({noDates:true}) );
+        });
+
+        it('should reference items', function(){
+            this.queue.set('id', 'cq_000');
+            this.queue.add( [{ id:'cmd_001', type:'cmd_test_a', execute_time:201 },
+                            { id:'cmd_002', type:'cmd_test_a', execute_time:0 },
+                            { id:'cmd_003', type:'cmd_test_a', execute_time:20 },
+                            { id:'cmd_004', type:'cmd_test_a', execute_time:-1 }] );
+
+            var expected = {
+                "id": "cq_000",
+                "items": [
+                    "cmd_004",
+                    "cmd_002",
+                    "cmd_003",
+                    "cmd_001"
+                ]
+            };
+            assert.deepEqual( this.queue.toJSON({referenceItems:true,noDates:true}), expected );
+        });
+
+        it('should flatten to JSON', function(){
+            this.queue.set('id', 'cq_000');
+            this.queue.add( [{ id:'cmd_001', type:'cmd_test_a', execute_time:201 },
+                            { id:'cmd_002', type:'cmd_test_a', execute_time:0 },
+                            { id:'cmd_003', type:'cmd_test_a', execute_time:20 },
+                            { id:'cmd_004', type:'cmd_test_a', execute_time:-1 }] );
+
+            var expected = {
+                "cq_000": {
+                    "id": "cq_000",
+                    "items": [ "cmd_004", "cmd_002", "cmd_003", "cmd_001" ],
+                    "type": "cmd_queue"
+                },
+                "cmd_004": {
+                    "id": "cmd_004",
+                    "type": "cmd_test_a",
+                    "execute_time": -1
+                },
+                "cmd_002": {
+                    "id": "cmd_002",
+                    "type": "cmd_test_a",
+                    "execute_time": 0
+                },
+                "cmd_003": {
+                    "id": "cmd_003",
+                    "type": "cmd_test_a",
+                    "execute_time": 20
+                },
+                "cmd_001": {
+                    "id": "cmd_001",
+                    "type": "cmd_test_a",
+                    "execute_time": 201
+                }
+            };
+
+            // print_ins( this.queue.flatten({toJSON:true}) );
+            assert.deepEqual( this.queue.flatten({toJSON:true,referenceItems:true,noDates:true}), expected );
+        });
+
     });
+
 
     describe('persistence', function(){
         

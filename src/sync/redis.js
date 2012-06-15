@@ -55,9 +55,8 @@ _.extend( RedisStorage.prototype, {
             // print_ins( redisHandle.queue );
         }
 
-        // log('saving entity ' + entity.id );
-        // print_var(entity);
-        // delete entity._cid;
+        // update the date
+        entity.updated_at = new Date();
 
         serialised = entity.toJSON({referenceCollections:true});
         serialised.type = entity.type;
@@ -75,9 +74,6 @@ _.extend( RedisStorage.prototype, {
             multi.hmset( key, 'updated_at', new Date(serialised.updated_at).getTime() );
         }
 
-        // multi.hmset( key, 'status', entity.status );
-
-
         // add entity fields to entity hash
         _.each( entityHashFields, function(field){
             if( entity[field] )
@@ -89,21 +85,14 @@ _.extend( RedisStorage.prototype, {
         if( entity.storeKeys ){
             keys = entity.storeKeys();
             for( i=0,len=keys.length;i<len;i++ ){
-                // if( (val=entity[keys[i]]) || (val = entity.get([keys[i]])) )
                 if( (val = serialised[keys[i]]) )
                     multi.hmset( key, keys[i], val );
             }
         }
 
-        // add entity value to entity hash
-        // print_ins(entity);
-        // var value = _.clone(entity); 
-        // delete value._cid;
         multi.hmset(key, 'value', JSON.stringify(serialised) ); //JSON.stringify(value) );
 
         // entity status index
-        // print_ins( Common.status );
-        // print_var( entity.attributes );
         status = entity.get('status');
 
         for( i in Common.Status ){

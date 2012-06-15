@@ -340,6 +340,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         var i, entityDef, er, erName;
         options || (options = {});
         var doRelations = options.referenceCollections;//options.relations;
+        var returnDefaults = options.returnDefaults;
         var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
 
         if( doRelations ){
@@ -368,6 +369,18 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 }
             }
             // print_var( result );
+        }
+
+        if( !returnDefaults ){
+            _.each( this.defaults, function(val,key){
+                if( result[key] == val )
+                    delete result[key];
+            });
+        }
+
+        if( options.noDates ){
+            delete result.created_at;
+            delete result.updated_at;
         }
 
         return result;
