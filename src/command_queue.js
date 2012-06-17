@@ -18,11 +18,11 @@ exports.Command = Entity.Entity.extend({
 
     // returns an array of properties which should be indexable by the db
     storeKeys: function(){
-        return [ "execute_time" ];
+        var keys = Entity.Entity.prototype.storeKeys.apply(this,arguments);
+        return _.union( [ "execute_time" ], keys );
     },
-
-    
 });
+
 
 exports.CommandQueue = EntityCollection.EntityCollection.extend({
 
@@ -31,6 +31,7 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
 
         if( EntityCollection.EntityCollection.prototype.initialize.apply(this,arguments) ){
             this.items.comparator = function(cmd){
+                // print_ins( 'comparator ' + index );
                 // retrieve the execution time
                 var cmdTime = cmd.get('execute_time');
                 return cmdTime;
@@ -48,16 +49,6 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
         }
 
         options = (options || {});
-
-        
-        // for( i=0,len=this.items.length;i<len;i++ ){
-        //     cmd = this.items.models[i];
-        //     // eTime = cmd.get('execute_time');
-        //     if( cmd.get('execute_time') > time )
-        //         break;
-        //     this.executeCommand( cmd );            
-        //     removes.push( cmd );
-        // }
 
         Step(
             function executeCommands(){
@@ -107,10 +98,33 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
         );
     },
 
+
+    // returns true if this collection should be serialised as an entity
+    // because command queues have particular functionality, the answer is always yes
+    shouldSerialise: function(options){
+        return true;
+    },
+
     // returns the current time according to the queue
     time: function(){
         return Date.now();
     },
+
+    add: function(models, options) {
+        if( _.isString(models) ){
+            // attempt to load from entity registry
+            var entityDef = Common.entity.registerEntity( models );
+
+            if( !entityDef ){
+
+            }
+            // load from a path
+
+            return this;
+        }
+            
+        return EntityCollection.EntityCollection.prototype.add.apply( this, arguments );
+    }
 
     // flatten: function( options ){
     //     options = (options || {});
@@ -128,8 +142,6 @@ exports.create = function( attrs, options ){
     // this option has to be set in order to process any passed items/models
     // correctly
     options.parse = true;
-    attrs.created_at = new Date();
-    attrs.updated_at = new Date();
     attrs.status = Common.Status.ACTIVE;
     var result = new exports.CommandQueue( attrs, options );
     result.type = 'cmd_queue';

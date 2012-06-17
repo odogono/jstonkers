@@ -52,30 +52,32 @@ describe('Entity', function(){
             assert.equal( inst.get('name'), 'pink');
         });
 
-        it('should have a default status of inactive', function(){
+        it('should have a default status of active', function(){
             var inst = Common.entity.create( {type:'test_a', id:'101'} );
-            assert.equal( inst.get('status'), Common.Status.INACTIVE );
+            assert.equal( inst.get('status'), Common.Status.ACTIVE );
         });
 
         it('should set status', function(){
-            var inst = Common.entity.create( {type:'test_a', status:Common.Status.ACTIVE, id:'101', debug:true} );
+            var inst = Common.entity.create( {type:'test_a', status:Common.Status.ACTIVE, id:'101'} );
             assert.equal( inst.get('status'), Common.Status.ACTIVE );
         });
     });
 
-    /*
-    describe('register', function(){
+    
+    describe('registration', function(){
 
         it('can', function(){
-            var myEntity = {
-                type: 'test',
-                entity: Common.entity.Entity.extend({})
-            };
+            Common.entity.registerEntity( { type: 'test_a', ER:[ { oneToMany: 'test_b' } ] } );
+            // var myEntity = {
+            //     type: 'test',
+            //     entity: Common.entity.Entity.extend({})
+            // };
 
-            Common.entity.registerEntity( myEntity );
+            // Common.entity.registerEntity( myEntity );
 
-            var inst = Common.entity.create( "test.001" );
-            inst.should.be.an.instanceof( Common.entity.Test.entity );
+            // var inst = Common.entity.create( "test.001" );
+            // inst.should.be.an.instanceof( Common.entity.Test.entity );
+            process.exit();
         });
     });
 
@@ -128,12 +130,10 @@ describe('Entity', function(){
         Common.entity.registerEntity(otmA);
 
         it('should have a 1toM field', function(){
-            Common.debug = true;
             var instA = Common.entity.create( 'otma.001' );
             instA.should.be.an.instanceof( Common.entity.Entity );
             Common.should.exist( instA.friends );
             instA.friends.should.be.an.instanceof( Common.entity.EntityCollection );
-            Common.debug = false;
         });
 
         it('should allow addition', function(){

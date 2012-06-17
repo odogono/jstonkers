@@ -119,9 +119,6 @@ describe('EntityCollection', function(){
 
             var collection = Common.entity.createEntityCollection( {id:'col.001', items:entities} );
             var result = collection.flatten({toJSON:true});
-            // assert.equal( _.keys(result).length, 10 );
-            print_var( result );
-            // log('wah!');
         });
     });
 });

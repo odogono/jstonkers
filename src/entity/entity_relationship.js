@@ -76,9 +76,11 @@ exports.initEntityER = function( entityDef, options ){
 
         if( spec.type ){
             refEntity = resolveEntity( spec.type );
+            if( !refEntity )
+                throw new Error('entity ' + spec.type + ' not defined');
             if( refEntity ){
                 spec.name = refEntity.name = spec.name || refEntity.type;
-            }
+            } 
             if( refEntity.oneToMany ){
                 spec.oneToMany = true;
                 module.exports.oneToMany( entityDef, refEntity, options );

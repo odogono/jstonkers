@@ -15,8 +15,6 @@ Common.entity.registerEntity( 'cmd_test_a', CmdTestA );
 Common.entity.registerEntity({
     type: 'test_container', ER:[ { type:'cmd_queue'} ]
 });
-// print_ins( Common.entity.TestContainer );
-// process.exit();
 
 describe('Command Queue', function(){
 
@@ -154,6 +152,7 @@ describe('Command Queue', function(){
 
             var expected = {
                 "id": "cq_000",
+                "type":"cmd_queue",
                 "items": [
                     {
                         "id": "cmd_004",
@@ -178,8 +177,10 @@ describe('Command Queue', function(){
                 ]
             };
             
+            // print_ins( this.queue.toJSON({noDates:true}) );
+            // print_var( this.queue.attributes );
             assert.deepEqual( this.queue.toJSON({noDates:true}), expected );
-            // print_var( this.queue.toJSON({noDates:true}) );
+            
         });
 
         it('should reference items', function(){
@@ -191,6 +192,7 @@ describe('Command Queue', function(){
 
             var expected = {
                 "id": "cq_000",
+                "type":"cmd_queue",
                 "items": [
                     "cmd_004",
                     "cmd_002",
@@ -240,6 +242,38 @@ describe('Command Queue', function(){
             assert.deepEqual( this.queue.flatten({toJSON:true,referenceItems:true,noDates:true}), expected );
         });
 
+        it('should set from a JSON form', function(){
+            var ser = {
+                "id":"test.001",
+                "type":"test_container",
+                "cmd_queue":[
+                    { "id":"cmd.001", "type": "cmd_test_a", "execute_time":10 },
+                    { "id":"cmd.002", "type": "cmd_test_a", "execute_time":11 },
+                ]
+            };
+
+            var a = Common.entity.create( ser );
+
+            // var data = a.parse(ser,null,{parseFor:'test.001',removeId:false,debug:true});
+            // print_var( data );
+
+            assert.equal( a.cmd_queue.at(0).get('execute_time'), 10 );
+            assert.equal( a.cmd_queue.at(1).get('execute_time'), 11 );
+        });
+
+        it('should parse from a serialised form', function(){
+            var ser = {
+                "test.001":{
+                    "cmd_queue":[ {"type":"cmd_test_a", "execute_time":10} ]
+                }
+            };
+            var a = Common.entity.create( {type:'test_container', id:'test.001'} );
+            var data = a.parse(ser,null,{parseFor:'test.001'});
+            a.set( data );
+
+            assert.equal( a.cmd_queue.at(0).get('execute_time'), 10 ); 
+        });
+
     });
 
 
@@ -249,7 +283,6 @@ describe('Command Queue', function(){
             var self = this;
             var cmd;
             // this.queue.set('auto_save',true);
-
             Step(
                 function saveQueueFirst(){
                     self.queue.saveCB( this );

@@ -33,6 +33,12 @@ exports.EntityCollection = Entity.Entity.extend({
     },
 
     createItemsModel: function( attrs, options ){
+        // if( !attrs ){
+        //     print_ins( arguments );
+        //     print_stack();
+        // }
+
+        // log('creating items model for ' + JSON.stringify(arguments) );
         if( attrs.type ){
             return Entity.create( attrs, options );
         }
@@ -153,6 +159,11 @@ exports.EntityCollection = Entity.Entity.extend({
                 i.type = self.entityType;
         });
     },
+
+    // returns true if this collection should be serialised as an entity
+    shouldSerialise: function(){
+        return this.hasNonDefaultAttributes();
+    },
     
     flatten: function( options ){
         var id,item,i,len,outgoing;
@@ -161,24 +172,38 @@ exports.EntityCollection = Entity.Entity.extend({
         var id = this.id || this.cid;
         
         // log('flattening collection ' + id + ' with options ' + JSON.stringify(options) );
+        // print_ins( this.attributes );
+
+        // does this collection have any attributes worth serialising? if not, then ignore this and move on
+        var outputSelf = this.shouldSerialise();
 
         if( options.toJSON ){
             outgoing = this.toJSON(_.extend(options,{referenceItems:true,includeCounts:false,returnDefaults:false}));
+            if( outgoing ){
+                if( this.type ) 
+                    outgoing['type'] = this.type;
+                if( this.id )
+                    outgoing['id'] = this.id;
+                else
+                    outgoing['_cid'] = this.cid;
 
-            if( this.type ) 
-                outgoing['type'] = this.type;
-            if( this.id )
-                outgoing['id'] = this.id;
-            else
-                outgoing['_cid'] = this.cid;
-
-            result[id] = outgoing;
-        }else
-            result[id] = outgoing = this;
+                if( outputSelf )
+                    result[id] = outgoing;
+            }
+        }else{
+            outgoing = this;
+            if( outputSelf )
+                result[id] = outgoing;
+        }
 
         for( i=0,len=this.items.length;i<len;i++ ){
             item = this.items.at(i);
-            item.flatten(options);
+            // log('outputting item ' + i + ' ' + item.cid);
+            // print_ins( item );
+            // if( !item.flatten ){
+            // }
+            // else
+                item.flatten(options);
         }
 
         return result;
@@ -214,7 +239,10 @@ exports.EntityCollection = Entity.Entity.extend({
                 result.items = this.items.map( function(it){ return it.toJSON(options); });
         }
 
-        
+        if( !this.shouldSerialise() ){
+            result = result.items;
+        }
+
         return result;
     }
 });
@@ -237,7 +265,7 @@ _.each( ['add', 'remove', 'at', 'each', 'map'], function(method){
     exports.EntityCollection.prototype[method] = function(){
         // log( method + ' ' + JSON.stringify(_.toArray(arguments)) );
         return this.items[method].apply( this.items, arguments );
-    }    
+    }
 });
 
 

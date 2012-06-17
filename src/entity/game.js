@@ -1,23 +1,30 @@
-var entity = require('./entity');
+var Entity = require('./entity');
+var CommandQueue = require( Common.path.join(Common.paths.src,'command_queue') );
 
-exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#game';
+// Common.entity.addEntityPath( Common.paths.commands );
+// Common.entity.registerEntity('cmd_game');
+
+// exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#game';
 
 exports.ER = [
-    { oneToMany:"#team", name:"teams" },
-    { oneToOne:"#map" }
+    { oneToMany:"team", name:"teams" },
+    { type:'cmd_queue', name:"cmds" },
+
+    // { oneToMany:"user", name:"spectators" }
+    // { oneToOne:"map" }
 ];
 
-exports.entity = entity.Entity.extend({
+exports.entity = Entity.Entity.extend({
     initialize: function(){
         var self = this;
-        // this.constructor.__super__.initialize.call(this);
-        // log('hmmm');
-        // print_ins( this );
+        // add the default game command
+        // this.cmds.add( {type:'cmd_init_game'} );
     }
 });
 
 exports.create = function(attrs, options){
-    var result = new exports.entity( attrs, options );
-
+    var result = Entity.create( _.extend({type:'game'}, attrs) );
+    // var result = new exports.entity( attrs, options );
     return result;
 };
+

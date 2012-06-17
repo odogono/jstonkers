@@ -58,7 +58,7 @@ _.extend( RedisStorage.prototype, {
         // update the date
         entity.updated_at = new Date();
 
-        serialised = entity.toJSON({referenceCollections:true});
+        serialised = entity.toJSON({relations:false});
         serialised.type = entity.type;
         // print_var(serialised);
 
@@ -66,13 +66,13 @@ _.extend( RedisStorage.prototype, {
         var entityHashFields = Common.config.sync.redis.entity_hset;
 
         // convert date fields to times (for sorting purposes)
-        if( serialised.created_at ){
-            multi.hmset( key, 'created_at', new Date(serialised.created_at).getTime() );
+        /*if( entity.created_at ){
+            multi.hmset( key, 'created_at', new Date(entity.created_at).getTime() );
         }
 
-        if( serialised.updated_at ){
-            multi.hmset( key, 'updated_at', new Date(serialised.updated_at).getTime() );
-        }
+        if( entity.updated_at ){
+            multi.hmset( key, 'updated_at', new Date(entity.updated_at).getTime() );
+        }//*/
 
         // add entity fields to entity hash
         _.each( entityHashFields, function(field){
@@ -82,11 +82,15 @@ _.extend( RedisStorage.prototype, {
 
 
         // if the entity has specific keys it wants as fields, then apply so now
+        // log("WAAAH " + entity.storeKeys() );
         if( entity.storeKeys ){
             keys = entity.storeKeys();
             for( i=0,len=keys.length;i<len;i++ ){
-                if( (val = serialised[keys[i]]) )
+                if( (val = serialised[keys[i]]) || (val = entity[keys[i]]) ){
+                    if( _.isDate(val) )
+                        val = val.getTime();
                     multi.hmset( key, keys[i], val );
+                }
             }
         }
 
@@ -140,9 +144,6 @@ _.extend( RedisStorage.prototype, {
         if( callback ){
             callback( null, entity );
         }
-
-        // log('ok then ' + entity.id );
-        // log( mu)
     },
 
 
@@ -941,8 +942,6 @@ exports.generateUuid = function( options, callback ){
     store.client.incr( key, function(err,id){
         if( options.entity ){
             options.entity.id = id;
-            // print_ins( entity );
-            // process.exit();
             options.entity._uuidgen = true;
         }
         callback(err,id,options);
