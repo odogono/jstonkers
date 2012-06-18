@@ -6,13 +6,7 @@ exports.Command = Entity.Entity.extend({
     
     // finished with a callback containing: error, boolean indicating that this command has finished and should be disposed of
     execute: function(options,callback){
-        if( _.isFunction(options) ){
-            callback = options;
-        }
-        options = (options || {});
-
         // returns true if the command is finished
-
         callback( null, true, this );
     },
 
@@ -21,6 +15,13 @@ exports.Command = Entity.Entity.extend({
         var keys = Entity.Entity.prototype.storeKeys.apply(this,arguments);
         return _.union( [ "execute_time" ], keys );
     },
+});
+
+
+exports.CallCommand = exports.Command.extend({
+    execute: function(options,callback){
+        callback( null, true, this );
+    }
 });
 
 
@@ -39,6 +40,7 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
         }
     },
 
+    // callback returns with error, executeCount and remove count
     process: function(options,callback){
         var self = this, i, len, cmd, eTime, time = this.time(), removes = [];
         var executeCount = 0;
@@ -53,6 +55,7 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
         Step(
             function executeCommands(){
                 var group = this.group();
+                var cmdOptions = {};
 
                 // walk the queue until we meet the first time that is later than the current time
                 for( i=0,len=self.items.length;i<len;i++ ){
@@ -61,13 +64,17 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
                     if( cmd.get('execute_time') > time )
                         break;
 
-                    if( cmd.execute ){
-                        // assume that all commands will finish after their initial execution
-                        cmd.isFinished = true;
-                        // the result will come back as a callback
-                        cmd.execute( null, group() );
-                        executeCount++;
-                    }
+                    // if( cmd.execute ){
+                    // assume that all commands will finish after their initial execution
+                    // - they can change this themselves if they wish to continue to execute
+                    cmd.isFinished = true;
+                    // the result will come back as a callback
+                    cmd.execute( cmdOptions, group() );
+                    executeCount++;
+                    // } else {
+                    //     log('cmd_queue process');
+                    //     // print_ins( cmd );
+                    // }
                 }
             },
             function destroyFinishedCommands(err,result,cmds){

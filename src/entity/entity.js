@@ -338,6 +338,11 @@ var Entity = exports.Entity = Backbone.Model.extend({
         var returnDefaults = options.returnDefaults;
         var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
 
+        if( !result )
+            return {};
+        // log('1st ' + JSON.stringify(result) );
+        // if( !result )
+        //     print_ins(this);
         // log('toJSON for ' + this.type );
         // print_ins(this.teams,false,3);
         if( this.type ){
@@ -374,11 +379,12 @@ var Entity = exports.Entity = Backbone.Model.extend({
             // print_var( result );
         }
 
-        // log('1st ' + JSON.stringify(result) );
+        
 
         if( !returnDefaults ){
             _.each( this.defaults, function(val,key){
-                if( result[key] == val )
+                // log('look ' + key + ' ' + result );
+                if( result[key] === val )
                     delete result[key];
             });
         }
@@ -610,9 +616,12 @@ exports.create = function( type, attrs, options ) {
     // if( entityDef.create ){
         // result = entityDef.create( attrs, options );
     // }else{
-        // if( attrs.debug ) log('creating with ' + JSON.stringify(attrs) + ' ' + type );
+    // if( options && options.debug ) {
+    //     log('creating with ' + JSON.stringify(attrs) + ' ' + type );
+    //     print_ins( entityDef );
+    // }
         // if( attrs.debug ) log( entityDef.entity );
-        result = new entityDef.entity( attrs, options );
+    result = new entityDef.entity( attrs, options );
         // if( attrs.debug ) print_ins( result );
         // if( options && options.debug ) print_ins( result );
     // }

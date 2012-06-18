@@ -37,10 +37,9 @@ exports.EntityCollection = Entity.Entity.extend({
         //     print_ins( arguments );
         //     print_stack();
         // }
-
-        // log('creating items model for ' + JSON.stringify(arguments) );
         if( attrs.type ){
-            return Entity.create( attrs, options );
+            var result = Entity.create( attrs, options );
+            return result;
         }
         return new Backbone.Model( attrs, options );
     },
@@ -237,6 +236,8 @@ exports.EntityCollection = Entity.Entity.extend({
                 result.items = this.items.map( function(it){ return it.id || it.cid });
             else
                 result.items = this.items.map( function(it){ return it.toJSON(options); });
+            // if( result.items.length )
+            // log( result.items.length );
         }
 
         if( !this.shouldSerialise() ){
