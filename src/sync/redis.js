@@ -383,6 +383,9 @@ _.extend( RedisStorage.prototype, {
         if( options.destroyRelated ) {
             flattenOptions.recurse = true;
         }
+        // setting this flag to true will only destroy entities that are marked (using 'own')
+        // as belonging to the refering entity
+        flattenOptions.ownOnly = _.isUndefined(options.ownOnly) ? true : options.ownOnly;
 
         var cidToModel = _.values( model.flatten(flattenOptions) );
         // print_ins( cidToModel );
@@ -594,7 +597,7 @@ _.extend( RedisStorage.prototype, {
         var entityDef;// = Common.entity.ids[entity.type];
         // var result = options.result;
 
-        if(options.debug) log('retrieveEntityById ' + entityId + ' ' + entityKey);
+        // if(options.debug) log('retrieveEntityById ' + entityId + ' ' + entityKey);
 
         // retrieve the entity
         this.client.hget( entityKey, 'value', function(err, data){
@@ -620,10 +623,12 @@ _.extend( RedisStorage.prototype, {
 
                     // add the member IDs to the list of entities that should also be retrieved
                     if( options.fetchList ){
+
                         for( i in result ){
                             // only add to list to be fetched if we haven't already seen it
-                            if( !options.result[result[i]] )
+                            if( result[i] && !options.result[result[i]] ){
                                 options.fetchList.push( result[i] );
+                            }
                         }
                     }
 
@@ -645,9 +650,9 @@ _.extend( RedisStorage.prototype, {
                         name = (er.name || er.oneToMany).toLowerCase();
                         targetId = entityAttr[name];
                         // key = entityKey + ':' + name;
-                        if( (options.fetchRelated || options._depth < options.depth) && !options.result[targetId] ){
+                        if( targetId && (options.fetchRelated || options._depth < options.depth) && !options.result[targetId] ){
                             // erCollections.push( name );
-                            // log('adding ' + name + ' ' + targetId );
+                            log('2 adding ' + name + ' ' + targetId );
                             options.fetchList.push( targetId );
                         }
                     }
@@ -656,7 +661,7 @@ _.extend( RedisStorage.prototype, {
                         targetId = entityAttr[name];
                         // key = entityKey + ':' + name;
                         // log('considering ' + o2oName  + ' type ' + er.oneToOne );
-                        if( options.fetchRelated || options._depth < options.depth && !options.result[targetId] ){
+                        if( targetId && (options.fetchRelated || options._depth < options.depth) && !options.result[targetId] ){
                             // erEntities.push( { key:name, type:er.oneToOne} );
                             options.fetchList.push( targetId );
                         }
@@ -671,7 +676,7 @@ _.extend( RedisStorage.prototype, {
     /**
     *
     */
-    retrieveEntityByIdOld: function( entity, options, callback ){
+    /*retrieveEntityByIdOld: function( entity, options, callback ){
         var i,j,self = this,
             itemCounts = [],
             erCollections = [],
@@ -798,7 +803,7 @@ _.extend( RedisStorage.prototype, {
                 callback( err, result );    
             }
         });
-    },
+    },//*/
 
 
     
@@ -839,6 +844,11 @@ _.extend( RedisStorage.prototype, {
                 // if( options.debug ) log('going for retrieve');
                 entityId = options.fetchList.shift();
                 self.retrieveEntityById( entityId, options, function(err,data){
+                    if( err ){
+                        // TODO : will it always matter that a model cant be found?
+                        callback( err );
+                        return;
+                    }
                     // store result
                     options.result[ entityId ] = data;
                     // re-check if we need to fetch anything

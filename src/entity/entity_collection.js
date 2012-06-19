@@ -1,6 +1,6 @@
-var Entity = require('./entity');
+var entity = require('./entity');
 
-exports.EntityCollection = Entity.Entity.extend({
+exports.EntityCollection = entity.Entity.extend({
     defaults:{
         // name: 'items',
         start: 0, // the starting index
@@ -19,10 +19,18 @@ exports.EntityCollection = Entity.Entity.extend({
             this.items.entityCollection = this;
             // override default behaviour to create types of item
             this.items.model = this.createItemsModel;
+            
+            // in order to handle resets and refCounts, we must override an internal function
+            this.items._removeReference = this.removeReferenceFromItems;
+
             this.items.on('add', function(model){
                 model.entityCollection = self;
+                model.refCount++;
+                // log('added!');
+                // self.trigger.apply(self,arguments);
             }).on('remove', function(model){
                 model.entityCollection = null;
+                model.refCount--;
             }).on('all', function(){
                 self.trigger.apply(self, arguments);
             });
@@ -32,13 +40,23 @@ exports.EntityCollection = Entity.Entity.extend({
         return false;
     },
 
+    // Internal method to remove a model's ties to a collection.
+    // Overriden to allow reference counts to be properly handled
+    removeReferenceFromItems: function(model) {
+        if (this == model.collection) {
+            delete model.collection;
+            model.refCount--;
+        }
+        model.off('all', this._onModelEvent, this);
+    },
+
     createItemsModel: function( attrs, options ){
         // if( !attrs ){
         //     print_ins( arguments );
         //     print_stack();
         // }
         if( attrs.type ){
-            var result = Entity.create( attrs, options );
+            var result = entity.create( attrs, options );
             return result;
         }
         return new Backbone.Model( attrs, options );
@@ -51,7 +69,7 @@ exports.EntityCollection = Entity.Entity.extend({
             return Math.max( this.items.length, this.attributes.item_count );
         if( attr == 'page_count' )
             return Math.ceil( this.items.length / this.get('page_size') );
-        return Entity.Entity.prototype.get.apply(this,arguments);
+        return entity.Entity.prototype.get.apply(this,arguments);
     },
 
     set: function(key, value, options) {
@@ -76,13 +94,14 @@ exports.EntityCollection = Entity.Entity.extend({
         if (!attrs) return this;
 
         if( attrs.items ){
-            // log('set entC');
+            attrs.items = _.compact(attrs.items);
+            // log('set entC ' + JSON.stringify(attrs) );
             this.reset( attrs.items );
             // print_ins( this.items.at(0).attributes );
             delete attrs.items;
         }
 
-        var result = Entity.Entity.prototype.set.apply( this, arguments );
+        var result = entity.Entity.prototype.set.apply( this, arguments );
         return result;
     },
 
@@ -106,23 +125,6 @@ exports.EntityCollection = Entity.Entity.extend({
     // },
 
     
-    
-    // Prepare a model or hash of attributes to be added to this collection.
-    /*_prepareModel: function(model, options) {
-        log("YO");
-      options || (options = {});
-      if (!(model instanceof Model)) {
-        var attrs = model;
-        options.collection = this;
-        log('overriden _prepareModel with ' + JSON.stringify(attrs) );
-        model = new this.model(attrs, options);
-        if (!model._validate(model.attributes, options)) model = false;
-      } else if (!model.collection) {
-        model.collection = this;
-      }
-      return model;
-    },//*/
-
     parse: function(resp, xhr){
         if( resp === this )
             return resp;
@@ -130,7 +132,7 @@ exports.EntityCollection = Entity.Entity.extend({
         if( !this.items )
             this.initialize();
         if( resp.entity ){
-            var entityDef = Common.entity.getEntityFromType( resp.entity );
+            var entityDef = entity.getEntityFromType( resp.entity );
             if( !entityDef )
                 throw new Error('no entity found called ' + resp.entity );
             // log('hmm, nothing for ' + resp.entity );
@@ -143,9 +145,7 @@ exports.EntityCollection = Entity.Entity.extend({
             this.reset( resp.items );
             delete resp.items;
         } else {
-            // log('EntityCollection.parse:');
-            resp = Entity.Entity.prototype.parse.apply( this, arguments );
-            // print_ins( resp );
+            resp = entity.Entity.prototype.parse.apply( this, arguments );
         }
         return resp;
     },
@@ -220,7 +220,7 @@ exports.EntityCollection = Entity.Entity.extend({
             return this.items.map( function(it){ return it.id || it.cid });
         }
 
-        result = Entity.Entity.prototype.toJSON.apply(this,arguments);
+        result = entity.Entity.prototype.toJSON.apply(this,arguments);
 
         if( includeCounts ){
             result.item_count = this.items.length;

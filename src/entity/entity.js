@@ -1,4 +1,4 @@
-var erFuncs = require('./entity_relationship');
+// var erFuncs = require('./entity_relationship');
 // exports.schema = 'urn:schemas-opendoorgonorth:heroes:entity#';
 
 var Entity = exports.Entity = Backbone.Model.extend({
@@ -12,15 +12,30 @@ var Entity = exports.Entity = Backbone.Model.extend({
     created_at: new Date(),
     updated_at: new Date(),
 
+    // the number of times this entity has been referenced by
+    // another entity
+    refCount:0,
+
     initialize: function(){
+
+        this.on('change', function(self,options){
+            var existing, previous;
+            if( options && options.changes ){
+                for( var attrName in options.changes ){
+                    if( (existing = this.get(attrName)) ){
+                        if( !_.isUndefined(existing.refCount) )
+                            existing.refCount++;
+                    }
+                    
+                    if( (previous = this.previous(attrName)) && previous != existing && previous.refCount )
+                        previous.refCount--;
+                }
+            }
+        });
     },
 
     setEntity: function( type, instance, options ){
         this.set( type, instance, options );
-    },
-
-    storeKeys: function(){
-        return [ 'created_at', 'updated_at' ];
     },
 
     // converts a single callback function into something backbone compatible 
@@ -118,7 +133,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
         if (!attrs) return this;
 
 
-
         if( attrs.type ){
             // log('setting type to ' + attrs.type );
             this.type = attrs.type;
@@ -141,7 +155,8 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
         // if( options && options.setRelated ) log('set ' + JSON.stringify(attrs));
 
-        // if( this.id ) log('setting ' + this.id + ' ' + JSON.stringify(entityDef) );
+        // if( this.id ) 
+        // log('setting ' + this.id + ' ' + JSON.stringify(entityDef) );
 
         if( entityDef && entityDef.ER ){
             for( i in entityDef.ER ){
@@ -157,6 +172,10 @@ var Entity = exports.Entity = Backbone.Model.extend({
                     continue;
 
                 if( er.oneToOne ){
+                    // if( !erData ){
+                    //     log('oh hey removing ' + erName );
+                    //     continue;
+                    // }
                     if(!(erData instanceof Entity)){
                         // TODO AV : could maybe get this model reference from elsewhere?
                         
@@ -166,7 +185,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
                             log('failed creating with ' + JSON.stringify(erData) );
                         }
                         if( subEntity ) {
+                            // log('setting ' + erName + ' to ' + JSON.stringify(erData) );
                             attrs[erName] = subEntity;
+                            subEntity.refCount++;
                         } else
                             delete attrs[erName];
                     }
@@ -177,6 +198,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
                         // self[erName] = Common.entity.createEntityCollection();
                     }
                     if( self[erName] ){
+                        // log('setting ' + erName + ' ' + JSON.stringify(erData) );
                         self[erName].set( erData );
                     }
 
@@ -332,7 +354,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
     },
 
     toJSON: function( options ){
-        var i, entityDef, er, erName;
+        var i, entityDef, er, erName, relation;
         options || (options = {});
         var doRelations = _.isUndefined(options.relations) ? true : options.relations;//options.relations;
         var returnDefaults = options.returnDefaults;
@@ -367,12 +389,19 @@ var Entity = exports.Entity = Backbone.Model.extend({
                     // if( options.toJSON && options.referenceItems && this[erName].length > 0 ){
                         // outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
                     // }
+                    // if( !this[erName] ){
+                    //     print_ins( this );
+                    // }
                     // print_ins( this[erName] );
-                    if( !this[erName].isNew() )
-                        result[erName] = this[erName].id;// || this[erName].cid;
+                    relation = this[erName];
+                    if( !relation )
+                        continue;
+
+                    if( !relation.isNew() )
+                        result[erName] = relation.id;// || this[erName].cid;
                     else if( doRelations ) {
                         // print_ins( this[erName].toJSON() );
-                        result[erName] = this[erName].toJSON();
+                        result[erName] = relation.toJSON();
                     }
                 }
             }
@@ -393,6 +422,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
             delete result.created_at;
             delete result.updated_at;
         }
+
+        if( options.refCount )
+            result.refCount = this.refCount;
 
         if( this.type )
             result.type = this.type;
@@ -428,6 +460,8 @@ var Entity = exports.Entity = Backbone.Model.extend({
         
         // log('flattening entity ' + id);
 
+        // this option can 
+        var maxRefCount = options.ownedOnly ? 1 : Number.MAX_VALUE;
         // recursing through found relations is the default
         var doRecurse = _.isUndefined(options.recurse) ? true : options.recurse;
         // exporting relation references is the default
@@ -469,7 +503,8 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 // print_ins( Common.entity.ids );
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 if( er.oneToOne ){
-                    if( doRecurse && (child = this.get(erName)) ){
+                    if( doRecurse && (child = this.get(erName)) && child.refCount <= maxRefCount ){
+                        // log('child refCount: ' + child.refCount + '/' + maxRefCount );
                         child.flatten( options );
                     }
                 } else if( er.oneToMany ){
@@ -626,6 +661,7 @@ exports.create = function( type, attrs, options ) {
         // if( options && options.debug ) print_ins( result );
     // }
     result.type = type;
+    result.refCount = 0;
     
     // apply any sub properties that were found earlier
     _.each( erProperties, function(props,collectionName){
@@ -756,6 +792,5 @@ exports.registerEntity = function( entityDef, entity, options ){
     }
 
     registerEntityType( entityDef, options );
-    erFuncs.initEntityER( entityDef, options );
     return entityDef;
 }

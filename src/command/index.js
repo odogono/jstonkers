@@ -1,7 +1,7 @@
 var Entity = require('../entity/entity');
 // register all command entities in this dir
 
-log('commands in ' + __dirname );// module.filename );
+// log('commands in ' + __dirname );// module.filename );
 
 // register all found entities
 require('fs').readdirSync(__dirname).forEach(function(file) {

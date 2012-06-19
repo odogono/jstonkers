@@ -1,7 +1,8 @@
 {
     "game":{
         "teams":[ "team_1", "team_2" ],
-        "cmds":[ {"type":"cmd_init_game"} ]
+        "cmds":[ {"type":"cmd_init_game"} ],
+        "description":"test game a"
     },
 
     "team_1":{
@@ -15,10 +16,10 @@
     },
 
     "ship_1":{
-        "position":[0,0]
+        "position":[272,336]
     },
 
     "ship_2":{
-        "position":[0,0]
+        "position":[1996,340]
     }
 }

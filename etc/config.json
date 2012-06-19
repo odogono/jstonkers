@@ -6,7 +6,7 @@
             },
 
             "session":{
-                "prefix":"test_jst"
+                "prefix":"test:jstonk:sess"
             },
             
             "logging":{
@@ -37,16 +37,22 @@
     "socket_server": {
         "enabled":false
     },
+
+    "client":{
+        "browserify":true,
+        "mount":"/js/jstonkers.js",
+        "cache":false
+    },
     
     "session":{
-        "prefix":"jst",
+        "prefix":"jstonk",
         "secret":"jst-secret"
     },
 
     "sync":{
         "redis":{
-            "redisdb":1,
-            "key_prefix":"jstonk",
+            "redisdb":0,
+            "key_prefix":"jstonk:sess",
             "uuid":{
                 "key":"uuid"
             }

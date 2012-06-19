@@ -23,12 +23,9 @@ describe('Game', function(){
 
     describe('create', function(){
         it('should create a new game', function(done){
-            var game = Common.entity.Game.create();
-            var data = require( Common.path.join( Common.paths.data, 'states', 'game_a.json' ) );
-            game.isAGame();
-            data = game.parse(data,null,{parseFor:'game',removeId:true});
-            game.set(data);
-
+            var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
+            var game = Common.entity.Game.create(null,{statePath:statePath});
+            
             assert( game instanceof Common.entity.Entity );
             assert( game.teams );
             assert.equal( game.type, Common.entity.TYPE_GAME );
@@ -47,9 +44,8 @@ describe('Game', function(){
         });
 
         it('should execute a game function', function(done){
-            var game = Common.entity.Game.create();
-            var data = require( Common.path.join( Common.paths.data, 'states', 'game_a.json' ) );
-            game.set( game.parse(data,null,{parseFor:'game',removeId:true}) );
+            var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
+            var game = Common.entity.Game.create(null,{statePath:statePath});
             var processed = false;
 
             var SaveCommand = CommandQueue.Command.extend({

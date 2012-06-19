@@ -1,4 +1,5 @@
 var Common = require( '../src/common.js' );
+var MainServer = require( '../src/main.server' );
 
 describe('Entity', function(){
     
@@ -7,13 +8,14 @@ describe('Entity', function(){
         { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
         // { type: 'test_c' },
         // { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
-        { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'} ] },
+        { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'}, {oneToOne:'test_b', name:'friend'} ] },
         { type: 'test_f', ER:[ {oneToOne:'test_a', name:'associate'} ] }
     ];
 
     _.each( testEntities.reverse(), function(e){
         Common.entity.registerEntity(e);
     });
+    
     
     describe('create', function(){
 
@@ -61,9 +63,9 @@ describe('Entity', function(){
             var inst = Common.entity.create( {type:'test_a', status:Common.Status.ACTIVE, id:'101'} );
             assert.equal( inst.get('status'), Common.Status.ACTIVE );
         });
-    });
+    });//*/
 
-    
+    /*
     describe('registration', function(){
 
         it('can', function(){
@@ -77,36 +79,52 @@ describe('Entity', function(){
 
             // var inst = Common.entity.create( "test.001" );
             // inst.should.be.an.instanceof( Common.entity.Test.entity );
-            process.exit();
         });
-    });
+    });//*/
 
-
-    describe('one to one', function(){
-        // Common.entity.registerEntity( {type:'testmail'} );
-        // Common.entity.registerEntity( {type:'testmailbox', ER:{oneToMany:'testmail'} } );
-
-        it('can', function(){
-            var defA = {
-                type: 'defa',
-                entity: Common.entity.Entity.extend({}),
-                ER:[
-                    { oneToOne: 'defb' }
-                ]
-            };
-            var defB = {
-                type: 'defb',
-                entity: Common.entity.Entity.extend({})
-            };
-
-            // register backwards because of referencing
-            Common.entity.registerEntity(defB);
-            Common.entity.registerEntity(defA);
-
-            var instA = Common.entity.create( 'defa.001' );
-
-            Common.should.exist( instA.setDefb );
+    
+    describe('reference counting', function(){
+        it('increments the reference count when adding', function(){
+            var e = Common.entity.create( {type:'test_e', id:'e.001'} );
+            var f = Common.entity.create( {type:'test_f', id:'f.001'} );
+            assert.equal( f.refCount, 0 );
+            e.set('comrade', f );
+            // print_ins( f );
+            assert.equal( f.refCount, 1 );
         });
+
+        it('decrements the reference count when removing', function(){
+            var e = Common.entity.create( {type:'test_e', id:'e.001'} );
+            var f = Common.entity.create( {type:'test_f', id:'f.001'} );
+            e.set('comrade', f);
+            e.set('comrade', null );
+            assert.equal( f.refCount, 0 );
+        });
+
+        it('decrements the reference count when replacing', function(){
+            var e = Common.entity.create( {type:'test_e', id:'e.001'} );
+            var f = Common.entity.create( {type:'test_f', id:'f.001'} );
+            var f2 = Common.entity.create( {type:'test_f', id:'f.002'} );
+            e.set('comrade', f);
+            assert.equal( f.refCount, 1 );
+            e.set({comrade:f2, seemsOK:true} );
+            assert.equal( f.refCount, 0 );
+        });
+
+        it('increments on o2m', function(){
+            var a = Common.entity.create( {type:'test_a'} );
+            var a2 = Common.entity.create( {type:'test_a'} );
+            var b = Common.entity.create( {type:'test_b'} );
+
+            a.test_b.add( b );
+            a2.test_b.add( b );
+
+            assert.equal( b.refCount, 2 );
+
+            a.test_b.reset();
+            assert.equal( b.refCount, 1 );
+        });
+
     });//*/
 
     /*
@@ -152,9 +170,8 @@ describe('Entity', function(){
             instA.friends.get('page_count').should.equal(0);
             instA.friends.length.should.equal(0);
         });
-    });//*/
+    });
 
-    /*
     describe('multiple one to many', function(){
         var motmA = {
             type: 'motma',
@@ -188,6 +205,7 @@ describe('Entity', function(){
         print_ins( user, false, 2, true );
     })//*/
 
+    
     describe('parsing', function(){
         it('should parse correctly', function(){
             var data = { 
@@ -216,7 +234,7 @@ describe('Entity', function(){
             assert.equal( parsed.name, 'enigma' );
             assert.equal( parsed.comrade.name, 'foxtrot' );
             assert.equal( parsed.comrade.associate.name, 'arnold' );
-        });//*/
+        });
 
         it('should parse a o2m relationship', function(){
             var data = {
@@ -291,7 +309,8 @@ describe('Entity', function(){
             var parsed = a.parse( data, null, {parseFor:'alpha_1'} );
             assert.deepEqual( parsed, expected );
         });
-    });
+    });//*/
+    
     
     describe('cloning', function(){
         it('should clone an entity', function(){
@@ -306,7 +325,7 @@ describe('Entity', function(){
             assert.equal( b.get('name'), 'eurovision' );
             assert( !b.id );
             assert( !b.get('id') );
-        });//*/
+        });
 
         it('should clone an entity with a one2one relation', function(){
             var a = Common.entity.create({
@@ -327,14 +346,17 @@ describe('Entity', function(){
                     }
                 }
             });
+            assert.equal( a.get('comrade').refCount, 1 );
 
-            var b = a.clone({recurse:true,debug:true});
+            var b = a.clone({recurse:true});
             assert.equal( b.get('comrade').get('name'), 'foxtrot' );
             assert.equal( b.get('comrade').get('associate').get('name'), 'arnold' );
             assert( !b.get('comrade').id );
+            assert.equal( b.get('comrade').refCount, 1 );
             assert( b.get('comrade').get('associate') );
+            assert.equal( b.get('comrade').get('associate').refCount, 1 );
         });
-    });
+    });//*/
 
     
     describe('flatten', function(){
@@ -363,8 +385,28 @@ describe('Entity', function(){
             assert( result.foxtrot_1 );
             assert( result.alpha_a );
         });
+
+        it('should ignore non-owned entities', function(){
+            var a = Common.entity.create({type:'test_e', id:'e.001'} );
+            var b = Common.entity.create({type:'test_e', id:'e.002'} );
+            var c = Common.entity.create({type:'test_f', id:'f.001'} );
+            var d = Common.entity.create({type:'test_f', id:'f.002'} );
+            var e = Common.entity.create({type:'test_b', id:'b.001'} );
+
+            a.set({comrade:c, friend:e});
+            b.set({comrade:c});
+
+            assert.equal(c.refCount,2);
+
+            // only flatten (related) entities owned by a - c is also owned by b
+            var result = a.flatten({ownedOnly:true});
+
+            assert( result['b.001'] );
+            assert( !result['f.001'] );
+        })
     });
 
+    
     describe('entity.set', function(){
         it('should set a one2one from a serialised form', function(){
             var ser = {
@@ -449,7 +491,7 @@ describe('Entity', function(){
             a.set('status', Common.Status.INACTIVE, {setRelated:true,debug:true} );
             assert.equal( a.get('status'), Common.Status.INACTIVE );
             assert.equal( a.get('comrade').get('status'), Common.Status.INACTIVE );
-        });//*/
-    });
+        });
+    });//*/
 
 });

@@ -1,8 +1,9 @@
+var game = require('./game');
 
-exports.functions = {
+_.extend( game.entity.prototype, {
 
     onStart: function(){
         log('game has started');
     }
 
-};
+});

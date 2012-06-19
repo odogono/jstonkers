@@ -310,6 +310,20 @@ describe('Command Queue', function(){
             );
         });//*/
 
+        it('should indicate when missing', function(done){
+            var self = this;
+            Step(
+                function retrieveQueue(){
+                    var q = CommandQueue.create({id:'missing.001'});
+                    q.fetchRelatedCB(this);
+                },
+                function(err,result){
+                    assert.equal( err, 'missing.001 not found' );
+                    done();
+                }
+            );
+        });
+
         it('should destroy processed commands', function(done){
             var self = this;
             Step(

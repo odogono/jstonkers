@@ -1,4 +1,5 @@
-var Common = require( '../src/common.js' );
+var Common = require( '../src/common' );
+var Server = require('../src/main.server');
 
 var app = module.exports = express.createServer();
 
@@ -33,7 +34,6 @@ app.engine('mustache', function(path, options, cb){
 
 app.set('views', Common.path.join(__dirname,'views') );
 
-
 app.use( express.bodyParser({ uploadDir: Common.paths.uploadDir }) );
 app.use( express.methodOverride() );
 app.use( connect.cookieParser(app.config.session.secret) );
@@ -48,7 +48,23 @@ app.use(express.session({
     key:app.config.session.id,
     store:new RedisStore({prefix:app.config.session.prefix+':'}) }));
 
-require('./handlers/match');
+if( Common.config.client.browserify ){
+    var bundle = require('browserify')( Common.config.client );
+    bundle.addEntry(  Common.path.join(Common.paths.src, 'main.client.js') );
+    app.use(bundle);
+    log('browserify activated');
+}
+
+
+require('./handlers/main');
+require('./handlers/game_manager');
+
+app.configure( function(){
+    // log('configuring ma stuff');
+    // print_var( Server.gameManager );
+    Server.initialize();
+    app.gameManager = Server.gameManager;
+});
 
 var port = program.port || Common.config.server.port;
 log('started on port ' + port + ' in env ' + Common.config.env.current );

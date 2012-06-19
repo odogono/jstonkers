@@ -1,9 +1,35 @@
+var entity = require('./entity');
+var EntityCollection = require('./entity_collection');
+// module.exports.createEntityCollection = require('./entity_collection').create;
 
-exports.initEntityER = function( entityDef, options ){
+
+var oldRegisterEntity = entity.registerEntity;
+entity.registerEntity = function( entityDef, entity, options ){
+    var result = oldRegisterEntity.apply(this,arguments);
+    initEntityER( entityDef, options );
+    return result;
+};
+
+
+exports.getERDetails = function( erName ){
+    var entry;
+    var entityDef = exports.ids[this.type];
+    if( !entityDef )
+        return null;
+
+    for( var i in entityDef.ER ){
+        entry = entityDef.ER[i];
+        if( entry.name === erName || entry.type === erName )
+            return entry;
+    }
+    return null;
+};
+
+var initEntityER = function( entityDef, options ){
     options = (options || {});
     // the ER spec matches the key to a TYPE string - string because the types usually
     // aren't set up at the time of creation
-    var getEntityFromType = module.parent.exports.getEntityFromType;
+    // var getEntityFromType = module.parent.exports.getEntityFromType;
 
     // if( Common.debug ) options.debug = true;
     // if( entityDef.type === 'user' ) options.debug = true;
@@ -11,7 +37,7 @@ exports.initEntityER = function( entityDef, options ){
 
     function resolveEntity( entityId ){
         var result = {};
-        var refEntity = Common.schema.getSchemaValue( entityId, entityDef.schema, true );
+        /*var refEntity = Common.schema.getSchemaValue( entityId, entityDef.schema, true );
 
         // print_var(entityDef);
         if( refEntity ){
@@ -21,10 +47,10 @@ exports.initEntityER = function( entityDef, options ){
                 result.name = jsonpointer.get( refEntity, '/properties/name');
             }catch(err){}
             return result;
-        }
+        }//*/
 
         // resort to looking up entity from entity registry
-        result = getEntityFromType(entityId);
+        result = entity.getEntityFromType(entityId);
         if( result ){
             result = _.clone( result );
             result.name = result.name || result.type;
@@ -98,8 +124,7 @@ exports.initEntityER = function( entityDef, options ){
 exports.oneToOne = function( entityDef, codomainType, options ){
     if( codomainType === undefined || entityDef === undefined )
         return;
-    var entity = module.parent.exports,
-        debug = options && options.debug,
+    var debug = options && options.debug,
         codomainName = _.capitalize(entity.names[codomainType]);
 
     // log( 'applying 1to1 from ' + entityDef.type + ' to ' + codomainType );
@@ -119,7 +144,6 @@ exports.oneToMany = function( entityDef, spec, options ){
         return;
     var debug = options && options.debug,
         codomainType = spec.type,
-        entity = module.parent.exports,
         domain = entityDef.entity,
         codomainName = _.capitalize( spec.name || entity.names[spec.type]),
         codomainNameLower = codomainName.toLowerCase();
@@ -151,7 +175,7 @@ exports.oneToMany = function( entityDef, spec, options ){
         var self = this,
             entityName = codomainName.toLowerCase(),
             // collection = 
-            collection = spec.create ? spec.create({entity:codomainType}) : Common.entity.createEntityCollection({entity:codomainType});
+            collection = spec.create ? spec.create({entity:codomainType}) : EntityCollection.create({entity:codomainType});
         
         // print_ins( module.parent.exports.getEntityFromType(codomainType) );
         // collection.model = module.parent.exports.getEntityFromType(codomainType).entity;
@@ -171,9 +195,14 @@ exports.oneToMany = function( entityDef, spec, options ){
 
         // add listeners for add and remove
         /*collection.on('add', function(childEntity){
-            childEntity.set(childRelationKey, self);
+            childEntity.refCount++;
+            // childEntity.set(childRelationKey, self);
         }).on('remove', function(childEntity){
-            childEntity.set(childRelationKey, undefined);
+            childEntity.refCount--;
+            // childEntity.set(childRelationKey, undefined);
+        }).on('reset', function(){
+            log('resetting...');
+            print_ins( arguments );
         });//*/
 
         existingInitialize.apply(this, arguments);

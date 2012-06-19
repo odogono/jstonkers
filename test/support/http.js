@@ -2,10 +2,10 @@
 /**
  * Module dependencies.
  */
-var Common = require( '../../src/common.js' );
+var Common = require( '../../src/common' );
 
 var EventEmitter = require('events').EventEmitter
-  , methods = express.router.methods
+  , methods = express.methods
   , http = require('http')
   , assert = require('assert');
 
@@ -20,12 +20,25 @@ function Request(app, res) {
     this.data = [];
     this.header = {};
     this.app = app;
-    this.server = app;
-    this.listening = true;
-    this.addr = app.address();
+    // this.server = app;
+    // this.listening = true;
+    // this.addr = app.address();
+    // if( res && res.headers ){
+    //     _.each( res.headers['set-cookie'], function(cookie){
+    //         self.set('Cookie', cookie );    
+    //     });
+    // }
+    if (!this.server) {
+        this.server = http.Server(app);
+        this.server.listen(0, function(){
+            self.addr = self.server.address();
+            self.listening = true;
+        });
+    }
     if( res && res.headers ){
         _.each( res.headers['set-cookie'], function(cookie){
-            self.set('Cookie', cookie );    
+            // log('setting cookie ' + cookie);
+            self.set('Cookie', cookie );
         });
     }
 }
@@ -80,13 +93,13 @@ Request.prototype.expectFields = function(body,fn){
 
 Request.prototype.expect = function(body, fn){
     this.end(function(res){
-        log( 'checking ' + JSON.stringify(body) + ' against ' + JSON.stringify(res.body) );
+        // log( 'checking ' + JSON.stringify(body) + ' against ' + JSON.stringify(res.body) );
         if ('number' == typeof body) {
             res.statusCode.should.equal(body);
+        } else if (body instanceof RegExp) {
+            res.body.should.match(body);
         } else if( _.isObject(body) ) {
-
             JSON.parse(res.body).should.eql(body);
-            // res.body.should.eql(body);
         } else {
             res.body.should.equal(body);
         }
