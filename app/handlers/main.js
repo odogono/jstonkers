@@ -1,27 +1,19 @@
-var app = module.parent.exports,
-    fs = require('fs'),
-    util = require('util'),
-    path = require('path');
+var app = module.parent.exports;
+
+app.get('/', function(req,res){
     
-app.get('/test', function(req,res){
-    res.send( '<img src="/img/tiles/a/1/1-1.png"/><img src="/img/tiles/a/1/1-2.png"/>' );
+    var mapConfig = Common.config.maps.spectrum;
+
+    app.locals.cmap = {
+        href: Common.path.join(  Common.paths.mapColData, mapConfig.collision.href ),
+        width: mapConfig.collision.dims[0],
+        height: mapConfig.collision.dims[1]
+    }
+    
+
+    res.render( 'match', { msg: "hello there" });
+    // res.render( 'match', { msg: "hello there", cb:true }, function(err,render){
+    //     log(render);
+    //     res.send( render() );
+    // });
 });
-
-
-// app.get('/compare/:which', function(req,res){
-//     res.sendfile( path.join( app.path.var, req.params.which + '.html' ) );
-// });
-
-// app.get('/mst', function(req,res){
-//     var layout = fs.readFileSync( path.join( app.path.view, 'layout.mustache'), 'utf8' );
-//     log( inspect(layout) );
-//     result = Mustache.to_html( layout, {content:'hello <b>world</b>'});
-//     res.send( result );
-//     res.render('match/view', {msg:'world'});
-// });
-
-
-// app.post('/match/new', function(req,res){
-//     log( inspect(req.body,6) );
-//     res.send( 200 );
-// });
