@@ -444,7 +444,7 @@ _.extend( RedisStorage.prototype, {
         Step(
             function(){
                 var group = this.group();
-                options.debug = true;
+                // options.debug = true;
                 for( i in cidToModel ){
                     self.saveEntity( self.client, cidToModel[i], options, group() );
                 }
@@ -597,17 +597,26 @@ _.extend( RedisStorage.prototype, {
         var entityKey = options.key_prefix + ':' + entityId;
         var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
         var entityDef;// = Common.entity.ids[entity.type];
-        // var result = options.result;
+        var ignoreStatus = _.isUndefined(options.ignoreStatus) ? false : options.ignoreStatus;
 
-        if(options.debug) log('retrieveEntityById ' + entityId + ' ' + entityKey + ' fetchRelated ' + options.fetchRelated);
+        if(options.debug) log('retrieveEntityById ' + entityId + ' ' + entityKey + ' options: ' + JSON.stringify(options) );
+
+        var multi = self.client.multi();
+
+        // check that this entity is not logically deleted
+        multi.sismember( ldlKey, entityId );
+        multi.hget( entityKey, 'value' );
 
         // retrieve the entity
-        this.client.hget( entityKey, 'value', function(err, data){
-            if( !data ){
+        multi.exec( function(err, replies){
+            if( err ) throw err;
+
+            if( (!ignoreStatus && replies[0]) || !replies[1] ){
                 callback(entityId + ' not found');
                 return;
             }
-            var entityAttr = JSON.parse(data);
+            
+            var entityAttr = JSON.parse( replies[1] );
             entityAttr.id = entityId;
 
             type = entityAttr.type || (_.isObject(entity) ? entity.type : null);
@@ -629,27 +638,6 @@ _.extend( RedisStorage.prototype, {
                 options.fetchSetList.push( {key:entityKey + ':items', callback:function(result){
                     entityAttr.items = result;
                 }});
-
-                /*self.client.sdiff( entityKey + ':items', ldlKey, function(err,result){
-                    if( err ) throw err;
-
-                    // add the member IDs to the list of entities that should also be retrieved
-                    if( options.fetchList ){
-                        for( i in result ){
-                            // only add to list to be fetched if we haven't already seen it
-                            if( result[i] && !options.result[result[i]] ){
-                                if( options.debug ) log('1 add ' + result[i] + ' to fetchList' );
-                                options.fetchList.push( result[i] );
-                            }
-                        }
-                    }
-
-                    entityAttr.items = result;
-
-                    // log('set members: ' + JSON.stringify(options.fetchList));
-                    callback( null, entityAttr );
-                });
-                return;//*/
             }
             else if( entityDef.ER ){
                 for( i in entityDef.ER ){
@@ -667,25 +655,9 @@ _.extend( RedisStorage.prototype, {
                             }
                         } else {
                             // look for set members
-                            // options.fetchSetList.push( entityKey + ':' + name );
                             options.fetchSetList.push( {key:entityKey + ':' + name, callback:function(result){
                                 entityAttr[name] = result;
                             }});
-
-                            /*self.client.sdiff( entityKey + ':' + name, ldlKey, function(err,result){
-                                if( options.debug ) log('o2m set ' + JSON.stringify(result) );
-                                // add the member IDs to the list of entities that should also be retrieved
-                                if( options.fetchList ){
-                                    for( i in result ){
-                                        // only add to list to be fetched if we haven't already seen it
-                                        if( result[i] && !options.result[result[i]] ){
-                                            if( options.debug ) log('1 add ' + result[i] + ' to fetchList' );
-                                            options.fetchList.push( result[i] );
-                                        } // else
-                                        // log('bah')
-                                    }
-                                }
-                            });//*/
                         }
                     }
                     else if( er.oneToOne ){
@@ -851,9 +823,12 @@ _.extend( RedisStorage.prototype, {
         var retrieveChildren = [];
         var itemCounts = [];
         var modelKey = [self.options.key_prefix, model.id].join(':');
+        var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
 
         options._depth = options._depth || 1;
+        // the fetchList contains entity ids which should be retrieved
         options.fetchList = [ model.id ];
+        // the fetchSetList contains details of sets (of entity ids) which should be retrieved
         options.fetchSetList = [];
         options.result = {};
 
@@ -873,15 +848,28 @@ _.extend( RedisStorage.prototype, {
         var evalFetchList = function(){
             if( options.fetchSetList.length > 0 ){
                 item = options.fetchSetList.shift();
-                if( _.isObject(item){
-                    self.client.sdiff( entityKey + ':items', ldlKey, function(err,result){
+                if( _.isObject(item) ){
+                    self.client.sdiff( item.key, ldlKey, function(err,result){
                         if( err ) throw err;
+                        // add the member IDs to the list of entities that should also be retrieved
+                        if( options.fetchList ){
+                            for( i in result ){
+                                // only add to list to be fetched if we haven't already seen it
+                                if( result[i] && !options.result[result[i]] ){
+                                    if( options.debug ) log('1 add ' + result[i] + ' to fetchList' );
+                                    options.fetchList.push( result[i] );
+                                }
+                            }
+                        }
 
                         if( item.callback ){
                             item.callback( result );
                         }
+
+                        // re-check if we need to fetch anything
+                        evalFetchList();
                     });
-                });
+                }
             } else if( options.fetchList.length > 0 ) {
                 // pull the next
                 entityId = options.fetchList.shift();
@@ -899,6 +887,7 @@ _.extend( RedisStorage.prototype, {
                 });
             } else {
                 if( options.debug ) log('finished fetchList retrieve');
+                if( options.debug ) print_var( options.result );
                 callback( null, options.result );
             }
         };

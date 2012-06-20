@@ -89,7 +89,6 @@ describe('Entity', function(){
             var f = Common.entity.create( {type:'test_f', id:'f.001'} );
             assert.equal( f.refCount, 0 );
             e.set('comrade', f );
-            // print_ins( f );
             assert.equal( f.refCount, 1 );
         });
 

@@ -78,7 +78,6 @@ describe('Sync.Redis', function(){
             var a = Common.entity.create( Common.entity.TYPE_TEST_E, {name:'enigma'} );
             var b = Common.entity.create( Common.entity.TYPE_TEST_F, {name:'foxtrot'} );
             a.set( {comrade:b} );
-
             Step(
                 function(){
                     a.saveCB( this );
@@ -102,7 +101,6 @@ describe('Sync.Redis', function(){
         it('should save a complete o2o relationship', function(done){
             var a = Common.entity.create( Common.entity.TYPE_TEST_E, {name:'enigma'} );
             var b = Common.entity.create( Common.entity.TYPE_TEST_F, {name:'foxtrot'} );
-
             // print_ins(a);
             a.set( {comrade:b} );
 
@@ -140,7 +138,6 @@ describe('Sync.Redis', function(){
                 function (){
                     assert( a.isNew() );
                     assert( b.isNew() );
-                    log('--')
                     a.saveRelatedCB( this );
                 },
                 function(err,result){
@@ -151,13 +148,11 @@ describe('Sync.Redis', function(){
                     // attempt restore
                     var aCopy = Common.entity.create( Common.entity.TYPE_TEST_A, a.id );
                     assert.equal( aCopy.id, a.id );
-                    // assert( aCopy instanceof Common.entity.Entity );
                     // fetch the parent and children to a depth of two
-                    aCopy.fetchRelatedCB( {debug:true}, this );
+                    aCopy.fetchRelatedCB( this );
                 },
                 function(err,result){
                     if( err ) throw err;
-                    print_var( result );
                     assert.equal( result.get('name'), 'alex');
                     assert.equal( result.test_b.length, 1 );
                     assert.equal( result.test_b.at(0).get('name'), 'beatrix' );
@@ -167,7 +162,7 @@ describe('Sync.Redis', function(){
 
         });
 
-        /*
+        
         it('should retrieve an associated entity', function(done){
             var a = Common.entity.create( Common.entity.TYPE_TEST_D, {name:'alpha'} );
             var b = Common.entity.create( Common.entity.TYPE_TEST_C, {name:'beta'} );
@@ -189,6 +184,7 @@ describe('Sync.Redis', function(){
             );
         });
 
+        
         it('should respond correctly to fetching a nonexistent entity', function(done){
             Step(
                 function(){
@@ -205,7 +201,6 @@ describe('Sync.Redis', function(){
         it('should logically delete an entity', function(done){
             var a = Common.entity.create( Common.entity.TYPE_TEST_A, {name:'alf',status:Common.Status.ACTIVE} );
             assert.equal( a.get('status'), Common.Status.ACTIVE );
-            
             Step(
                 function(){
                     a.saveCB( null, this);
@@ -216,7 +211,6 @@ describe('Sync.Redis', function(){
                 function(err,result){
                     assert.equal(result.get('name'), 'alf');
                     assert.equal(result.get('status'),Common.Status.ACTIVE);
-                    // log('destroying here');
                     result.destroyCB(this);
                 },
                 function(err,result){

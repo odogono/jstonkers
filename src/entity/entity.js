@@ -159,7 +159,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
         entityDef = exports.ids[this.type || attrs.type];
 
-        // if( options && options.setRelated ) log('set ' + JSON.stringify(attrs));
+        // if( options && options.debug ) log('set ' + JSON.stringify(attrs));
 
         // if( this.id ) 
         // log('setting ' + this.id + ' ' + JSON.stringify(entityDef) );
@@ -178,17 +178,13 @@ var Entity = exports.Entity = Backbone.Model.extend({
                     continue;
 
                 if( er.oneToOne ){
-                    // if( !erData ){
-                    //     log('oh hey removing ' + erName );
-                    //     continue;
-                    // }
                     if(!(erData instanceof Entity)){
                         // TODO AV : could maybe get this model reference from elsewhere?
-                        
                         try{
                             subEntity = exports.create( erData );
                         } catch( e ){
-                            log('failed creating with ' + JSON.stringify(erData) );
+                            if( options.debug ) log('failed creating with ' + JSON.stringify(erData) + ' ' + JSON.stringify(options) );
+                            // print_stack();
                         }
                         if( subEntity ) {
                             // log('setting ' + erName + ' to ' + JSON.stringify(erData) );
