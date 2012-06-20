@@ -18,7 +18,7 @@ describe('GameManager', function(){
 
             gameManager.on('add', function(game){
                 // log('gm evt ' + evt);
-                print_ins( arguments);
+                // print_ins( arguments);
                 done();
             });
             // print_ins( Common.entity.GameManager );

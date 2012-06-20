@@ -1,5 +1,6 @@
 var Common = require( '../src/common.js' );
-var CommandQueue = require( Common.path.join(Common.paths.src,'command_queue') );
+var MainServer = require( '../src/main.server' );
+var CommandQueue = require('../src/command_queue');
 
 var CmdTestA = CommandQueue.Command.extend({
     execute: function(options,callback){
@@ -282,6 +283,7 @@ describe('Command Queue', function(){
         it('should add and remove commands', function(done){
             var self = this;
             var cmd;
+
             // this.queue.set('auto_save',true);
             Step(
                 function saveQueueFirst(){

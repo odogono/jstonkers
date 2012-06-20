@@ -62,6 +62,16 @@ exports.EntityCollection = entity.Entity.extend({
         return new Backbone.Model( attrs, options );
     },
 
+    // returns an identifying id for this collection to be used
+    // for storage purposes
+    getStoreId: function(){
+        return this.id || this.owner.id || this.owner.cid;
+    },
+
+    getName: function(){
+        return this.name;
+    },
+
     get: function(attr){
         if( attr == 'offset' )
             return this.get('page_size') * (this.get('page')-1);

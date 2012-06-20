@@ -17,7 +17,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
     refCount:0,
 
     initialize: function(){
-
+        // listen to entity changes and update ref system accordingly
         this.on('change', function(self,options){
             var existing, previous;
             if( options && options.changes ){
@@ -46,7 +46,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
             callback = options;
             options = {};
         }
-        var debugit = options.debugB;
+        // var debugit = options.debugB;
         if( callback ){
             options = _.extend(options,{
                 success: function(model,resp){
@@ -81,20 +81,26 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return this.save( attrs, options );
     },
 
-    saveRelatedCB: function( key, value, options, callback){
-        var attrs;
+    saveRelatedCB: function( options, callback){
+        // var attrs;
 
-        if( _.isObject(key) || key == null){
-            attrs = key;
-            callback = options;
-            options = value;
-        } else {
-            attrs = {};
-            attrs[key] = value;
-        }
+        // if( arguments.length === 1 ){
+        //     callback = key;
+        //     options = {};
+        //     log('OH HAI');
+        //     log( callback );
+        // }
+        // if( _.isObject(key) || key == null){
+        //     attrs = key;
+        //     callback = options;
+        //     options = value;
+        // } else {
+        //     attrs = {};
+        //     attrs[key] = value;
+        // }
         options = this.convertCallback( options, callback );
         options.saveRelated = true;
-        return this.save( attrs, options );
+        return this.save( null, options );
     },
 
     fetchCB: function(options,callback){
@@ -357,12 +363,21 @@ var Entity = exports.Entity = Backbone.Model.extend({
         var i, entityDef, er, erName, relation;
         options || (options = {});
         var doRelations = _.isUndefined(options.relations) ? true : options.relations;//options.relations;
+        var relationsAsId = options.relationsAsId;
         var returnDefaults = options.returnDefaults;
-        var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
+        
+        // clone the attributes into the result objects
+        var attrs = this.attributes, result = {};
+        for (var prop in attrs) {
+            // TODO - rewrite ER checking inside this loop
+            result[prop] = attrs[prop];
+        }
+        // var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
 
-        if( !result )
-            return {};
-        // log('1st ' + JSON.stringify(result) );
+        // if( !result )
+            // return {};
+
+        // if( options.debug ) log('1st ' + JSON.stringify(result) );
         // if( !result )
         //     print_ins(this);
         // log('toJSON for ' + this.type );
@@ -375,29 +390,27 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 er = entityDef.ER[i];
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 // def = Common.entity.ids[ er.type ];
-                // log('entity.toJSON: ' + erName + ' ' + JSON.stringify(er) );
+                if( options.debug ) log('entity.toJSON: ' + erName + ' ' + JSON.stringify(er) );
 
                 if( er.oneToOne ){
-                    // if( doRecurse && (child = this.get(erName)) ){
-                        // child.flatten( options );
-                    // }
+                    // if( options)
+                    relation = result[erName];
+
+                    if( !relation )
+                        continue;
+                    // if( options.debug ) log('o2o ' + erName );
+                    if( !relation.isNew() && relationsAsId )
+                        result[erName] = relation.id;
+                    else if( doRelations )
+                        result[erName] = relation.toJSON();
+                    else
+                        delete result[erName];
                 } else if( er.oneToMany ){
-                    // if( doRecurse && (child = this[erName]) ){
-                        // child.flatten(options);
-                    // }
-                    
-                    // if( options.toJSON && options.referenceItems && this[erName].length > 0 ){
-                        // outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
-                    // }
-                    // if( !this[erName] ){
-                    //     print_ins( this );
-                    // }
-                    // print_ins( this[erName] );
                     relation = this[erName];
                     if( !relation )
                         continue;
 
-                    if( !relation.isNew() )
+                    if( !relation.isNew() && relationsAsId )
                         result[erName] = relation.id;// || this[erName].cid;
                     else if( doRelations ) {
                         // print_ins( this[erName].toJSON() );
@@ -405,7 +418,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
                     }
                 }
             }
-            // print_var( result );
         }
 
         

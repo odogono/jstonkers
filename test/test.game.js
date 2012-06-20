@@ -1,17 +1,5 @@
-var Common = require( '../src/common' );
-
-Common.entity.registerEntity('unit');
-Common.entity.registerEntity('team');
-var Game = Common.entity.registerEntity('game');
-
-var CommandQueue = require( Common.path.join(Common.paths.src,'command_queue') );
-
-_.extend( Game.entity.prototype, require('../src/entity/game.logic').functions );
-
-// load commands
-require( Common.paths.commands );
-
-// print_ins(Common.entity);
+require( '../src/common' );
+require( '../src/main.server' );
 
 describe('Game', function(){
     beforeEach( function(done){
@@ -48,7 +36,7 @@ describe('Game', function(){
             var game = Common.entity.Game.create(null,{statePath:statePath});
             var processed = false;
 
-            var SaveCommand = CommandQueue.Command.extend({
+            var SaveCommand = Common.entity.CommandQueue.Command.extend({
                 execute: function(options,callback){
                     processed = true;
                     callback( null, true, this );

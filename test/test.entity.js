@@ -205,6 +205,15 @@ describe('Entity', function(){
         print_ins( user, false, 2, true );
     })//*/
 
+    describe('serialisation', function(){
+
+        it('should persist to JSON without relations', function(){
+            var a = Common.entity.create( Common.entity.TYPE_TEST_E, {name:'enigma'} );
+            var b = Common.entity.create( Common.entity.TYPE_TEST_F, {name:'foxtrot'} );
+            a.set( {comrade:b} );
+            assert.deepEqual( a.toJSON({relations:false}), { "name": "enigma", "type":"test_e" } );
+        });
+    });
     
     describe('parsing', function(){
         it('should parse correctly', function(){

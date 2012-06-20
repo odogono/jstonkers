@@ -1,0 +1,118 @@
+<!-- inspired by http://map.agent-orange.ca/ -->
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Map Test</title>
+        <link rel="stylesheet" href="../web/css/lib/leaflet.css" />
+        <link rel="stylesheet" href="../web/css/client.css" />
+        <style type="text/css">
+            html, body {
+              height: 100%;
+              background-color: white;
+            }
+            #log {
+                color: #000;
+                max-height: 20em;
+                overflow-y: hidden;
+                overflow-x: hidden;
+                position: absolute;
+                left:  10px;
+                top: 100px;
+                z-index: 100;
+            }
+            .imoverlay-man { 
+                z-index: 2;
+            }
+            .leaflet-control-coordinates {
+                background: none repeat scroll 0 0 #ffffff;
+                color: #333333;
+                font: 12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif;
+                padding: 6px 10px 6px 6px;
+                border-radius: 7px 7px 7px 7px;
+                box-shadow: 0 0 7px #999999;
+            }
+            .imoverlay-man:hover {cursor:pointer}
+        </style>
+    </head>
+    <body>
+
+        <div id="log">
+            <span id="logline"></span>
+            <li></li>
+        </div>
+        <div id="leaflet_map" style="height: 600px"></div>
+
+
+        <script src="../web/js/lib/jquery-1.7.2.min.js"></script>
+        <script src="../web/js/lib/leaflet-src.js"></script>
+        <script src="../web/js/lib/underscore.js"></script>
+        <script src="../web/js/lib/underscore.string.js"></script>
+        <script type="text/javascript">_.mixin(_.str.exports());</script>
+        <script src="../web/js/lib/backbone.js"></script>
+
+        <script src="../web/js/client.js"></script>
+        <script src="../web/js/models.js"></script>
+        <script src="../web/js/client.views.js"></script>
+        <script src="../web/js/client.view.map.js"></script>
+        <script src="../web/js/client.app.js"></script>
+
+        <script src="../web/js/l-control-coordinates.js"></script>
+        
+        <script type="text/javascript">
+            
+            
+
+            $(function() {
+
+                L.Map.addInitHook(function () {
+                    var self = this;
+                    var coordinatesControl = new L.Control.Coordinates();
+                    this.addControl(coordinatesControl);
+                    // this.on('zoomend', function(e){
+                    //     jstonkers.log('zoom finished at ' + self.getZoom() );
+                    //     // map.setView( this.getCenter(), map.getZoom(),true );
+                    //     // if (options.maxBounds) {
+                    //         // TODO predrag validation instead of animation
+                    //         // L.Util.requestAnimFrame(map._panInsideMaxBounds, map, true, map._container);
+                    //     // }
+                    // });
+                });
+
+                map = new L.JStonkersMap('leaflet_map',{});
+                map.on('click', function(e){
+                    console.log(e.blockPoint);
+                    // log( map.layerPointToBlock( map.latLngToLayerPoint(e.latlng)) );
+                });
+                
+                var marker, markerLayer = new L.LayerGroup();
+                
+                // L.DivIcon
+                var TestIcon = L.DivIcon.extend({
+                    options: {
+                        className: 'test-icon tank sprite',
+                        iconSize: new L.Point(32, 16)
+                    }
+                });
+
+
+                var MarkerIcon = L.Icon.Default.extend({
+                    options: {
+                        iconUrl: "../web/img/leaflet/marker.png",
+                        shadowUrl: "../web/img/leaflet/marker-shadow.png"
+                    }
+                });
+
+                marker = new L.Marker( map.worldToMap([1200,1000]), {draggable:true,icon:new TestIcon()} );
+                markerLayer.addLayer(marker);
+                marker = new L.Marker( map.worldToMap([1000,1000]), {icon:new MarkerIcon()} );
+                markerLayer.addLayer(marker);
+                map.addLayer(markerLayer);
+
+                window.app = new jstonkers.App();
+                log('loaded');
+                // map.setView( map.worldToMap([1000,1000]), map.getZoom() );
+            });
+        </script>
+
+    </body>
+</html>

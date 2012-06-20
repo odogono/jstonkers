@@ -1,14 +1,15 @@
-var Entity = require('./entity');
+var entity = require('./entity');
 
 exports.ER = [
     { oneToMany:"game", name:"games" },
     { type:'cmd_queue', name:"cmds" }
 ];
 
-exports.entity = Entity.Entity.extend({
+exports.entity = entity.Entity.extend({
 
     initialize: function(){
         var self = this;
+        // entity.Entity.prototype.initialize.apply(this,arguments);
         this.cmds.on('add', function(cmd){
             cmd.manager = self;
         });
@@ -52,13 +53,10 @@ exports.entity = Entity.Entity.extend({
 
 exports.create = function(attrs, options){
     options = (options || {});
-    var result = Entity.create( _.extend({type:'game_manager'}, attrs) );
+    var result = entity.create( _.extend({type:'game_manager'}, attrs) );
     if( options.statePath ){
         var state = require( options.statePath );
         result.set( result.parse(state,null,{parseFor:'game_manager'}) );    
     }
     return result;
 };
-
-
-Entity.registerEntity('game_mgnr', exports.entity, {oneToMany:true,create:exports.create} );

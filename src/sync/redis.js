@@ -24,7 +24,7 @@ _.extend( RedisStorage.prototype, {
     saveEntity: function( redisHandle, entity, options, callback ){
         options || (options={});
         var multi = redisHandle,
-            i, len, date, status, serialised,
+            i, len, date, status, collection, serialised,
             self = this, 
             keyPrefix = self.options.key_prefix,
             initiateMulti = redisHandle instanceof redis.RedisClient,
@@ -58,9 +58,9 @@ _.extend( RedisStorage.prototype, {
         // update the date
         entity.updated_at = new Date();
 
-        serialised = entity.toJSON({relations:false});
+        serialised = entity.toJSON({relationsAsId:true,relations:false,debug:options.debug});
         serialised.type = entity.type;
-        // print_var(serialised);
+        if( options.debug ) log( 'saving serialised: ' + JSON.stringify( serialised ) );
 
         key = keyPrefix + ':' + entity.id;
         var entityHashFields = Common.config.sync.redis.entity_hset;
@@ -119,9 +119,11 @@ _.extend( RedisStorage.prototype, {
         // } else {
             // add to entity type set
             multi.sadd( keyPrefix + ':' + entity.type, entity.id );
-            if( entity.entityCollection ){
-                // if( options.debug ) log('adding to entityCollection set ' + status);
-                multi.sadd( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
+            if( (collection = entity.entityCollection) ){
+                // if( options.debug ) log('adding to entityCollection set ' + entity.id);
+                // if( options.debug ) print_ins( entity );
+                // multi.sadd( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
+                multi.sadd( keyPrefix + ':' + collection.getStoreId() + ':' + collection.getName() || 'items', entity.id );
             }
         // }
 
@@ -472,7 +474,7 @@ _.extend( RedisStorage.prototype, {
         var cidToModel = model.flatten();
 
         // log('redis.update with ' + JSON.stringify(options) );
-        // print_var( cidToModel );
+        // if( options.debug ) print_var( cidToModel );
         
         Step(
             function ensureIds(){
@@ -597,7 +599,7 @@ _.extend( RedisStorage.prototype, {
         var entityDef;// = Common.entity.ids[entity.type];
         // var result = options.result;
 
-        // if(options.debug) log('retrieveEntityById ' + entityId + ' ' + entityKey);
+        if(options.debug) log('retrieveEntityById ' + entityId + ' ' + entityKey + ' fetchRelated ' + options.fetchRelated);
 
         // retrieve the entity
         this.client.hget( entityKey, 'value', function(err, data){
@@ -612,21 +614,31 @@ _.extend( RedisStorage.prototype, {
             // delete entityAttr.type;
             entityDef = Common.entity.ids[type];
 
-            // log('hmm plinkyplonk ' + JSON.stringify(entityDef) );
+            if( !options.fetchRelated ){
+                callback( null, entityAttr );
+                return;
+            }
+
+            if(options.debug ) log('hmm plinkyplonk ' + JSON.stringify(entityDef) );
             
             // look for other relations that we should retrieve
             // if there are any collections associated with this entity then fetch their details
-            if( entityDef.oneToMany && options.fetchRelated ){
+            if( entityDef.oneToMany ){
                 // this is a collection - look for members
-                self.client.sdiff( entityKey + ':items', ldlKey, function(err,result){
+                // log('looking for members of ' + entityKey + ':items' );
+                options.fetchSetList.push( {key:entityKey + ':items', callback:function(result){
+                    entityAttr.items = result;
+                }});
+
+                /*self.client.sdiff( entityKey + ':items', ldlKey, function(err,result){
                     if( err ) throw err;
 
                     // add the member IDs to the list of entities that should also be retrieved
                     if( options.fetchList ){
-
                         for( i in result ){
                             // only add to list to be fetched if we haven't already seen it
                             if( result[i] && !options.result[result[i]] ){
+                                if( options.debug ) log('1 add ' + result[i] + ' to fetchList' );
                                 options.fetchList.push( result[i] );
                             }
                         }
@@ -637,23 +649,43 @@ _.extend( RedisStorage.prototype, {
                     // log('set members: ' + JSON.stringify(options.fetchList));
                     callback( null, entityAttr );
                 });
-                // self.retrieveCollectionBySet( entityKey + ':items', entityAttr, options, function(err,result){
-                    // 
-                // });
-                return;
+                return;//*/
             }
             else if( entityDef.ER ){
                 for( i in entityDef.ER ){
                     er = entityDef.ER[i];
                     if( er.oneToMany ){
-
                         name = (er.name || er.oneToMany).toLowerCase();
                         targetId = entityAttr[name];
                         // key = entityKey + ':' + name;
-                        if( targetId && (options.fetchRelated || options._depth < options.depth) && !options.result[targetId] ){
-                            // erCollections.push( name );
-                            log('2 adding ' + name + ' ' + targetId );
-                            options.fetchList.push( targetId );
+                        // if(options.debug ) log('err ' + name )
+                        if( targetId ){
+                            if( (options.fetchRelated || options._depth < options.depth) && !options.result[targetId] ){
+                                // erCollections.push( name );
+                                if( options.debug ) log('2 adding ' + name + ' ' + targetId );
+                                options.fetchList.push( targetId );
+                            }
+                        } else {
+                            // look for set members
+                            // options.fetchSetList.push( entityKey + ':' + name );
+                            options.fetchSetList.push( {key:entityKey + ':' + name, callback:function(result){
+                                entityAttr[name] = result;
+                            }});
+
+                            /*self.client.sdiff( entityKey + ':' + name, ldlKey, function(err,result){
+                                if( options.debug ) log('o2m set ' + JSON.stringify(result) );
+                                // add the member IDs to the list of entities that should also be retrieved
+                                if( options.fetchList ){
+                                    for( i in result ){
+                                        // only add to list to be fetched if we haven't already seen it
+                                        if( result[i] && !options.result[result[i]] ){
+                                            if( options.debug ) log('1 add ' + result[i] + ' to fetchList' );
+                                            options.fetchList.push( result[i] );
+                                        } // else
+                                        // log('bah')
+                                    }
+                                }
+                            });//*/
                         }
                     }
                     else if( er.oneToOne ){
@@ -663,6 +695,7 @@ _.extend( RedisStorage.prototype, {
                         // log('considering ' + o2oName  + ' type ' + er.oneToOne );
                         if( targetId && (options.fetchRelated || options._depth < options.depth) && !options.result[targetId] ){
                             // erEntities.push( { key:name, type:er.oneToOne} );
+                            if( options.debug ) log('3 add ' + targetId + ' to fetchList' );
                             options.fetchList.push( targetId );
                         }
                     }
@@ -810,7 +843,7 @@ _.extend( RedisStorage.prototype, {
     // Retrieve a model from `this.data` by id.
     find: function(model, options, callback) {
         var i, self = this,
-            info, entityId,
+            item, entityId,
             collectionSetKey,
             result;
         var entityDetails = Common.entity.ids[model.type];
@@ -821,6 +854,7 @@ _.extend( RedisStorage.prototype, {
 
         options._depth = options._depth || 1;
         options.fetchList = [ model.id ];
+        options.fetchSetList = [];
         options.result = {};
 
         /*
@@ -837,12 +871,21 @@ _.extend( RedisStorage.prototype, {
         }//*/
 
         var evalFetchList = function(){
-            if( options.fetchList.length === 0 ) {
-                callback( null, options.result );
-            }else {
+            if( options.fetchSetList.length > 0 ){
+                item = options.fetchSetList.shift();
+                if( _.isObject(item){
+                    self.client.sdiff( entityKey + ':items', ldlKey, function(err,result){
+                        if( err ) throw err;
+
+                        if( item.callback ){
+                            item.callback( result );
+                        }
+                    });
+                });
+            } else if( options.fetchList.length > 0 ) {
                 // pull the next
-                // if( options.debug ) log('going for retrieve');
                 entityId = options.fetchList.shift();
+                if( options.debug ) log('going for retrieve of ' + entityId );
                 self.retrieveEntityById( entityId, options, function(err,data){
                     if( err ){
                         // TODO : will it always matter that a model cant be found?
@@ -854,6 +897,9 @@ _.extend( RedisStorage.prototype, {
                     // re-check if we need to fetch anything
                     evalFetchList();
                 });
+            } else {
+                if( options.debug ) log('finished fetchList retrieve');
+                callback( null, options.result );
             }
         };
 

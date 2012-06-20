@@ -5,9 +5,9 @@ var EntityCollection = require('./entity_collection');
 
 var oldRegisterEntity = entity.registerEntity;
 entity.registerEntity = function( entityDef, entity, options ){
-    var result = oldRegisterEntity.apply(this,arguments);
+    entityDef = oldRegisterEntity.apply(this,arguments);
     initEntityER( entityDef, options );
-    return result;
+    return entityDef;
 };
 
 
@@ -31,6 +31,8 @@ var initEntityER = function( entityDef, options ){
     // aren't set up at the time of creation
     // var getEntityFromType = module.parent.exports.getEntityFromType;
 
+    // var debug = entityDef === 'game_manager';
+    // if( debug ) log('initEntityER');
     // if( Common.debug ) options.debug = true;
     // if( entityDef.type === 'user' ) options.debug = true;
     // log('initialising ER for ' + entityDef.type );
@@ -71,7 +73,7 @@ var initEntityER = function( entityDef, options ){
 
     _.each( entityDef.ER, function(spec){
         var refEntity,details;
-        // log('examining ' + inspect(spec) );
+        // if( debug ) log('examining ' + inspect(spec) );
         if( spec.oneToMany ){
             refEntity = resolveEntity( spec.oneToMany );
             if( refEntity ){
@@ -176,7 +178,7 @@ exports.oneToMany = function( entityDef, spec, options ){
             entityName = codomainName.toLowerCase(),
             // collection = 
             collection = spec.create ? spec.create({entity:codomainType}) : EntityCollection.create({entity:codomainType});
-        
+
         // print_ins( module.parent.exports.getEntityFromType(codomainType) );
         // collection.model = module.parent.exports.getEntityFromType(codomainType).entity;
         // collection.entity = this;
@@ -185,8 +187,11 @@ exports.oneToMany = function( entityDef, spec, options ){
         var childRelationKey = '_'+ entityDef.type+':'+collectionName;
         // log('adding ' + JSON.stringify({name:collectionName, entity:self.id}) );
         // collection.set( {name:collectionName, entity:self.id} );
-        // log('huh');
         
+        // a reference from the collection to its owning entity
+        collection.owner = this;
+        collection.name = collectionName;
+
         this[ codomainNameLower ] = collection;
         // if( debug ) log('added collection .' + codomainNameLower);
         // if( debug ) log( entityDef.type + ' calling existing initialize');

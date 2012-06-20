@@ -9,7 +9,6 @@ app.post('/game/new', function(req,res){
     // process the arguments for creating the game
 
     // fetch a default game state
-
     var game = app.gameManager.createGame();
     
     game.saveCB(function(err,result){

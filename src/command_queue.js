@@ -112,6 +112,10 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
         return true;
     },
 
+    getName: function(){
+        return 'items';
+    },
+
     // returns the current time according to the queue
     time: function(){
         return Date.now();
