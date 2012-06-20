@@ -191,6 +191,7 @@ exports.oneToMany = function( entityDef, spec, options ){
         // a reference from the collection to its owning entity
         collection.owner = this;
         collection.name = collectionName;
+        // log('initialised collection ' + collectionName );
 
         this[ codomainNameLower ] = collection;
         // if( debug ) log('added collection .' + codomainNameLower);

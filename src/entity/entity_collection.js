@@ -26,13 +26,23 @@ exports.EntityCollection = entity.Entity.extend({
             this.items.on('add', function(model){
                 model.entityCollection = self;
                 model.refCount++;
-                // log('added!');
+                // log('added! ' + this.name );
                 // self.trigger.apply(self,arguments);
             }).on('remove', function(model){
                 model.entityCollection = null;
                 model.refCount--;
             }).on('all', function(){
                 self.trigger.apply(self, arguments);
+            }).on('reset', function(){
+                // models added during reset don't have the usual add event triggered
+                var model;
+                for( var i in this.models ){
+                    model = this.models[i];
+                    if( model.collection == this ){
+                        model.entityCollection = self;
+                        model.refCount++;
+                    }
+                }
             });
 
             return true;

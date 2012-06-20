@@ -82,22 +82,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
     },
 
     saveRelatedCB: function( options, callback){
-        // var attrs;
-
-        // if( arguments.length === 1 ){
-        //     callback = key;
-        //     options = {};
-        //     log('OH HAI');
-        //     log( callback );
-        // }
-        // if( _.isObject(key) || key == null){
-        //     attrs = key;
-        //     callback = options;
-        //     options = value;
-        // } else {
-        //     attrs = {};
-        //     attrs[key] = value;
-        // }
         options = this.convertCallback( options, callback );
         options.saveRelated = true;
         return this.save( null, options );

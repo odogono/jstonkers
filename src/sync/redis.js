@@ -118,9 +118,11 @@ _.extend( RedisStorage.prototype, {
         //     }
         // } else {
             // add to entity type set
+        // if( options.debug && entity.id === 'foxtrot_2' ) print_ins( entity );//log('well heck ' + entity.entityCollection);
+
             multi.sadd( keyPrefix + ':' + entity.type, entity.id );
             if( (collection = entity.entityCollection) ){
-                // if( options.debug ) log('adding to entityCollection set ' + entity.id);
+                if( options.debug ) log('adding to entityCollection set ' + entity.id);
                 // if( options.debug ) print_ins( entity );
                 // multi.sadd( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
                 multi.sadd( keyPrefix + ':' + collection.getStoreId() + ':' + collection.getName() || 'items', entity.id );
@@ -825,6 +827,9 @@ _.extend( RedisStorage.prototype, {
         var modelKey = [self.options.key_prefix, model.id].join(':');
         var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
 
+        if( options.ignoreStatus )
+            ldlKey = null;
+
         options._depth = options._depth || 1;
         // the fetchList contains entity ids which should be retrieved
         options.fetchList = [ model.id ];
@@ -851,6 +856,7 @@ _.extend( RedisStorage.prototype, {
                 if( _.isObject(item) ){
                     self.client.sdiff( item.key, ldlKey, function(err,result){
                         if( err ) throw err;
+                        if( options.debug ) log('result of set ' + item.key + ' ' + JSON.stringify(options) );
                         // add the member IDs to the list of entities that should also be retrieved
                         if( options.fetchList ){
                             for( i in result ){

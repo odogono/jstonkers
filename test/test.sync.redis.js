@@ -8,8 +8,8 @@ describe('Sync.Redis', function(){
         { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
         { type: 'test_c' },
         { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
-        { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'} ] },
-        { type: 'test_f' },
+        { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'}, {oneToMany:'test_f', name:'others'} ] },
+        { type: 'test_f', ER:[ {oneToOne:'test_a', name:'associate'} ] }
     ];
 
     _.each( testEntities.reverse(), function(e){
@@ -184,6 +184,34 @@ describe('Sync.Redis', function(){
             );
         });
 
+        it('should retrieve a o2m relationship', function(done){
+            var a = Common.entity.create({
+                id:"enigma_1",
+                type: "test_e",
+                comrade:{ id:'foxtrot_1', type:'test_f' },
+                others:[
+                    { id:'foxtrot_2', type:'test_f' },
+                    { id:'foxtrot_3', type:'test_f' }
+                ]
+            });
+
+            Step(
+                function(){
+                    a.saveRelatedCB( null, this ); 
+                },
+                function(err,result){
+                    Common.entity.create( Common.entity.TYPE_TEST_E, result.id ).fetchRelatedCB( this );
+                },
+                function(err,result){
+                    // print_var( result );
+                    assert.equal( result.get('comrade').id, 'foxtrot_1' );
+                    assert.equal( result.others.length, 2 );
+                    // assert( result.get('name') === a.get('name') );
+                    // assert( result.get('friend').get('name') === b.get('name') );
+                    done();
+                }
+            );
+        });
         
         it('should respond correctly to fetching a nonexistent entity', function(done){
             Step(
@@ -267,7 +295,59 @@ describe('Sync.Redis', function(){
             );
         });
 
-        it('should logically delete an entity and related');
+        it('should logically delete an entity and related', function(done){
+            var a = Common.entity.create({
+                id:"enigma_1",
+                name: "enigma",
+                status: "atv",
+                type: "test_e",
+                comrade:{
+                    id:"foxtrot_1",
+                    name: "foxtrot",
+                    status: "atv",
+                    type:"test_f",
+                    associate:{
+                        id:'alpha_a',
+                        status:'atv',
+                        type:'test_a',
+                        name:'arnold'
+                    }
+                },
+                others:[
+                    { id:'foxtrot_2', type:'test_f' },
+                    { id:'foxtrot_3', type:'test_f' }
+                ]
+            });
+
+            Step(
+                function(){
+                    a.saveRelatedCB( this);
+                },
+                function(err,result){
+                    Common.entity.create( Common.entity.TYPE_TEST_E, a.id ).fetchRelatedCB( this );
+                },
+                function(err,result){
+                    assert.equal(result.get('name'), 'enigma');
+                    result.destroyRelatedCB(this);
+                },
+                function(err,result){
+                    assert( !err );
+                    Common.entity.create( Common.entity.TYPE_TEST_E, a.id ).fetchRelatedCB( this );
+                },
+                function(err,result){
+                    assert.equal(err, a.id + ' not found');
+                    Common.entity.create( Common.entity.TYPE_TEST_E, a.id ).fetchRelatedCB( {ignoreStatus:true}, this );
+                },
+                function(err, result ){
+                    if( err ) throw err;
+                    assert( result.get('name'), 'enigma' );
+                    assert( result.get('status'), Common.Status.LOGICALLY_DELETED );
+                    assert( result.get('comrade').get('status'), Common.Status.LOGICALLY_DELETED );
+                    assert( result.get('comrade').get('associate').get('status'), Common.Status.LOGICALLY_DELETED );
+                    done();
+                }
+            );
+        });//*/
 
         it('should completely delete an entity and related');
         //*/
