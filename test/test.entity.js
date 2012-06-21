@@ -469,27 +469,61 @@ describe('Entity', function(){
             assert.equal( b.type, "test_b" );
         });
 
-        it('should set an attribute on one2one associations', function(){
+        it('should set an attribute on relations', function(){
             var a = Common.entity.create({
-                id:"enigma_e",
-                name: "enigma",
-                status: "atv",
+                id:"enigma_1",
                 type: "test_e",
                 comrade:{
-                    id:"foxtrot_f",
-                    name: "foxtrot",
-                    status: "atv",
-                    type:"test_f"
-                }
+                    id:"foxtrot_1",
+                    type:"test_f",
+                    associate:{ id:'alpha_a', type:'test_a' }
+                },
+                others:[
+                    { id:'foxtrot_2', type:'test_f' },
+                    { id:'foxtrot_3', type:'test_f' }
+                ]
             });
-            assert.equal( a.type, Common.entity.TYPE_TEST_E );
-            assert.equal( a.get('comrade').type, Common.entity.TYPE_TEST_F );
-            assert.equal( a.get('status'), Common.Status.ACTIVE );
-            assert.equal( a.get('comrade').get('status'), Common.Status.ACTIVE );
 
-            a.set('status', Common.Status.INACTIVE, {setRelated:true,debug:true} );
-            assert.equal( a.get('status'), Common.Status.INACTIVE );
-            assert.equal( a.get('comrade').get('status'), Common.Status.INACTIVE );
+            a.set('weather', 'rainy', {setRelated:true} );
+
+            assert.equal( a.get('weather'), 'rainy' );
+            assert.equal( a.get('comrade').get('weather'), 'rainy' );
+            assert.equal( a.get('comrade').get('associate').get('weather'), 'rainy' );
+            assert.equal( a.others.at(0).get('weather'), 'rainy' );
+            assert.equal( a.others.at(1).get('weather'), 'rainy' );
+
+            
+        });
+
+        it('should trigger events through all relations', function(){
+            var a = Common.entity.create({
+                id:"enigma_1",
+                type: "test_e",
+                comrade:{
+                    id:"foxtrot_1",
+                    type:"test_f",
+                    associate:{ id:'alpha_a', type:'test_a' }
+                },
+                others:[
+                    { id:'foxtrot_2', type:'test_f' },
+                    { id:'foxtrot_3', type:'test_f' }
+                ]
+            });
+
+            var received = {};
+            var receivedFunc = function(){
+                received[ this.id ] = true;
+            };
+
+            a.on('test_event', receivedFunc );
+            var comrade = a.get('comrade').on('test_event', receivedFunc );
+            var associate = comrade.get('associate').on('test_event', receivedFunc );
+            var foxtrot_2 = a.others.at(0).on('test_event', receivedFunc );
+            var foxtrot_3 = a.others.at(1).on('test_event', receivedFunc );
+
+            a.triggerRelated( 'test_event' );
+
+            assert( _.keys(received).length, 5 );
         });
     });//*/
 

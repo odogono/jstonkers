@@ -275,6 +275,17 @@ describe('Command Queue', function(){
             assert.equal( a.cmd_queue.at(0).get('execute_time'), 10 ); 
         });
 
+        it('should serialise without relations', function(){
+            this.queue.set({
+                "id":"test.001",
+                "items":[
+                    { "id":"cmd.001", "type": "cmd_test_a", "execute_time":10 },
+                    { "id":"cmd.002", "type": "cmd_test_a", "execute_time":11 },
+                ]
+            });
+
+            assert.deepEqual( this.queue.toJSON({relations:false}), { "type":"cmd_queue", "id":"test.001"});
+        });
     });
 
 

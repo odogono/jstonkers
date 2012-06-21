@@ -18,19 +18,29 @@ describe('Game', function(){
             assert( game.teams );
             assert.equal( game.type, Common.entity.TYPE_GAME );
             assert.equal( game.teams.length, 2 );
-
             Step(
                 function(){
                     game.process(this);
                 },
                 function(){
-                    game.saveCB(null,function(err,result){
-                        done();
-                    });        
+                    game.saveRelatedCB(this);
+                },
+                function(err,result){
+                    if( err ) throw err;
+                    // print_var( game );
+                    Common.entity.Game.create({id:result.id}).fetchRelatedCB({debug:false},this);
+                },
+                function(err,result){
+                    if( err ) throw err;
+                    print_var( result );
+                    assert.equal( result.type, Common.entity.TYPE_GAME );
+                    assert.equal( result.teams.length, 2 );                    
+                    done();
                 }
             );
         });
 
+        /*
         it('should execute a game function', function(done){
             var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
             var game = Common.entity.Game.create(null,{statePath:statePath});
@@ -55,6 +65,6 @@ describe('Game', function(){
                     done();
                 }
             );
-        })
+        });//*/
     });
 });

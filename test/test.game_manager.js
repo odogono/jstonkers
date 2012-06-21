@@ -12,17 +12,31 @@ describe('GameManager', function(){
 
     describe('create', function(){
         it('should create a new game', function(done){
+            var game, added = false;
             var gameManager = Common.entity.GameManager.create(null,{
                 statePath:Common.path.join( Common.paths.data, 'states', 'game_manager.json')
             });
 
             gameManager.on('add', function(game){
-                // log('gm evt ' + evt);
+                log('gm added ' + game.id);
+                added = true;
                 // print_ins( arguments);
-                done();
+                // done();
             });
             // print_ins( Common.entity.GameManager );
-            var game = gameManager.createGame();
+            
+            Step(
+                function(){
+                    gameManager.createGame( this );
+                },
+                function(err,result){
+                    if(err) throw err;
+                    assert( !result.isNew() );
+                    assert( added );
+                    print_var( result );
+                    done();
+                }
+            );
         });
     });
 

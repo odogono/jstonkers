@@ -109,6 +109,17 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return this.destroy(options);  
     },
 
+    triggerRelated: function(events){
+        var entity, relatedMap = this.flatten();
+
+        for(var id in relatedMap){
+            entity = relatedMap[id];
+            // log('triggering on ' + id );
+            entity.trigger.apply(entity,arguments);
+        }
+        return this;
+    },
+
     set: function(key, value, options) {
         var i, er, attrs, attr, val,entity,subEntity;
         var self = this, entityDef;
@@ -380,8 +391,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
         for (var prop in attrs) {
             // TODO - rewrite ER checking inside this loop
             result[prop] = attrs[prop];
-            // log( prop + ' ' + attrs[prop] )
+            log( prop + ' ' + attrs[prop] )
         }
+        // 
         // var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
 
         // if( !result )

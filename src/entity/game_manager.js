@@ -18,18 +18,37 @@ exports.entity = entity.Entity.extend({
         });
     },
 
-    createGame: function(attrs,options){
-        var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json');
-        var game = Common.entity.Game.create(attrs,{statePath:statePath});
-        this.games.add( game );
-        return game;
+    createGame: function(options,callback){
+        if( _.isFunction(options) ){
+            callback = options;
+        }
+        options = (options || {});
+        var self = this, statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json');
+        var game = Common.entity.Game.create(null,{statePath:statePath});
+        game.saveRelatedCB(function(err,result){
+            // print_ins( arguments );
+            // log('finished saving game ' + )
+            // res.json( {status:Common.Status.ACTIVE, game_id:game.id, game_count:app.gameManager.games.length} );
+            self.games.add( game );
+            log( 'added game ' + game.id );
+            callback( null, game );
+        });
+        
     },
 
-    destroyGame: function( gameId ){
+    destroyGame: function( gameId, callback ){
         var game = this.games.get( gameId );
-        if( !game )
-            throw { name:'not found', message:'game ' + gameId + ' not found', gameId:gameId };
-        
+        // print_ins( this );
+        if( !game ){
+            callback( { name:'not found', message:'game ' + gameId + ' not found', gameId:gameId } );
+            return;
+        }
+            // throw ;
+        game.destroyRelatedCB( {destroyHard:true}, function(err,result){
+            log('destroyRelatedCB');
+            print_ins( arguments );
+            callback( err, result );
+        });
     },
 
     // the main event loop

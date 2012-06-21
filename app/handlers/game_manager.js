@@ -9,10 +9,7 @@ app.post('/game/new', function(req,res){
     // process the arguments for creating the game
 
     // fetch a default game state
-    var game = app.gameManager.createGame();
-    
-    game.saveCB(function(err,result){
-        // print_ins( arguments );
+    var game = app.gameManager.createGame( function(err,game){
         res.json( {status:Common.Status.ACTIVE, game_id:game.id, game_count:app.gameManager.games.length} );
     });
 });
@@ -27,7 +24,16 @@ app.get('/game/:game_id', function(req,res){
 
 app.delete('/game/:game_id', function(req,res){
     var gameId = req.param('game_id');
-    res.send('bah ' + gameId);
+
+    app.gameManager.destroyGame( gameId, function(err, result){
+        if( err ){
+            print_ins( err );
+            throw err;
+            // res.render('error', {status:404, message:err.message, game_id:gameId} );
+        }else
+            res.json({ game_id:gameId });
+    });
+    
 });
 
 // app.get('/', function(req,res){

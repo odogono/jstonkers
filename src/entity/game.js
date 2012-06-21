@@ -13,6 +13,9 @@ exports.ER = [
 exports.entity = entity.Entity.extend({
     initialize: function(){
         var self = this;
+        this.teams.on('add', function(team){
+            team.game = self;
+        });
         this.cmds.on('add', function(cmd){
             cmd.game = self;
         });

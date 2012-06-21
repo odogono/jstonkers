@@ -61,8 +61,7 @@ describe('app', function(){
                 httpRequest(self.app, res).delete('/game/' + response.game_id).end(this);
             },
             function(res){
-
-                log(res.body);
+                print_ins(res.body);
                 log('done deleting');
                 // ensure the game has been deleted
                 // httpRequest(self.app, res).get('/game/' + response.game_id);
