@@ -61,14 +61,16 @@ exports.EntityCollection = entity.Entity.extend({
     },
 
     createItemsModel: function( attrs, options ){
-        // if( !attrs ){
-        //     print_ins( arguments );
-        //     print_stack();
-        // }
+        if( options && options.collection && options.collection.entityCollection ){
+            if( !attrs.type )
+                attrs.type = options.collection.entityCollection.entityType;
+        }
+
         if( attrs.type ){
             var result = entity.create( attrs, options );
             return result;
         }
+
         return new Backbone.Model( attrs, options );
     },
 
@@ -112,6 +114,7 @@ exports.EntityCollection = entity.Entity.extend({
             attrs[key] = value;
         }
         if (!attrs) return this;
+
 
         if( attrs.items ){
             attrs.items = _.compact(attrs.items);
@@ -179,10 +182,7 @@ exports.EntityCollection = entity.Entity.extend({
         });
     },
 
-    // returns true if this collection should be serialised as an entity
-    shouldSerialise: function(){
-        return this.hasNonDefaultAttributes();
-    },
+    
     
     flatten: function( options ){
         var id,item,i,len,outgoing;
@@ -228,19 +228,26 @@ exports.EntityCollection = entity.Entity.extend({
         return result;
     },
 
+    // returns true if this collection should be serialised as an entity
+    shouldSerialise: function(){
+        return this.hasNonDefaultAttributes();
+    },
+
     toJSON: function( options ){
         options || (options = {});
         var result,
             refItems = options.referenceItems,
             includeCounts = options.includeCounts,
             fullItems = options.fullItems,
-            returnDefaults = options.returnDefaults;
+            returnDefaults = options.returnDefaults,
+            doRelations = _.isUndefined(options.relations) ? true : options.relations;
 
         if( options.collectionAsIdList ){
             return this.items.map( function(it){ return it.id || it.cid });
         }
 
         result = entity.Entity.prototype.toJSON.apply(this,arguments);
+        // print_ins( result );
 
         if( includeCounts ){
             result.item_count = this.items.length;
@@ -251,7 +258,7 @@ exports.EntityCollection = entity.Entity.extend({
             // delete result.page_count;
         }
 
-        if( this.items.length > 0 ){
+        if( doRelations && this.items.length > 0 ){
             if( refItems )
                 result.items = this.items.map( function(it){ return it.id || it.cid });
             else

@@ -122,7 +122,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         }
         if (!attrs) return this;
 
-
+        // print_ins( attrs );
         if( attrs.type ){
             // log('setting type to ' + attrs.type );
             this.type = attrs.type;
@@ -148,6 +148,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         // if( this.id ) 
         // log('setting ' + this.id + ' ' + JSON.stringify(entityDef) );
 
+        // print_ins( attrs );
         if( entityDef && entityDef.ER ){
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
@@ -157,7 +158,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
                 // log('set ' + erName );
 
-                // if( options && options.setRelated ) log('set ' + JSON.stringify(attrs) + ' ' + erName);
+                // if( options && options.setRelated )  
+                // log( this.type + ' set ' + JSON.stringify(erData) + ' ' + erName);
+                // print_ins( erData );
                 if( !erData )
                     continue;
 
@@ -200,7 +203,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
     parse: function(resp, xhr, options){
         if( !resp )
             return resp;
-        var i, er, self = this,
+        var i, er, key, self = this,
             targetId = this.id,
             origResp = resp;
         var debug = options && options.debug;
@@ -222,15 +225,40 @@ var Entity = exports.Entity = Backbone.Model.extend({
             if( !data )
                 return;
 
-            var type = data.type = data.type || options.type || self.type;
+            var type = data.type || options.type || self.type;
 
-            if( !(entityDef = exports.ids[ type ]) )
+            if( !_.isUndefined(type) ) 
+                data.type = type;
+
+            if( !(entityDef = (options.entityDef || exports.ids[ type ])) )
                 return;
             if( removeId ){
                 delete data['id'];
             }
 
-            // if( debug ) log('calling it ' + type + ' ' + JSON.stringify(entityDef.ER) );
+            // if( options.debug ) log('calling it ' + type + ' ' + JSON.stringify(options) );
+            // if( options.debug ) print_var( data );
+            // if( options.debug ) print_var( entityDef );
+
+            if( options.isCollection ){
+                // this part of data has been flagged as being a collection instance
+                // it may contain attributes of its own, and will have a list of entity ids keyed to either
+                // the collection name, or a generic 'items' name
+                key = 'items';
+                if( data[ entityDef.name ] )
+                    key = entityDef.name;                
+
+                if( data[ key ] ){
+                    data.items = _.map( data[ key ], function(item){
+                        item = _.isObject(item) ? item : origResp[item];
+                        return associateRelations( item );
+                    });
+                    if( data[ entityDef.name ] )
+                        delete data[ entityDef.name ];
+                }
+                delete data.type;
+                return data;
+            }
 
             if( entityDef.oneToMany ){
                 // TODO - maybe this should be the responsibility of the particular class...
@@ -262,7 +290,8 @@ var Entity = exports.Entity = Backbone.Model.extend({
                         data[erName] = { items:items };
                     } else{
                         if( origResp[erId] ){
-                            data[ erName ] = associateRelations( origResp[erId] );
+                            // log('assoc ' + JSON.stringify(er) );
+                            data[ erName ] = associateRelations( origResp[erId], {isCollection:true,entityDef:er,debug:true} );
                         }
                         else if( erId.items ){
                             erId.items = _.map( erId.items, function(eid){
@@ -340,7 +369,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
     },
 
     toJSON: function( options ){
-        var i, entityDef, er, erName, relation;
+        var i, entityDef, er, erName, relation, output;
         options || (options = {});
         var doRelations = _.isUndefined(options.relations) ? true : options.relations;//options.relations;
         var relationsAsId = options.relationsAsId;
@@ -351,6 +380,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         for (var prop in attrs) {
             // TODO - rewrite ER checking inside this loop
             result[prop] = attrs[prop];
+            // log( prop + ' ' + attrs[prop] )
         }
         // var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
 
@@ -389,12 +419,11 @@ var Entity = exports.Entity = Backbone.Model.extend({
                     relation = this[erName];
                     if( !relation )
                         continue;
-
                     if( !relation.isNew() && relationsAsId )
                         result[erName] = relation.id;// || this[erName].cid;
                     else if( doRelations ) {
-                        // print_ins( this[erName].toJSON() );
-                        result[erName] = relation.toJSON();
+                        if( (output = relation.toJSON()) )
+                            result[erName] = output;
                     }
                 }
             }
@@ -418,8 +447,10 @@ var Entity = exports.Entity = Backbone.Model.extend({
         if( options.refCount )
             result.refCount = this.refCount;
 
-        if( this.type )
+        if( !_.isUndefined(this.type) )
             result.type = this.type;
+        else
+            delete result.type;
 
         return result;
     },
@@ -428,8 +459,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
     hasNonDefaultAttributes: function(options){
         var i,len,defaults = this.defaults;
 
-        if( this.attributes.length !== this.defaults.length )
+        if( _.keys(this.attributes).length !== _.keys(this.defaults).length ){
             return true;
+        }
 
         for( i=0,len=defaults.length;i<len;i++ ){
             if( defaults[i] !== this.attributes[ i ] )
@@ -491,7 +523,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
                 // def = Common.entity.ids[ er.type ];
-                // log('exam ER ' + JSON.stringify(entityDef) + ' ' + JSON.stringify(er) );
+                // log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
                 // print_ins( Common.entity.ids );
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 if( er.oneToOne ){
@@ -500,8 +532,12 @@ var Entity = exports.Entity = Backbone.Model.extend({
                         child.flatten( options );
                     }
                 } else if( er.oneToMany ){
+                    // log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
                     if( doRecurse && (child = this[erName]) ){
-                        // log('flattening ' + erName );
+                        // print_ins( child instanceof Common.entity.EntityCollection );
+                        // log( child.flatten )
+                        // log( child instanceof exports.Entity );
+                        // print_ins( child );
                         child.flatten(options);
                     }
                     

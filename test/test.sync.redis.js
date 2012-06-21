@@ -55,20 +55,23 @@ describe('Sync.Redis', function(){
         // it('should delete the entity cleanly');
         
         it('should save an entity', function(done){
+            var user = Common.entity.create(Common.entity.TYPE_TEST_A, {name:'freddy'}); 
             Step(
                 function(){
-                    var user = Common.entity.create(Common.entity.TYPE_TEST_A, {name:'freddy'}); 
-                    user.saveCB( null, this );
+                    assert( user.isNew() );
+                    assert( !user.id );
+                    user.saveCB( this );
                 },
-                function(err,user){
+                function(err,result){
                     if( err ) throw err;
-                    user.get('name').should.equal('freddy');
-                    var restoredUser = Common.entity.create( Common.entity.TYPE_TEST_A, user.id );
-                    restoredUser.fetchCB( this );
+                    assert( !user.isNew() );
+                    assert( user.id );
+                    result.get('name').should.equal('freddy');
+                    Common.entity.create( Common.entity.TYPE_TEST_A, result.id ).fetchCB( this );
                 },
-                function(err,restoredUser){
+                function(err,result){
                     if( err ) throw err;
-                    restoredUser.get('name').should.equal('freddy');
+                    result.get('name').should.equal('freddy');
                     done();
                 }
             )
@@ -220,6 +223,37 @@ describe('Sync.Redis', function(){
                 },
                 function(err, result){
                     assert.equal( err, 'unknown.001 not found');
+                    done();
+                }
+            );
+        });
+
+        it('should generate ids correctly', function(done){
+            var a = Common.entity.create({
+                name: "enigma",
+                type: "test_e",
+                comrade:{
+                    name: "foxtrot",
+                    type:"test_f",
+                    associate:{ type:'test_a', name:'arnold' }
+                },
+                others:[
+                    { name:'foxtrot_2', type:'test_f' },
+                    { name:'foxtrot_3', type:'test_f' }
+                ]
+            });
+
+            Step(
+                function(){
+                    a.saveRelatedCB(this);
+                },
+                function(err,result){
+                    var json = a.toJSON();
+                    assert.equal( a.id, json.id );
+                    assert( json.comrade.id );
+                    assert.equal( a.get('comrade').id, json.comrade.id );
+                    assert( json.others[1].id );
+                    assert.equal( a.others.at(1).id, json.others[1].id );
                     done();
                 }
             );
@@ -482,7 +516,6 @@ describe('Sync.Redis', function(){
                     col.length.should.equal(3);
                     col.get('item_count').should.equal(3);
                     entityIds = col.items.map( function(i){ return i.id; });
-
                     col.saveCB( this );
                 },
                 function(col){

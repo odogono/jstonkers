@@ -284,6 +284,31 @@ describe('Entity', function(){
             assert.deepEqual( parsed, expected );
         });
     });
+
+    it('should parse another form of o2m', function(){
+        var data = {
+            "1": { "type": "test_e", "name": "enigma", "others": 2, "id": 1 },
+            "2": { "excel": "nice", "id": 2, "others": [ "3", "4" ] },
+            "3": { "name": "falco_1", "type": "test_f", "id": "3" },
+            "4": { "name": "falco_2", "type": "test_f", "id": "4" }
+        };
+        var expected = {
+            "type": "test_e",
+            "name": "enigma",
+            "others": {
+                "id": 2, "excel": "nice",
+                "items": [
+                    { "name": "falco_1", "type": "test_f", "id": "3" },
+                    { "name": "falco_2", "type": "test_f", "id": "4" }
+                ]
+            },
+            "id": 1
+        }
+
+        var a = Common.entity.create({type:'test_e'});
+        var parsed = a.parse( data, null, {debug:true,parseFor:'1'});
+        assert.deepEqual( parsed, expected );
+    });
     
     
     describe('cloning', function(){

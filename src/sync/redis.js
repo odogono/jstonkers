@@ -60,6 +60,7 @@ _.extend( RedisStorage.prototype, {
 
         serialised = entity.toJSON({relationsAsId:true,relations:false,debug:options.debug});
         serialised.type = entity.type;
+        delete serialised.id;
         if( options.debug ) log( 'saving serialised: ' + JSON.stringify( serialised ) );
 
         key = keyPrefix + ':' + entity.id;
@@ -485,6 +486,7 @@ _.extend( RedisStorage.prototype, {
 
         // log('redis.update with ' + JSON.stringify(options) );
         // if( options.debug ) print_var( cidToModel );
+        // if( options.debug ) process.exit();
         
         Step(
             function ensureIds(){
@@ -509,6 +511,7 @@ _.extend( RedisStorage.prototype, {
                 multi.exec( this );
             },
             function(err,replies){
+                if( options.debug ) log('entity id is now ' + model.id + '(' + model.cid + ')');
                 callback(err, model);
             }
         );//*/
@@ -608,8 +611,9 @@ _.extend( RedisStorage.prototype, {
         var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
         var entityDef;// = Common.entity.ids[entity.type];
         var ignoreStatus = _.isUndefined(options.ignoreStatus) ? false : options.ignoreStatus;
+        var debug = null;//entityId == 1;// || options.debug
 
-        if(options.debug) log('retrieveEntityById ' + entityId + ' ' + entityKey + ' options: ' + JSON.stringify(options) );
+        // if(debug) log('retrieveEntityById ' + entityId + ' ' + entityKey + ' options: ' + JSON.stringify(options) );
 
         var multi = self.client.multi();
 
@@ -638,20 +642,33 @@ _.extend( RedisStorage.prototype, {
                 return;
             }
 
-            if(options.debug ) log('hmm plinkyplonk ' + JSON.stringify(entityDef) );
+            if( !entityDef && options.entityDefHint ){
+                // JSON.stringify(options.entityDefHint)
+                entityDef = Common.entity.ids[options.entityDefHint.type];
+            }
+
+            // if(debug ) log('hmm plinkyplonk ' + JSON.stringify(entityDef) );
             
+            // if( !entityDef ){
+            //     log('cant find entityDef for ' + JSON.stringify(entityAttr) );
+            //     callback( null, entityAttr );
+            // }
+
             // look for other relations that we should retrieve
             // if there are any collections associated with this entity then fetch their details
             if( entityDef.oneToMany ){
                 // this is a collection - look for members
                 // log('looking for members of ' + entityKey + ':items' );
-                options.fetchSetList.push( {key:entityKey + ':items', callback:function(result){
+                options.fetchSetList.push( {key:entityKey + ':items', name:'items', callback:function(params,result){
+                    // log('setting ' + entityKey+':items on ' + JSON.stringify(entityAttr) );
                     entityAttr.items = result;
                 }});
             }
             else if( entityDef.ER ){
                 for( i in entityDef.ER ){
+                    
                     er = entityDef.ER[i];
+
                     if( er.oneToMany ){
                         name = (er.name || er.oneToMany).toLowerCase();
                         targetId = entityAttr[name];
@@ -660,13 +677,13 @@ _.extend( RedisStorage.prototype, {
                         if( targetId ){
                             if( (options.fetchRelated || options._depth < options.depth) && !options.result[targetId] ){
                                 // erCollections.push( name );
-                                if( options.debug ) log('2 adding ' + name + ' ' + targetId );
-                                options.fetchList.push( targetId );
+                                if( debug ) log('2 adding ' + name + ' ' + targetId + ' ' + entityDef.type );
+                                options.fetchList.push( {id:targetId, name:name, type:entityDef.type} );
                             }
                         } else {
                             // look for set members
-                            options.fetchSetList.push( {key:entityKey + ':' + name, callback:function(result){
-                                entityAttr[name] = result;
+                            options.fetchSetList.push( {key:entityKey + ':' + name, name:name, callback:function(params,result){
+                                entityAttr[params.name] = result;
                             }});
                         }
                     }
@@ -826,6 +843,7 @@ _.extend( RedisStorage.prototype, {
     find: function(model, options, callback) {
         var i, self = this,
             item, entityId,
+            retrieveOptions,
             collectionSetKey,
             result;
         var entityDetails = Common.entity.ids[model.type];
@@ -845,26 +863,17 @@ _.extend( RedisStorage.prototype, {
         options.fetchSetList = [];
         options.result = {};
 
-        /*
-        if( model instanceof Common.entity.EntityCollection ){
-            if( !model.id ){
-                this.retrieveCollectionByType( model, options, callback );
-            }
-            else{
-                this.retrieveCollectionById( model,options,callback);
-            }
-        }
-        else {
-            self.retrieveEntityById( model, options, callback );
-        }//*/
 
         var evalFetchList = function(){
             if( options.fetchSetList.length > 0 ){
+                
                 item = options.fetchSetList.shift();
+
                 if( _.isObject(item) ){
                     self.client.sdiff( item.key, ldlKey, function(err,result){
                         if( err ) throw err;
-                        if( options.debug ) log('result of set ' + item.key + ' ' + JSON.stringify(options) );
+                        // if( options.debug ) 
+                        // log('result of set ' + item.key + ' ' + JSON.stringify(result) );
                         // add the member IDs to the list of entities that should also be retrieved
                         if( options.fetchList ){
                             for( i in result ){
@@ -877,7 +886,7 @@ _.extend( RedisStorage.prototype, {
                         }
 
                         if( item.callback ){
-                            item.callback( result );
+                            item.callback( item, result );
                         }
 
                         // re-check if we need to fetch anything
@@ -887,8 +896,18 @@ _.extend( RedisStorage.prototype, {
             } else if( options.fetchList.length > 0 ) {
                 // pull the next
                 entityId = options.fetchList.shift();
+
+                if( _.isObject(entityId) ){
+                    retrieveOptions = _.clone(options);
+                    retrieveOptions.entityDefHint = entityId;
+                    entityId = entityId.id;
+                    // log('special fetch for ' + entityId + ' ' + JSON.stringify(retrieveOptions.entityDefHint) );
+                } else
+                    retrieveOptions = options;
+                
                 if( options.debug ) log('going for retrieve of ' + entityId );
-                self.retrieveEntityById( entityId, options, function(err,data){
+
+                self.retrieveEntityById( entityId, retrieveOptions, function(err,data){
                     if( err ){
                         // TODO : will it always matter that a model cant be found?
                         callback( err );
@@ -901,7 +920,8 @@ _.extend( RedisStorage.prototype, {
                 });
             } else {
                 if( options.debug ) log('finished fetchList retrieve');
-                if( options.debug ) print_var( options.result );
+                // if( options.debug ) 
+                // print_var( options.result );
                 callback( null, options.result );
             }
         };
@@ -1000,7 +1020,10 @@ exports.generateUuid = function( options, callback ){
     // store.client.incr( key, callback );
     store.client.incr( key, function(err,id){
         if( options.entity ){
-            options.entity.id = id;
+            if( options.entity.set )
+                options.entity.set('id', id);
+            else
+                options.entity.id = id;
             options.entity._uuidgen = true;
         }
         callback(err,id,options);

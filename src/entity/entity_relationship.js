@@ -207,7 +207,6 @@ exports.oneToMany = function( entityDef, spec, options ){
             entityName = codomainName.toLowerCase(),
             // collection = 
             collection = spec.create ? spec.create({entity:codomainType}) : EntityCollection.create({entity:codomainType});
-
         // print_ins( module.parent.exports.getEntityFromType(codomainType) );
         // collection.model = module.parent.exports.getEntityFromType(codomainType).entity;
         // collection.entity = this;
