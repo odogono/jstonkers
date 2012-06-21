@@ -349,12 +349,121 @@ describe('Sync.Redis', function(){
             );
         });//*/
 
-        it('should completely delete an entity and related');
-        //*/
+        it('should completely delete an entity and related', function(done){
+            var initialCount, initialKeys;
+            var a = Common.entity.create({
+                id:"enigma_1",
+                name: "enigma",
+                status: "atv",
+                type: "test_e",
+                comrade:{
+                    id:"foxtrot_1",
+                    name: "foxtrot",
+                    status: "atv",
+                    type:"test_f",
+                    associate:{
+                        id:'alpha_a',
+                        status:'atv',
+                        type:'test_a',
+                        name:'arnold'
+                    }
+                },
+                others:[
+                    { id:'foxtrot_2', type:'test_f' },
+                    { id:'foxtrot_3', type:'test_f' }
+                ]
+            });
+
+            Step(
+                function fetchAllKeys(){
+                    Common.sync.keys( this );
+                },
+                function countCurrentKeysAndSave(err, result){
+                    initialKeys = result;
+                    initialCount = result.length;
+                    a.saveRelatedCB( null, this );
+                },
+                function destroyEntity(err,result){
+                    result.destroyRelatedCB({destroyHard:true},this);
+                },
+                function recreateEntityAndFetch(){
+                    Common.entity.create( Common.entity.TYPE_TEST_E, a.id ).fetchRelatedCB( {ignoreStatus:true}, this );
+                },
+                function recountCurrentKeys(err,result){
+                    assert.equal(err, a.id + ' not found');
+                    Common.sync.keys( this );
+                },
+                function confirmAllDestroyed(err, keys){
+                    assert.equal( keys.length, 0 );
+                    // same count minus the uuid key
+                    assert.equal( initialCount, keys.length );
+                    done();
+                }
+            );
+        });
+        
     });
 
     
-    
+    describe('CommandQueue', function(){
+        var initialCount, initialKeys;
+        var CmdTestA = Common.entity.CommandQueue.Command.extend({
+            execute: function(options,callback){
+                callback( null, true, this );
+            },
+            isCmdTestA: function(){
+                return true;
+            }
+        });
+
+        Common.entity.registerEntity( 'cmd_test_a', CmdTestA );
+
+        it('should destroy processed commands', function(done){
+            var q = Common.entity.CommandQueue.create();
+
+            Step(
+                function fetchAllKeys(){
+                    Common.sync.keys( this );
+                },
+                function countCurrentKeysAndSave(err, result){
+                    initialKeys = result;
+                    initialCount = result.length;
+                    q.saveRelatedCB( this );
+                },
+                function createCommandAndAdd(err,result){
+                    if( err ) throw err;
+                    var cmd = Common.entity.create( CmdTestA, {execute_time:-1} );
+                    q.add( cmd );
+                    assert.equal( q.length, 1 );
+                    q.saveRelatedCB( this );
+                },
+                function processQueue(err,result){
+                    if( err ) throw err;
+                    q.destroyRelatedCB( {destroyHard:true}, this );
+                },
+                function recreateQueue(err,result){
+                    if( err ) throw err;
+                    // the fetched queue should contain no items
+                    Common.entity.CommandQueue.create({id:q.id}).fetchRelatedCB(this);
+                },
+                function recountCurrentKeys(err,result){
+                    assert.equal( result.length, 0)
+                    Common.sync.keys( this );
+                },
+                function confirmAllDestroyed(err, keys){
+                    var config = Common.config.sync.redis;
+                    var key = config.key_prefix + ':' + config.uuid.key;
+
+                    // the only difference should be the uuid key
+                    assert.equal(key, _.difference( keys, initialKeys )[0] );
+                    // same count minus the uuid key
+                    assert.equal( initialCount, keys.length-1 );
+                    done();
+                }
+            );
+
+        });
+    });//*/
     
     
     describe('EntityCollection', function(){

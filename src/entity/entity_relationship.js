@@ -11,19 +11,48 @@ entity.registerEntity = function( entityDef, entity, options ){
 };
 
 
-exports.getERDetails = function( erName ){
-    var entry;
-    var entityDef = exports.ids[this.type];
-    if( !entityDef )
-        return null;
+// add some more functions to the Entity type
+_.extend( entity.Entity.prototype, {
 
-    for( var i in entityDef.ER ){
-        entry = entityDef.ER[i];
-        if( entry.name === erName || entry.type === erName )
-            return entry;
-    }
-    return null;
-};
+    // Returns the details of a o2o relation if an erName is specified
+    //    otherwise returns a map of all o2o relations 
+    getOneToOne: function( erName ){
+        var def, result = {};
+        var entityDef = entity.ids[this.type];
+        if( !entityDef )
+            return null;
+        for( var i in entityDef.ER ){
+            def = entityDef.ER[i];
+            if( def.oneToOne ){
+                if( erName && (erName === def.name || erName === def.type) )
+                    return def;
+                result[ def.name || def.type ] = def;
+            }
+        }
+        return result;
+    },
+
+    // Returns the details of a o2m relation if an erName is specified
+    //    otherwise returns a map of all o2m relations
+    getOneToMany: function( erName ){
+        var def, result = {};
+        var entityDef = entity.ids[this.type];
+        if( !entityDef )
+            return null;
+        for( var i in entityDef.ER ){
+            def = entityDef.ER[i];
+            if( def.oneToMany ){
+                if( erName && (erName === def.name || erName === def.type) )
+                    return def;
+                result[ def.name || def.type ] = def;
+            }
+        }
+        return result;
+    },
+});
+
+
+
 
 var initEntityER = function( entityDef, options ){
     options = (options || {});

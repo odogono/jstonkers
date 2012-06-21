@@ -379,7 +379,7 @@ _.extend( RedisStorage.prototype, {
 
 _.extend( RedisStorage.prototype, {
     delete: function(model,options,callback){
-        var i, j, entity, self = this;
+        var i, j, entity, collection, ers, self = this;
         var keyPrefix = self.options.key_prefix;
         var entityDetails = Common.entity.ids[model.type];
         var flattenOptions = {toJSON:false,recurse:false};
@@ -391,8 +391,8 @@ _.extend( RedisStorage.prototype, {
         // as belonging to the refering entity
         flattenOptions.ownOnly = _.isUndefined(options.ownOnly) ? true : options.ownOnly;
 
-        var cidToModel = _.values( model.flatten(flattenOptions) );
-        // print_ins( cidToModel );
+        var cidToModel = _.values( model.flatten(flattenOptions) ).reverse();
+        // if( options.debug ) print_var( cidToModel );
         // var cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
 
         if( options.destroyHard ){
@@ -416,13 +416,21 @@ _.extend( RedisStorage.prototype, {
                     multi.srem( keyPrefix + ':status:' + Common.Status[j], entity.id );
                 }
 
-                // log('the entity doesnt have its entityCollection set!' );
-                // log('hard deleting ' + entity.id );
-                // print_ins( entity );
-                if( entity.entityCollection ){
+                // if the entity belongs to an entity collection, then remove it from its set
+                if( (collection = entity.entityCollection) ){
                     
-                    multi.srem( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
+                    // multi.srem( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
+                    multi.srem( keyPrefix + ':' + collection.getStoreId() + ':' + collection.getName() || 'items', entity.id );
                 }
+
+                // remove sets associated
+                ers = entity.getOneToMany();
+                if( ers ){
+                    for( j in ers ){
+                        multi.del( keyPrefix + ':' + entity.id + ':' + j );
+                    }
+                }
+                
             }
 
             multi.exec( function(err, replies){

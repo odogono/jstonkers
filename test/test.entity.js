@@ -143,87 +143,31 @@ describe('Entity', function(){
             assert.equal( a.get('comrade').refCount, 1 );
             assert.equal( a.get('comrade').get('associate').refCount, 1 );
             assert.equal( a.others.at(1).refCount, 1 );
-
         });
+
+        
     });//*/
 
-    // /*
-    // describe('one to many', function(){
+    describe('one to many', function(){
+        it('returns details of o2m relationships', function(){
+            var a = Common.entity.create({
+                id:"enigma_1",
+                type: "test_e",
+                comrade:{
+                    id:"foxtrot_1",
+                    type:"test_f",
+                    associate:{ id:'alpha_a', type:'test_a' }
+                },
+                others:[
+                    { id:'foxtrot_2', type:'test_f' },
+                    { id:'foxtrot_3', type:'test_f' }
+                ]
+            });
 
-    //     var otmA = {
-    //         type: 'o2m',
-    //         entity: Common.entity.Entity.extend({}),
-    //         ER:[
-    //             { oneToMany: 'otmb', name:'friends', notes:'fromtest' }
-    //         ]
-    //     };
-
-    //     var otmB = {
-    //         type: 'otmb',
-    //         entity: Common.entity.Entity.extend({})
-    //     };
-
-    //     // register backwards because of referencing
-    //     Common.entity.registerEntity(otmB);
-    //     Common.entity.registerEntity(otmA);
-
-    //     it('should have a 1toM field', function(){
-    //         var instA = Common.entity.create( 'otma.001' );
-    //         instA.should.be.an.instanceof( Common.entity.Entity );
-    //         Common.should.exist( instA.friends );
-    //         instA.friends.should.be.an.instanceof( Common.entity.EntityCollection );
-    //     });
-
-    //     it('should allow addition', function(){
-    //         var instA = Common.entity.create( 'otma.002' );
-    //         var childA = Common.entity.create( 'otmb.001' );
-
-    //         instA.friends.add( childA );
-    //         instA.friends.at(0).should.eql( childA );
-    //         instA.friends.get('item_count').should.equal(1);
-    //         instA.friends.get('page_count').should.equal(1);
-    //         instA.friends.length.should.equal(1);
-
-    //         instA.friends.remove( childA );
-    //         Common.should.not.exist( childA.getOtma() );
-    //         instA.friends.get('item_count').should.equal(0);
-    //         instA.friends.get('page_count').should.equal(0);
-    //         instA.friends.length.should.equal(0);
-    //     });
-    // });
-
-    // describe('multiple one to many', function(){
-    //     var motmA = {
-    //         type: 'motma',
-    //         ER:[
-    //             { oneToMany: 'motmb', name:'friends' },
-    //             { oneToMany: 'motmc', name:'enemies' }
-    //         ]
-    //     };
-
-    //     Common.entity.registerEntity( { type: 'motmc' } );
-    //     Common.entity.registerEntity( { type: 'motmb' } );
-    //     Common.entity.registerEntity( motmA );
-
-    //     it('should have the right fields', function(){
-    //         var instA = Common.entity.create( 'motma.001' );
-    //         Common.should.exist( instA.friends );
-    //         Common.should.exist( instA.enemies );
-    //     });
-
-    //     it('should create with collection properties', function(){
-    //         var instA = Common.entity.create( {id:'motma.003', friends:{item_count:4, comment:'nice!'} } );
-    //         Common.should.not.exist( instA.get('friends') );
-    //         instA.friends.get('item_count').should.equal(4);
-    //         instA.friends.get('comment').should.equal('nice!');
-    //     });
-    // });
-
-    // describe('user', function(){
-    //     var user = Common.entity.create( 'user.001' );
-
-    //     print_ins( user, false, 2, true );
-    // })//*/
+            assert.deepEqual( a.getOneToMany(), { "others": { "oneToMany": "test_f", "name": "others", "type": "test_f" } } );
+            assert.deepEqual( a.getOneToMany('others'), { "oneToMany": "test_f", "name": "others", "type": "test_f" } );
+        });
+    });
 
     
     describe('serialisation', function(){
