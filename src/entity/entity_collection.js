@@ -91,7 +91,11 @@ exports.EntityCollection = entity.Entity.extend({
             return Math.max( this.items.length, this.attributes.item_count );
         if( attr == 'page_count' )
             return Math.ceil( this.items.length / this.get('page_size') );
-        return entity.Entity.prototype.get.apply(this,arguments);
+        var result = entity.Entity.prototype.get.apply(this,arguments);
+        if( result == null ){
+            result = this.items.get(attr);
+        }
+        return result;
     },
 
     set: function(key, value, options) {

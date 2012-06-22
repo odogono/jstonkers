@@ -22,6 +22,8 @@ app.get('/game/:game_id', function(req,res){
     res.render('error', { status: 404, message: 'Game' + gameId + ' Not Found' });
 });
 
+
+
 app.delete('/game/:game_id', function(req,res){
     var gameId = req.param('game_id');
 

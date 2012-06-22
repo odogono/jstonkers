@@ -1,4 +1,5 @@
 var app = module.parent.exports;
+var socketio = require('socket.io');
 
 if( !app.config.socket_server.enabled ) {
     log('socket server disabled');
@@ -6,15 +7,12 @@ if( !app.config.socket_server.enabled ) {
 }
 
 log('socket server enabled');
-var io = socketio.listen(app);
+var io = app.socketio = socketio.listen(app.server);
 var buffer = [];
-
-app.socketio = io;
 
 io.on('connection', function(client){ 
     
-    client.send({msg:'welcome, bro',sess:client.sessionId});
-    // client.broadcast({ announcement: client.sessionId + ' connected' });
+    client.json.send({msg:'welcome',sess:client.sessionId});
     
     client.on('message', function(message){
         log('client message: ' + JSON.stringify(message) );

@@ -8,25 +8,32 @@ describe('app', function(){
 
     beforeEach( function(done){
         var self = this;
+
+        // create app instance
+        self.app = require(appPath);
+
         // clear db first
         Common.sync.clear( function(err){
             if( err ) return done(err);
 
-            // create app instance
-            self.app = require(appPath);
-
             done();
         });
     });
+
+    afterEach( function(done){
+        // print_ins( this.app );
+        // this.app.httpServer.close();
+        done();
+    })
 
 
     it('creates a new game', function(done){
         var self = this;
         var addedGame;
 
-        self.app.gameManager.on('add', function(game){
-            addedGame = game;
-        });
+        // self.app.gameManager.on('add', function(game){
+        //     addedGame = game;
+        // });
 
         Step(
             function postCreateRequest(){
@@ -40,6 +47,7 @@ describe('app', function(){
                 this();
             },
             function(){
+                log('----')
                 done();
             }
         );
@@ -48,9 +56,9 @@ describe('app', function(){
     it('destroys a game', function(done){
         var self = this;
 
-        self.app.gameManager.on('all', function(evt){
-            log('gm evt ' + evt);
-        });
+        // self.app.gameManager.on('all', function(evt){
+        //     log('gm evt ' + evt);
+        // });
 
         Step(
             function(){

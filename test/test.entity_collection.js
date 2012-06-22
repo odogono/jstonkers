@@ -1,4 +1,6 @@
 var Common = require( '../src/common.js' );
+var MainServer = require( '../src/main.server' );
+var EntityCollection = require('../src/entity/entity_collection');
 
 describe('EntityCollection', function(){
 
@@ -7,7 +9,7 @@ describe('EntityCollection', function(){
         { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },
         // { type: 'test_c' },
         // { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
-        { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'} ] },
+        { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'}, {oneToOne:'test_b', name:'friend'}, {oneToMany:'test_f', name:'others'} ] },
         { type: 'test_f', ER:[ {oneToOne:'test_a', name:'associate'} ] }
     ];
 
@@ -16,9 +18,6 @@ describe('EntityCollection', function(){
     });
 
     beforeEach( function(done){
-        // var testEntity = { name: 'test', type: 'test' };
-        // Common.entity.registerEntity( testEntity );
-
         Common.sync.clear( function(err){
             if( err ) return done(err);
             done();
@@ -31,7 +30,7 @@ describe('EntityCollection', function(){
         for( i=0;i<10;i++ )
             entities.push( {id:_.sprintf('test.%03d', i+1), name:'test entity ' + (i+1)} );
 
-        var collection = Common.entity.createEntityCollection( {items:entities, entity:'test_a'} );
+        var collection = EntityCollection.create( {items:entities, entity:'test_a'} );
 
         assert( collection.at(2) instanceof( Common.entity.TestA.entity ) );
         assert.equal( collection.at(1).type,  Common.entity.TestA.type );
@@ -46,7 +45,7 @@ describe('EntityCollection', function(){
                     id:_.sprintf('test.%03d', i+1),
                     name:'test entity ' + (i+1)}  ));
 
-        var collection = Common.entity.createEntityCollection( {items:entities} );
+        var collection = EntityCollection.create( {items:entities} );
         assert( collection.at(2) instanceof Common.entity.TestA.entity );
         assert.equal( collection.at(1).type, Common.entity.TestA.type );
         assert.equal( collection.at(3).get('name'), 'test entity 4' );
@@ -60,7 +59,7 @@ describe('EntityCollection', function(){
             { id:'test.002', type:'test' }
         ];
 
-        var collection = Common.entity.createEntityCollection();
+        var collection = EntityCollection.create();
         collection.set( incoming );
         assert.equal( collection.length, 2 );
         assert.equal( collection.get('item_count'), 2 );
@@ -76,7 +75,7 @@ describe('EntityCollection', function(){
             ]
         };
 
-        var collection = Common.entity.createEntityCollection();
+        var collection = EntityCollection.create();
         collection.set( incoming );
         assert.equal( collection.length, 2 );
         assert.equal( collection.get('item_count'), 200 );
@@ -117,7 +116,7 @@ describe('EntityCollection', function(){
                         id:_.sprintf('test.%03d', i+1),
                         type:'test_a', name:'test entity ' + (i+1)}  ));
 
-            var collection = Common.entity.createEntityCollection( {id:'col.001', items:entities} );
+            var collection = EntityCollection.create( {id:'col.001', items:entities} );
             var result = collection.flatten({toJSON:true});
         });
     });

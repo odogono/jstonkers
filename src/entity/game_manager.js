@@ -33,22 +33,24 @@ exports.entity = entity.Entity.extend({
             log( 'added game ' + game.id );
             callback( null, game );
         });
-        
     },
 
     destroyGame: function( gameId, callback ){
+        if( _.isObject(gameId) )
+            gameId = gameId.id;
         var game = this.games.get( gameId );
-        // print_ins( this );
         if( !game ){
             callback( { name:'not found', message:'game ' + gameId + ' not found', gameId:gameId } );
             return;
         }
             // throw ;
         game.destroyRelatedCB( {destroyHard:true}, function(err,result){
-            log('destroyRelatedCB');
-            print_ins( arguments );
             callback( err, result );
         });
+    },
+
+    getGame: function(gameId){
+        return this.games.get(gameId);
     },
 
     // the main event loop

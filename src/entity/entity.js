@@ -391,7 +391,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
         for (var prop in attrs) {
             // TODO - rewrite ER checking inside this loop
             result[prop] = attrs[prop];
-            log( prop + ' ' + attrs[prop] )
         }
         // 
         // var result = Backbone.Model.prototype.toJSON.apply( this, arguments );

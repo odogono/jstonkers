@@ -28,6 +28,18 @@ Common.entity.registerEntity('game_manager');
 require( Common.paths.commands );
 
 
+Common.EventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
+Common.EventBus.bind( 'all', function(){
+    // var args = Array.prototype.slice.call(arguments,0);
+    console.log(arguments);
+});
+Common.EventBus.emit = Common.EventBus.trigger;
+
+
+process.on('exit', function() {
+  // Add shutdown logic here.
+  log('shutting down');
+});
 
 exports.initialize = function(options,callback){
     if( _.isFunction(options) ){

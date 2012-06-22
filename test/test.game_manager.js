@@ -18,12 +18,8 @@ describe('GameManager', function(){
             });
 
             gameManager.on('add', function(game){
-                log('gm added ' + game.id);
                 added = true;
-                // print_ins( arguments);
-                // done();
             });
-            // print_ins( Common.entity.GameManager );
             
             Step(
                 function(){
@@ -33,7 +29,34 @@ describe('GameManager', function(){
                     if(err) throw err;
                     assert( !result.isNew() );
                     assert( added );
-                    print_var( result );
+                    assert.equal( gameManager.getGame(result.id).id, result.id );
+                    done();
+                }
+            );
+        });
+
+        it('should destroy a game', function(done){
+            var game, removed = false;
+            var gameManager = Common.entity.GameManager.create(null,{
+                statePath:Common.path.join( Common.paths.data, 'states', 'game_manager.json')
+            });
+
+            gameManager.on('remove', function(game){
+                removed = true;
+            });
+            
+            Step(
+                function(){
+                    gameManager.createGame( this );
+                },
+                function(err,result){
+                    assert.equal( gameManager.games.length, 1 );
+                    gameManager.destroyGame( result.id, this );
+                },
+                function(err,result){
+                    if(err) throw err;
+                    assert.equal( gameManager.games.length, 0 );
+                    assert( removed );
                     done();
                 }
             );

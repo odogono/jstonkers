@@ -1,7 +1,8 @@
 var Common = require( '../src/common' );
 var Server = require('../src/main.server');
+var http = require('http');
 
-var app = module.exports = express.createServer();
+var app = module.exports = express();
 
 app.path = Common.paths;
 app.config = Common.config;
@@ -34,14 +35,13 @@ app.engine('mustache', function(path, options, cb){
 
 app.set('views', Common.path.join(__dirname,'views') );
 
-app.use( express.bodyParser({ uploadDir: Common.paths.uploadDir }) );
+
 app.use( express.methodOverride() );
 app.use( connect.cookieParser(app.config.session.secret) );
 app.use( connect.logger({ format: ":date :response-time\t:method :status\t\t:url" }) );
 app.use( connect.favicon() );
 app.use( connect.static(app.path.web) );
-// app.use( '/img/upload', connect.static(app.path.uploadDir) );
-// app.use(express.errorHandler({ showStack: true, dumpExceptions: true }));
+
 
 var RedisStore = require('connect-redis')(express);
 app.use(express.session({ 
@@ -68,4 +68,8 @@ app.configure( function(){
 
 var port = program.port || Common.config.server.port;
 log('started on port ' + port + ' in env ' + Common.config.env.current );
-app.listen(port);
+// app.server = app.listen(port);
+app.httpServer = http.createServer(app).listen(port);
+
+// important that socketio is included after the app.server is created
+require('./socketio');
