@@ -389,6 +389,8 @@ var Entity = exports.Entity = Backbone.Model.extend({
         // clone the attributes into the result objects
         var attrs = this.attributes, result = {};
         for (var prop in attrs) {
+            if( prop.charAt(0) === '_' )
+                continue;
             // TODO - rewrite ER checking inside this loop
             result[prop] = attrs[prop];
         }
