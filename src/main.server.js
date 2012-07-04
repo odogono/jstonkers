@@ -1,4 +1,7 @@
 
+Common.Vector2f = require('./vector2f');
+Common.PriorityQueue = require('./priority_queue');
+
 Common.entity = require('./entity/entity');
 Common.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
 
@@ -7,17 +10,20 @@ _.extend(Common.entity, require('./entity/entity_relationship') );
 Common.sync = require('./sync');
 
 // add server specific functions to entity
-// _.extend( Common.entity.Entity.prototype, require('./entity/entity.server').Entity );
 require('./entity/entity.server');
 
 
 Common.entity.CommandQueue = require('./command_queue');
-// var CommandQueue = require( Common.path.join(Common.paths.src,'command_queue') );
 
 Common.entity.registerEntity('unit');
+
+Common.entity.registerEntity('map');
+require('./entity/map.path_finding');
+require('./entity/map.server');
+
 Common.entity.registerEntity('team');
+
 var Game = Common.entity.registerEntity('game');
-// _.extend( Game.entity.prototype, require('./entity/game.logic').functions );
 require('./entity/game.logic');
 
 
