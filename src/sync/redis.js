@@ -817,13 +817,13 @@ _.extend( RedisStorage.prototype, {
 
                 if( options.query ){
                     if( options.debug ) log('going for retrieve with query ' + JSON.stringify(options.query) );
-                    self.retrieveEntityByQuery( options.query, retrieveOptions, function(err,data){
+                    self.retrieveEntityByQuery( options.query, retrieveOptions, function(err, retrievedEntityId){
                         if( err ){ callback(err); return; }
-                        // store result
-                        if( options.debug ) print_var( data );
-                        // if( data )
-                            // options.result[data.id] = data;
-                        // log('good, all done ' + options.fetchList );
+
+                        // set the resultant id on the mystery model to allow the parsing of the attributes to continue
+                        if( retrievedEntityId )
+                            model.set({id:retrievedEntityId});
+                        // print_var( model );
 
                         // we have to remove the query in order to prevent unwanted recursion
                         delete options.query;
@@ -935,7 +935,7 @@ exports.generateUuid = function( options, callback ){
 }
 
 exports.keys = function( callback ){
-    store.client.keys( '*', function(err,result){
+    store.client.keys( Common.config.sync.redis.key_prefix, function(err,result){
         callback( err, result );
     });
 }

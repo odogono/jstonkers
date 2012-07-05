@@ -194,7 +194,7 @@ describe('Entity', function(){
             };
 
             var a = Common.entity.create({type:'test_a'});
-            var parsed = a.parse( data );
+            var parsed = a.parse( data, null, {parseFor:'alpha_a'} );
 
             assert.equal( parsed.id, 'alpha_a' );
         });

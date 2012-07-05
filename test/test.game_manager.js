@@ -13,9 +13,8 @@ describe('GameManager', function(){
     describe('create', function(){
         it('should create a new game', function(done){
             var game, added = false;
-            var gameManager = Common.entity.GameManager.create(null,{
-                statePath:Common.path.join( Common.paths.data, 'states', 'game_manager.json')
-            });
+            var statePath = Common.path.join( Common.paths.data, 'states', 'game_manager.json');
+            var gameManager = Common.entity.GameManager.create(null,{statePath:statePath});
 
             gameManager.on('add', function(game){
                 added = true;

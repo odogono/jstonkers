@@ -28,7 +28,7 @@ var Game = Common.entity.registerEntity('game');
 require('./entity/game.logic');
 
 
-Common.entity.registerEntity('game_manager');
+var GameManager = Common.entity.registerEntity('game_manager');
 
 
 // load commands
@@ -55,31 +55,14 @@ exports.initialize = function(options,callback){
     options = (options || {});
     
     // boot the game manager
-    var gameManager = exports.gameManager = Common.entity.GameManager.create(null,{
-        statePath:Common.path.join( Common.paths.data, 'states', 'game_manager.json')
-    });
+    var statePath = Common.path.join( Common.paths.data, 'states', 'game_manager.json');
+    // var gameManager = exports.gameManager = Common.entity.GameManager.create(null,{
+    //     statePath:statePath });
 
-    Step(
-        function(){
-            gameManager.fetchRelatedCB( this );        
-        },
-        function(err,result){
-            if( err ){
-                // log(err);
-                // doesn't exist - go for saving instead
-                gameManager.saveCB(this);
-            }else{
-                this();
-            }
-        }, 
-        function(err,result){
-            // print_ins( arguments );
-            log('finished initialising');
-            if( callback )
-                callback();
-        }
-    );
-    
+
+    var gameManager = exports.gameManager = GameManager.create(null,
+        {statePath:statePath, restore:true, callback:callback});
+
 }
 
 // print_var( gameManager );

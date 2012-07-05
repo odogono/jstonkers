@@ -40,8 +40,8 @@ describe('Command Queue', function(){
             // print_ins( this.queue.at(0) );
 
             assert( this.queue.at(0).isCmdTestA() );
-        });//*/
-    });
+        });
+    });//*/
 
     
     describe('process', function(){
@@ -145,6 +145,7 @@ describe('Command Queue', function(){
     describe('serialisation', function(){
 
         it('should persist to JSON', function(){
+
             this.queue.set('id', 'cq_000');
             this.queue.add( [{ id:'cmd_001', type:'cmd_test_a', execute_time:201 },
                             { id:'cmd_002', type:'cmd_test_a', execute_time:0 },
@@ -183,7 +184,7 @@ describe('Command Queue', function(){
             assert.deepEqual( this.queue.toJSON({noDates:true}), expected );
             
         });
-
+        
         it('should reference items', function(){
             this.queue.set('id', 'cq_000');
             this.queue.add( [{ id:'cmd_001', type:'cmd_test_a', execute_time:201 },
@@ -285,7 +286,7 @@ describe('Command Queue', function(){
             });
 
             assert.deepEqual( this.queue.toJSON({relations:false}), { "type":"cmd_queue", "id":"test.001"});
-        });
+        });//*/
     });
 
 
@@ -321,7 +322,7 @@ describe('Command Queue', function(){
                     done();
                 }
             );
-        });//*/
+        });
 
         it('should indicate when missing', function(done){
             var self = this;
