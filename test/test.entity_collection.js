@@ -55,8 +55,8 @@ describe('EntityCollection', function(){
 
     it('should set from an array', function(){
         var incoming = [
-            { id:'test.001', type:'test' },
-            { id:'test.002', type:'test' }
+            { id:'test.001', type:'test_a' },
+            { id:'test.002', type:'test_a' }
         ];
 
         var collection = EntityCollection.create();

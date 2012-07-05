@@ -9,12 +9,14 @@ describe('Sync.Redis', function(){
         { type: 'test_c' },
         { type: 'test_d', ER:[ { oneToOne:'test_c', name:'friend'},{ oneToOne:'test_c', name:'colleague'} ] },
         { type: 'test_e', ER:[ {oneToOne:'test_f', name:'comrade'}, {oneToMany:'test_f', name:'others'} ] },
-        { type: 'test_f', ER:[ {oneToOne:'test_a', name:'associate'} ] }
+        { type: 'test_f', ER:[ {oneToOne:'test_a', name:'associate'} ] },
     ];
 
     _.each( testEntities.reverse(), function(e){
         Common.entity.registerEntity(e);
     });
+
+
 
 
     Common.sync.set('override','redis');
@@ -53,6 +55,7 @@ describe('Sync.Redis', function(){
         // it('should make the entity belong to a status set');
 
         // it('should delete the entity cleanly');
+        
         
         it('should save an entity', function(done){
             var user = Common.entity.create(Common.entity.TYPE_TEST_A, {name:'freddy'}); 
@@ -381,7 +384,7 @@ describe('Sync.Redis', function(){
                     done();
                 }
             );
-        });//*/
+        });
 
         it('should completely delete an entity and related', function(done){
             var initialCount, initialKeys;
@@ -435,9 +438,48 @@ describe('Sync.Redis', function(){
                 }
             );
         });
+
+        it('should retrieve by storeKeys', function(done){
+            var TestEntity = Common.entity.Entity.extend({
+                storeKeys: function(){
+                    var keys = Common.entity.Entity.prototype.storeKeys.apply(this,arguments);
+                    return _.union( [ {key:"ans_id", unique:true} ], keys );
+                }
+            });
+
+            Common.entity.registerEntity( 'test_ent', TestEntity );
+
+            var col = Common.entity.createCollection({entityType:'test_ent'}, [
+                { name:'ent1' },
+                { name:'ent2' },
+                { name:'ent3', ans_id:'sigma5', variance:'none' },
+                { name:'ent4' }
+            ]);
+
+            Step(
+                function(){
+                    // var ent = Common.entity.create( TestEntity, { ans_id:'sigma5', variance:'none' } );
+                    col.saveCB(this);
+                    // ent.saveCB(this);
+                },
+                function(err,result){
+                    if( err ) throw err;
+
+                    var ent = Common.entity.create( TestEntity );
+                    ent.fetchCB({query:{ans_id:'sigma5'}}, this);
+                },
+                function(err,result){
+                    if( err ) throw err;
+                    assert.equal( result.get('variance'), 'none' );
+                    done();
+                }
+            );
+
+        });//*/
         
     });
 
+    
     
     describe('CommandQueue', function(){
         var initialCount, initialKeys;
@@ -502,33 +544,36 @@ describe('Sync.Redis', function(){
     
     describe('EntityCollection', function(){
         
-        /*
         it('should save contained entities', function(done){
             var entityIds = [];
 
+            var col = Common.entity.createCollection({entityType:'test_a'},[
+                { name:'test entity 1' },
+                { name:'test entity 2' },
+                { name:'test entity 3' }
+            ]);
+            // print_ins(col);
+            col.at(2).set('created_at', '1974-09-05T15:32Z');
+            col.length.should.equal(3);
+            col.get('item_count').should.equal(3);
+
             Step(
                 function(){
-                    var col = Common.entity.createEntityCollection();
-                    for( var i=0;i<3;i++ ){
-                        col.add( Common.entity.create( {id:'test.00'+(i+1), type:'test_a', name:'test entity ' + i} ) );    
-                    }
-                    col.at(2).set('created_at', '1974-09-05T15:32Z');
-                    col.length.should.equal(3);
-                    col.get('item_count').should.equal(3);
-                    entityIds = col.items.map( function(i){ return i.id; });
                     col.saveCB( this );
                 },
-                function(col){
+                function(err,result){
+                    if( err ) throw err;
+                    // print_ins( col );
                     var group = this.group();
 
                     // verify the entites were saved
-                    _.each( entityIds, function(eid){
-                        var entity = Common.entity.create( 'test_a', eid );
-                        entity.fetchCB( group() );
+                    col.each( function(ent){
+                        ent.fetchCB( group() );
                     });
                 },
                 function(err,entities){
-                    assert.equal( entities[1].get('name'), 'test entity 1');
+                    if( err ) throw err;
+                    assert.equal( entities[1].get('name'), 'test entity 2');
                     assert.equal( new Date(entities[2].get('created_at')).toUTCString(), new Date('1974-09-05T15:32:00.000Z').toUTCString() );
                     done();
                 }

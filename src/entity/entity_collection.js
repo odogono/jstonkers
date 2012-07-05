@@ -61,9 +61,10 @@ exports.EntityCollection = entity.Entity.extend({
     },
 
     createItemsModel: function( attrs, options ){
-        if( options && options.collection && options.collection.entityCollection ){
-            if( !attrs.type )
-                attrs.type = options.collection.entityCollection.entityType;
+        var collection = (options && options.collection) ? options.collection.entityCollection : null;
+
+        if( collection && !attrs.type ){
+            attrs.type = collection.getEntityType();
         }
 
         if( attrs.type ){
@@ -74,10 +75,14 @@ exports.EntityCollection = entity.Entity.extend({
         return new Backbone.Model( attrs, options );
     },
 
+    getEntityType: function(){
+        return this.entityType || this.get('type');
+    },
+
     // returns an identifying id for this collection to be used
     // for storage purposes
     getStoreId: function(){
-        return this.id || this.owner.id || this.owner.cid;
+        return this.id || (this.owner && (this.owner.id || this.owner.cid));
     },
 
     getName: function(){
@@ -107,8 +112,6 @@ exports.EntityCollection = entity.Entity.extend({
             // setting collection values directly
             this.reset( key );
             return this;
-            // log('setting array');
-            // print_ins( key );
         }
         if( _.isObject(key) || key == null) {
             attrs = key;
@@ -182,7 +185,7 @@ exports.EntityCollection = entity.Entity.extend({
         this.items.reset( models, options );
         this.items.each( function(i){
             if( i.type === undefined )
-                i.type = self.entityType;
+                i.type = self.getEntityType();
         });
     },
 
@@ -301,11 +304,28 @@ _.each( ['add', 'remove', 'at', 'each', 'map'], function(method){
 });
 
 
-exports.create = function( attrs, options ){
+exports.create = function( attrs, items, options ){
+    var entityType;
     options || (options = {});
     // this option has to be set in order to process any passed items/models
     // correctly
     options.parse = true;
+    if( _.isArray(attrs) ){
+        items = attrs;
+        attrs = null;
+    }
+    else if( !_.isArray(items) && !options){
+        options = items;
+        items = null;
+    }
+    if( attrs && attrs.entityType ){
+        entityType = attrs.entityType;
+        delete attrs.entityType;
+    }
     var result = new exports.EntityCollection( attrs, options );
+    if( entityType )
+        result.entityType = entityType;
+    if( items )
+        result.set( items );
     return result;
 }

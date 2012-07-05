@@ -226,6 +226,15 @@ var Entity = exports.Entity = Backbone.Model.extend({
         }
         if( resp[targetId] ){
             resp = resp[targetId];
+        } else if( !targetId ){
+            // log('no target id for ' + JSON.stringify(resp) );
+            // print_ins(resp);
+            // choose the first key
+            for (targetId in resp)
+                break
+            resp = resp[targetId];
+            if(!targetId)
+                return resp;
         }
 
         var entityDef = exports.ids[ resp.type || this.type ];

@@ -4,6 +4,7 @@ Common.PriorityQueue = require('./priority_queue');
 
 Common.entity = require('./entity/entity');
 Common.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
+Common.entity.createCollection = require('./entity/entity_collection').create;
 
 _.extend(Common.entity, require('./entity/entity_relationship') );
 

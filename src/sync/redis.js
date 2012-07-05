@@ -28,7 +28,7 @@ _.extend( RedisStorage.prototype, {
             self = this, 
             keyPrefix = self.options.key_prefix,
             initiateMulti = redisHandle instanceof redis.RedisClient,
-            key,keys,val;
+            key,keys,storeKey,storeId,isUnique,val;
 
         // if(options.debug) log('saving entity ' );
         // if(options.debug) print_var( entity );
@@ -87,10 +87,18 @@ _.extend( RedisStorage.prototype, {
         if( entity.storeKeys ){
             keys = entity.storeKeys();
             for( i=0,len=keys.length;i<len;i++ ){
-                if( (val = serialised[keys[i]]) || (val = entity[keys[i]]) ){
+                storeKey = keys[i];
+                isUnique = false;
+                if( _.isObject(storeKey) ){
+                    isUnique = storeKey.unique;
+                    storeKey = storeKey.key;
+                }
+                if( (val = serialised[storeKey]) || (val = entity[storeKey]) ){
                     if( _.isDate(val) )
                         val = val.getTime();
-                    multi.hmset( key, keys[i], val );
+                    multi.hmset( key, storeKey, val );
+                    if( isUnique )
+                        multi.set( keyPrefix + ':' + storeKey + ':' + val, entity.id );
                 }
             }
         }
@@ -122,11 +130,11 @@ _.extend( RedisStorage.prototype, {
         // if( options.debug && entity.id === 'foxtrot_2' ) print_ins( entity );//log('well heck ' + entity.entityCollection);
 
             multi.sadd( keyPrefix + ':' + entity.type, entity.id );
-            if( (collection = entity.entityCollection) ){
+            if( (collection = entity.entityCollection) && (storeId = collection.getStoreId()) ){
                 if( options.debug ) log('adding to entityCollection set ' + entity.id);
                 // if( options.debug ) print_ins( entity );
                 // multi.sadd( keyPrefix + ':' + entity.entityCollection.id + ':items', entity.id );
-                multi.sadd( keyPrefix + ':' + collection.getStoreId() + ':' + collection.getName() || 'items', entity.id );
+                multi.sadd( keyPrefix + ':' + storeId + ':' + collection.getName() || 'items', entity.id );
             }
         // }
 
@@ -588,13 +596,44 @@ _.extend( RedisStorage.prototype, {
         return model;
     },
 
+
+    retrieveEntityByQuery: function( query, options, callback ){
+        var self=this,key;// = options.key_prefix + ':' + entityId;
+        var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
+        var ignoreStatus = _.isUndefined(options.ignoreStatus) ? false : options.ignoreStatus;
+
+        // build the query into a redis key
+        for( var param in query ){
+            key = [ options.key_prefix, param, query[param] ].join(':')
+        }
+
+        self.client.get( key, function(err,result){
+            if( err ) throw err;
+
+            self.client.sismember( ldlKey, result, function(err,isLogicallyDeleted){
+
+                if( (!ignoreStatus && isLogicallyDeleted) || isLogicallyDeleted ){
+                    // callback(entityId + ' not found');
+                    // TODO : decide what behaviour should be
+                    callback();
+                    return;
+                }
+                if( result )
+                    options.fetchList.push( result );
+                callback(null, result);
+            }); 
+        });
+    },
+
+    // 
+    // deprecated?
+    // 
     retrieveEntitiesById: function( entityIdList, options, callback ){
         var self = this;
         Step(
             function(){
                 var group = this.group();
                 for( var i=0;i<entityIdList.length;i++ ){
-                    // log('retrieveEntitiesById ' + JSON.stringify(entityIdList[i]) );
                     self.retrieveEntityById( entityIdList[i], options, group() );
                 }
             },
@@ -604,6 +643,9 @@ _.extend( RedisStorage.prototype, {
         );
     },
 
+    // 
+    // 
+    // 
     retrieveEntityById: function( entity, options, callback ){
         var self = this, i, er, name, type, key, targetId;
         var entityId = _.isObject(entity) ? entity.id : entity;
@@ -705,141 +747,9 @@ _.extend( RedisStorage.prototype, {
         });
     },
 
-    /**
-    *
-    */
-    /*retrieveEntityByIdOld: function( entity, options, callback ){
-        var i,j,self = this,
-            itemCounts = [],
-            erCollections = [],
-            erEntities = [],
-            result, items,
-            retrievedEntity,
-            subOptions,
-            er,
-            retrieveERCounts = true;
-        var entityKey = options.key_prefix + ':' + entity.id;
-        var entityDef = Common.entity.ids[entity.type];
-        var multi = self.client.multi();
-        result = options.result || {};
-
-        if(options.debug) log('retrieveEntityById ' + entity.id );
-
-        if( result[entity.id] ){
-            log('retrieveEntityById : already retrieved ' + entity.id );
-            callback( err, result );
-            return;
-        }
-
-        // retrieve the entity
-        multi.hget( entityKey, 'value' );
-
-        // if there are any collections associated with this entity then fetch their details
-        if( entityDef.ER ){
-            for( i in entityDef.ER ){
-                er = entityDef.ER[i];
-                if( er.oneToMany ){
-                    var o2mName = (er.name || er.oneToMany).toLowerCase();
-                    var o2mKey = entityKey + ':' + o2mName;
-                    // multi.scard( o2mKey );
-                    // itemCounts.push( o2mName );
-                    if( options.fetchRelated || options._depth < options.depth ){
-                        erCollections.push( o2mName );
-                    }
-                }
-                else if( er.oneToOne ){
-                    var o2oName = (er.name || er.oneToOne).toLowerCase();
-                    var o2oKey = entityKey + ':' + o2oName;
-                    // log('considering ' + o2oName  + ' type ' + er.oneToOne );
-                    if( options.fetchRelated || options._depth < options.depth ){
-                        erEntities.push( { key:o2oName, type:er.oneToOne} );
-                    }
-                }
-            }//);
-        }
-
-        multi.exec( function(err, replies){
-            if( err ) throw err;
-            if( !replies ) callback( err, entity );
-            // first result will be the entity value itself
-            if( replies[0] ){
-                retrievedEntity = JSON.parse(replies[0]);
-
-                // determine whether the status is valid for the criteria supplied
-                if( !options.ignoreStatus && retrievedEntity.status === Common.Status.LOGICALLY_DELETED ){
-                    // log('failed status check');
-                    // log(entity.id + ' not found because of ' + retrievedEntity.status );
-                    callback(entity.id + ' not found');
-                    return;
-                }
-
-                // if( options.ignoreStatus ){
-                //     log('ignoring status for ' + replies[0] );
-                //     print_ins( retrievedEntity );
-                // }
-                result[ entity.id ] = retrievedEntity;
-            }
-            else{
-                // error!
-                callback(entity.id + ' not found');
-                return;
-            }
-
-            subOptions = _.extend(options,{result:result,_depth:options._depth+1});
-
-            // if( options.debug ) log('retrieving assocated entities ' + JSON.stringify(erCollections) );
-            if( erCollections.length > 0 || erEntities.length > 0 ){
-                
-                Step(
-                    function processEntities(){
-                        // assign ids to the entities we are retrieving
-                        if( erEntities.length > 0 ){
-                            for( i=0;i<erEntities.length;i++ ){
-                                erEntities[i].id = retrievedEntity[erEntities[i].key];
-                            }
-                            // retrieve referenced entities in a single step
-                            self.retrieveEntitiesById( erEntities, subOptions, this );
-                        }
-                        else
-                            this();
-                    },
-                    function processEntityCollections(err, entities){
-                        if( err ) callback(err);
-                        
-                        var group = this.group();
-                        for( i=0;i<erCollections.length;i++ ){
-                            // log('retrieving collection ' + entityKey +':' + erCollections[i] );
-                            self.retrieveCollectionBySet( entityKey +':' + erCollections[i], null, subOptions, group() );
-                        }
-                    },
-                    function assignEntityCollections(err,entities){
-                        // TODO : hairy... refactor
-                        if( entities ){
-                            for( i=0;i<erCollections.length;i++ ){
-                                items = entities[i].items;
-                                if( items ){
-                                    retrievedEntity[erCollections[i]] = retrievedEntity[erCollections[i]] || {items:[]};
-                                    for( j=0;j<items.length;j++ ){
-                                        result[ items[j].id ] = items[j];
-                                        retrievedEntity[erCollections[i]].items.push( items[j].id );
-                                    }
-                                }
-                            }
-                        }
-                        // print_ins( result, false, 3 );
-                        callback(err,result);
-                    }
-                );
-            }
-            else{
-                callback( err, result );    
-            }
-        });
-    },//*/
-
-
-    
+    // 
     // Retrieve a model from `this.data` by id.
+    // 
     find: function(model, options, callback) {
         var i, self = this,
             item, entityId,
@@ -904,34 +814,46 @@ _.extend( RedisStorage.prototype, {
                     // log('special fetch for ' + entityId + ' ' + JSON.stringify(retrieveOptions.entityDefHint) );
                 } else
                     retrieveOptions = options;
-                
-                if( options.debug ) log('going for retrieve of ' + entityId );
 
-                self.retrieveEntityById( entityId, retrieveOptions, function(err,data){
-                    if( err ){
-                        // TODO : will it always matter that a model cant be found?
-                        callback( err );
-                        return;
-                    }
-                    // store result
-                    options.result[ entityId ] = data;
-                    // re-check if we need to fetch anything
-                    evalFetchList();
-                });
+                if( options.query ){
+                    if( options.debug ) log('going for retrieve with query ' + JSON.stringify(options.query) );
+                    self.retrieveEntityByQuery( options.query, retrieveOptions, function(err,data){
+                        if( err ){ callback(err); return; }
+                        // store result
+                        if( options.debug ) print_var( data );
+                        // if( data )
+                            // options.result[data.id] = data;
+                        // log('good, all done ' + options.fetchList );
+
+                        // we have to remove the query in order to prevent unwanted recursion
+                        delete options.query;
+                        // re-check if we need to fetch anything else
+                        evalFetchList();
+                    });
+                }
+                else {
+                    if( options.debug ) log('going for retrieve of ' + entityId );
+                    self.retrieveEntityById( entityId, retrieveOptions, function(err,data){
+                        if( err ){
+                            // TODO : will it always matter that a model cant be found?
+                            callback( err );
+                            return;
+                        }
+                        // store result
+                        options.result[ entityId ] = data;
+                        // re-check if we need to fetch anything else
+                        evalFetchList();
+                    });
+                }
+                
             } else {
                 if( options.debug ) log('finished fetchList retrieve');
-                // if( options.debug ) 
-                // print_var( options.result );
+                // if( options.debug ) print_var( options.result );
                 callback( null, options.result );
             }
         };
 
         evalFetchList();
-
-        // this.retrieveEntityById( model, options, function(err,data){
-        //     log( 'fetchList is now ' + JSON.stringify(options.fetchList) );
-        //     callback( err, data );
-        // });
     }
      
 });
@@ -945,11 +867,7 @@ exports.sync = function(method, model, options) {
     var resp, modelID;
 
     function forwardResult( err, result ){
-        // fwdCount++;
         if( err ){
-            // log('fwd err ' + err );
-            // print_ins(arguments);
-            // log( options.error );
             if( options.error )
                 options.error(err);
             else
@@ -957,14 +875,6 @@ exports.sync = function(method, model, options) {
             return;
         }
         if( options.success ){
-            // log('fwdResult done');
-            // print_ins(arguments);
-            // log( options.success );
-            // if( Common.debug ) {
-            //     log( fwdCount + ' success here ' + model.cid + ' ' + JSON.stringify(result) );
-            //     print_ins(arguments);
-            //     print_stack();
-            // }
             options.success(result);
         }
     };
@@ -977,13 +887,8 @@ exports.sync = function(method, model, options) {
             store.find( model, config, forwardResult );
             return;
         case 'create':
-            // if( model instanceof Common.entity.EntityCollection ){
-                // concluded = true;
-                // store.createCollection( model, config, forwardResult );
-            // } else {
-                concluded = true;
-                store.update( model, config, forwardResult );
-            // }
+            concluded = true;
+            store.update( model, config, forwardResult );
             break;
         case 'update':
             concluded = true;
@@ -992,7 +897,6 @@ exports.sync = function(method, model, options) {
         case 'delete':
             concluded = true;
             store.delete( model, config, forwardResult );
-            // log('uh deleting?');
             break;
     }
 

@@ -181,6 +181,24 @@ describe('Entity', function(){
     });
     
     describe('parsing', function(){
+
+        // an entity without an id will parse the first
+        // entity found
+        it('should parse without an id', function(){
+            var data = {
+                alpha_a:{
+                    id: 'alpha_a',
+                    type: 'test_a',
+                    name: 'arnold'
+                }
+            };
+
+            var a = Common.entity.create({type:'test_a'});
+            var parsed = a.parse( data );
+
+            assert.equal( parsed.id, 'alpha_a' );
+        });
+
         it('should parse correctly', function(){
             var data = { 
                 enigma_1: { 
