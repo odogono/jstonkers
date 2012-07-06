@@ -30,7 +30,8 @@ Common.paths = {
     view: path.join( Common.root, 'app', 'views' ),
     web: path.join( Common.root, 'web' ),
     jslib: path.join( Common.root, 'web', 'js', 'lib' ),
-    mapColData: path.join( 'img', 'maps' )
+    mapColData: path.join( 'img', 'maps' ),
+    entities: path.join( Common.root, 'src', 'entity' )
 };
 
 Common.version = require('../package').version;

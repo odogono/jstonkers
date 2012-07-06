@@ -55,13 +55,10 @@ if( Common.config.client.browserify ){
     log('browserify activated');
 }
 
-
 require('./handlers/main');
 require('./handlers/game_manager');
 
 app.configure( function(){
-    // log('configuring ma stuff');
-    // print_var( Server.gameManager );
     Server.initialize();
     app.gameManager = Server.gameManager;
 });
@@ -69,7 +66,8 @@ app.configure( function(){
 var port = program.port || Common.config.server.port;
 log('started on port ' + port + ' in env ' + Common.config.env.current );
 // app.server = app.listen(port);
-app.httpServer = http.createServer(app).listen(port);
+app.server = http.createServer(app).listen(port);
+
 
 // important that socketio is included after the app.server is created
 require('./socketio');

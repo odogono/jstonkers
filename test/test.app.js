@@ -8,15 +8,14 @@ describe('app', function(){
 
     beforeEach( function(done){
         var self = this;
-
-        // create app instance
-        self.app = require(appPath);
+        this.app = require(appPath);
 
         // clear db first
         Common.sync.clear( function(err){
             if( err ) return done(err);
-
-            done();
+            Server.initialize(function(){
+                done();    
+            });
         });
     });
 
@@ -24,59 +23,95 @@ describe('app', function(){
         // print_ins( this.app );
         // this.app.httpServer.close();
         done();
-    })
-
-
-    it('creates a new game', function(done){
-        var self = this;
-        var addedGame;
-
-        // self.app.gameManager.on('add', function(game){
-        //     addedGame = game;
-        // });
-
-        Step(
-            function postCreateRequest(){
-                httpRequest(self.app)
-                    .post('/game/new')
-                    .end(this);
-            },
-            function(res){
-                var response = JSON.parse( res.body );
-                assert.equal( addedGame.id, response.game_id );
-                this();
-            },
-            function(){
-                log('----')
-                done();
-            }
-        );
     });
 
-    it('destroys a game', function(done){
-        var self = this;
 
-        // self.app.gameManager.on('all', function(evt){
-        //     log('gm evt ' + evt);
-        // });
+    /*
+    describe('users', function(){
 
-        Step(
-            function(){
-                httpRequest(self.app).post('/game/new').end( this );
-            },
-            function(res){
-                var response = JSON.parse( res.body );
-                httpRequest(self.app, res).delete('/game/' + response.game_id).end(this);
-            },
-            function(res){
-                print_ins(res.body);
-                log('done deleting');
-                // ensure the game has been deleted
-                // httpRequest(self.app, res).get('/game/' + response.game_id);
-                done();
-            }
-        );
+        it('should create a user instance for a new user', function(done){
+            var app = require(appPath);
+            Step(
+                function(){
+                    httpRequest(app).get('/userinit').json().end(this);
+                },
+                function(res){
+                    httpRequest(app,res).get('/userinit').json().end(this);  
+                },
+                function(res){
+                    log( res.body );
+                    done();
+                }
+            );
+        });
+
+        it('should follow on', function(done){
+            var app = require(appPath);
+            Step(
+                function(){
+                    httpRequest(app).get('/userinit').json().end(this);
+                },
+                function(res){
+                    log( res.body );
+                    done();
+                }
+            );
+        });
+    });//*/
+
+
+    describe('game management', function(){
+        it('creates a new game', function(done){
+            var self = this;
+            var addedGame;
+
+            log( self.app );
+
+            // self.app.gameManager.on('add', function(game){
+            //     addedGame = game;
+            // });
+
+            Step(
+                function postCreateRequest(){
+                    httpRequest(self.app)
+                        .post('/games/new')
+                        .end(this);
+                },
+                function(res){
+                    var response = JSON.parse( res.body );
+                    assert.equal( addedGame.id, response.game_id );
+                    this();
+                },
+                function(){
+                    log('----')
+                    done();
+                }
+            );
+        });
+        /*
+        it('destroys a game', function(done){
+            var self = this;
+            Step(
+                function(){
+                    httpRequest(self.app).post('/game/new').end( this );
+                },
+                function(res){
+                    var response = JSON.parse( res.body );
+                    httpRequest(self.app, res).delete('/game/' + response.game_id).end(this);
+                },
+                function(res){
+                    print_ins(res.body);
+                    log('done deleting');
+                    // ensure the game has been deleted
+                    // httpRequest(self.app, res).get('/game/' + response.game_id);
+                    done();
+                }
+            );
+        });//*/
+
     });
+
+    
 
     /*it('bundles the client', function(done){
         var self = this;

@@ -27,6 +27,7 @@ Common.entity.registerEntity('team');
 var Game = Common.entity.registerEntity('game');
 require('./entity/game.logic');
 
+Common.entity.registerEntity('user');
 
 var GameManager = Common.entity.registerEntity('game_manager');
 
@@ -56,10 +57,6 @@ exports.initialize = function(options,callback){
     
     // boot the game manager
     var statePath = Common.path.join( Common.paths.data, 'states', 'game_manager.json');
-    // var gameManager = exports.gameManager = Common.entity.GameManager.create(null,{
-    //     statePath:statePath });
-
-
     var gameManager = exports.gameManager = GameManager.create(null,
         {statePath:statePath, restore:true, callback:callback});
 

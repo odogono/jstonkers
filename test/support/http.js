@@ -5,14 +5,14 @@
 var Common = require( '../../src/common' );
 
 var EventEmitter = require('events').EventEmitter
-  , methods = express.methods
-  , http = require('http')
-  , assert = require('assert');
+    , methods = express.methods
+    , http = require('http')
+    , assert = require('assert');
 
 module.exports = request;
 
 function request(app, res) {
-  return new Request(app,res);
+    return new Request(app,res);
 }
 
 function Request(app, res) {
@@ -20,14 +20,7 @@ function Request(app, res) {
     this.data = [];
     this.header = {};
     this.app = app;
-    // this.server = app;
-    // this.listening = true;
-    // this.addr = app.address();
-    // if( res && res.headers ){
-    //     _.each( res.headers['set-cookie'], function(cookie){
-    //         self.set('Cookie', cookie );    
-    //     });
-    // }
+    
     if (!this.server) {
         this.server = http.Server(app);
         this.server.listen(0, function(){
@@ -108,37 +101,37 @@ Request.prototype.expect = function(body, fn){
 };
 
 Request.prototype.end = function(fn){
-  var self = this;
+    var self = this;
+    if (this.listening) {
+        // log('performing request for ' + this.method + ' ' + this.addr.port + ' ' + this.path );
+        var req = http.request({
+            method: this.method
+            , port: this.addr.port
+            , host: this.addr.address
+            , path: this.path
+            , headers: this.header
+        });
 
-  if (this.listening) {
-    var req = http.request({
-        method: this.method
-      , port: this.addr.port
-      , host: this.addr.address
-      , path: this.path
-      , headers: this.header
-    });
-
-    this.data.forEach(function(chunk){
-      req.write(chunk);
-    });
+        this.data.forEach(function(chunk){
+            req.write(chunk);
+        });
     
-    req.on('response', function(res){
-      var buf = '';
-      res.setEncoding('utf8');
-      res.on('data', function(chunk){ buf += chunk });
-      res.on('end', function(){
-        res.body = buf;
-        fn(res);
-      });
-    });
+        req.on('response', function(res){
+            var buf = '';
+            res.setEncoding('utf8');
+            res.on('data', function(chunk){ buf += chunk });
+            res.on('end', function(){
+                res.body = buf;
+                fn(res);
+            });
+        });
 
-    req.end();
-  } else {
-    this.server.on('listening', function(){
-      self.end(fn);
-    });
-  }
+        req.end();
+    } else {
+        this.server.on('listening', function(){
+            self.end(fn);
+        });
+    }
 
-  return this;
+    return this;
 };

@@ -18,13 +18,16 @@ exports.entity = entity.Entity.extend({
         });
     },
 
-    createGame: function(options,callback){
+    createGame: function(user, options, callback){
         if( _.isFunction(options) ){
             callback = options;
         }
         options = (options || {});
         var self = this, statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json');
-        var game = Common.entity.Game.create(null,{statePath:statePath});
+        var game = Common.entity.Game.create( null,{statePath:statePath});
+        // game.set('created_by', user);
+        game.setPlayer( user );
+
         game.saveRelatedCB(function(err,result){
             // print_ins( arguments );
             // log('finished saving game ' + )
@@ -84,7 +87,6 @@ exports.create = function(attrs, options){
     if( options.restore ){
         Step(
             function(){
-                print_var( result );
                 result.fetchRelatedCB( this );        
             },
             function(err,existing){
@@ -96,7 +98,6 @@ exports.create = function(attrs, options){
                 }
             }, 
             function(err,saved){
-                log('finished initialising');
                 if( options.callback )
                     options.callback();
             }

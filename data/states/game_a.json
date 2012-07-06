@@ -6,12 +6,10 @@
     },
 
     "team_1":{
-        "team_type":"ai",
         "units":[ "ship_1" ]
     },
 
     "team_2":{
-        "team_type":"ai",
         "units":[ "ship_2" ]
     },
 

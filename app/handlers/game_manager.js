@@ -1,15 +1,14 @@
 var app = module.parent.exports;
+var UserMW = require('../middleware/user');
 
 
-
-app.post('/game/new', function(req,res){
-
+app.post('/games/new', UserMW.load, UserMW.createIfMissing, function(req,res){
     // is this user allowed to create a new game ?
 
     // process the arguments for creating the game
 
     // fetch a default game state
-    var game = app.gameManager.createGame( function(err,game){
+    var game = app.gameManager.createGame( req.user, function(err,game){
         res.json( {status:Common.Status.ACTIVE, game_id:game.id, game_count:app.gameManager.games.length} );
     });
 });
@@ -17,14 +16,14 @@ app.post('/game/new', function(req,res){
 // main game page
 // if html request, returns a page with the game state enclosed
 // if json request, returns a json object of the game state
-app.get('/game/:game_id', function(req,res){
+app.get('/games/:game_id', function(req,res){
     var gameId = req.param('game_id');
     res.render('error', { status: 404, message: 'Game' + gameId + ' Not Found' });
 });
 
 
 
-app.delete('/game/:game_id', function(req,res){
+app.delete('/games/:game_id', function(req,res){
     var gameId = req.param('game_id');
 
     app.gameManager.destroyGame( gameId, function(err, result){
