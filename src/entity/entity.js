@@ -375,6 +375,15 @@ var Entity = exports.Entity = Backbone.Model.extend({
         }
     },
 
+    equals: function(other){
+        var tn = this.isNew(), on = other.isNew();
+        if( tn !== on )
+            return false;
+        if( tn && on )
+            return this.cid === other.cid;
+        return this.id === other.id;
+    },
+
     clone: function(options) {
         options = options || {};
         var recurse = _.isUndefined(options.recurse) ? false : options.recurse;
@@ -405,7 +414,11 @@ var Entity = exports.Entity = Backbone.Model.extend({
             if( prop.charAt(0) === '_' )
                 continue;
             // TODO - rewrite ER checking inside this loop
-            result[prop] = attrs[prop];
+
+            if( (relation = attrs[prop]) instanceof exports.Entity && !relation.isNew() )
+                result[prop] = relation.id;
+            else
+                result[prop] = relation;
         }
         // 
         // var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
@@ -430,8 +443,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
                 if( er.oneToOne ){
                     // if( options)
-                    relation = result[erName];
-
+                    relation = this.attributes[erName];
                     if( !relation )
                         continue;
                     // if( options.debug ) log('o2o ' + erName );
@@ -535,17 +547,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
             var o2oNames = {};
             var o2mNames = {};
 
-            /*
-            for( i in entityDef.ER ){
-                er = entityDef.ER[i];
-                erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
-
-                if( er.oneToOne )
-                    o2oNames[ erName ] = erName;
-                else if( er.oneToMany )
-                    o2mNames[ erName ] = erName;
-            }//*/
-
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
                 // def = Common.entity.ids[ er.type ];
@@ -574,39 +575,23 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 }
             }
 
-            // if( options.allEntities ){
-                for( i in this.attributes ){
-                    child = this.attributes[i];
+            for( i in this.attributes ){
+                child = this.attributes[i];
 
-                    /*if( o2oNames[i] ){
-                        if( doRecurse && (child = this.get(erName)) ){
-                            child.flatten( options );
+                if( child instanceof exports.Entity ){
+                    childId = child.id || child.cid;
+                    if( options.allEntities && doRecurse )
+                        child.flatten(options);
+                    
+                        if( options.toJSON ){
+                            if( doRelations )
+                                outgoing[i] = child.id || child.cid;
+                            else
+                                delete outgoing[i];
                         }
-                    }
-                    else if( o2mNames[i] ){
-                        if( doRecurse && (child = this[erName]) ){
-                            child.flatten(options);
-                        }
-                        if( options.toJSON && options.referenceItems && this[erName].length > 0 ){
-                            outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
-                        }
-                    }
-                    else//*/
-                    if( child instanceof exports.Entity ){
-                        childId = child.id || child.cid;
-                        if( options.allEntities && doRecurse )
-                            child.flatten(options);
-                        
-                            if( options.toJSON ){
-                                if( doRelations )
-                                    outgoing[i] = child.id || child.cid;
-                                else
-                                    delete outgoing[i];
-                            }
-                        
-                    }
+                    
                 }
-            // }
+            }
 
         }
         return result;

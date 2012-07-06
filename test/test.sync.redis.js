@@ -576,12 +576,46 @@ describe('Sync.Redis', function(){
                 function(err,entities){
                     if( err ) throw err;
                     assert.equal( entities[1].get('name'), 'test entity 2');
-                    assert.equal( new Date(entities[2].get('created_at')).toUTCString(), new Date('1974-09-05T15:32:00.000Z').toUTCString() );
+                    assert.equal( 
+                        new Date(entities[2].get('created_at')).toUTCString(), 
+                        new Date('1974-09-05T15:32:00.000Z').toUTCString() );
                     done();
                 }
             );
         });//*/
 
+        it('should retrieve entities by type and status', function(done){
+            var entityIds = [];
+
+            var col = Common.entity.createCollection({entityType:'test_a'},[
+                { name:'test entity 1' },
+                { name:'test entity 2', status:Common.Status.INACTIVE },
+                { name:'test entity 3' }
+            ]);
+
+            Step(
+                function(){
+                    col.saveCB( this );
+                },
+                function(err,result){
+                    if( err ) throw err;
+                    
+                    var fetchCol = Common.entity.createCollection({
+                        entityType:'test_a',
+                        entityStatus:Common.Status.ACTIVE
+                    });
+                    fetchCol.fetchCB( this );
+                },
+                function(err,resultCol){
+                    if( err ) throw err;
+                    // print_ins( arguments );
+                    assert.equal( resultCol.length, 2 );
+                    assert.equal( resultCol.at(0).get('name'), 'test entity 1' );
+                    assert.equal( resultCol.at(1).get('name'), 'test entity 3' );
+                    done();
+                }
+            );
+        });
         
         /*
         it('should work as part of an entity', function(done){

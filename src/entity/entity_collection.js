@@ -1,5 +1,21 @@
 var entity = require('./entity');
 
+// 
+// Returns true if the supplied object is an EntityCollection instance
+// 
+exports.isEntityCollection = function( obj ){
+    return obj && obj instanceof exports.EntityCollection;
+}
+
+// 
+// Returns true if the supplied object is an EntityCollection container instance.
+// A container has no identity of its own and is used primarily to fetch groups of
+// entities using criteria contained within
+// 
+exports.isContainer = function( inst ){
+    return inst && inst instanceof exports.EntityCollection && inst.isNew();
+}
+
 exports.EntityCollection = entity.Entity.extend({
     defaults:{
         // name: 'items',
