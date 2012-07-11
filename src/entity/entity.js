@@ -4,7 +4,7 @@
 var Entity = exports.Entity = Backbone.Model.extend({
 
     defaults:{
-        status: Common.Status.ACTIVE,
+        status: jstonkers.status.ACTIVE,
         // created_at:new Date(),
         // updated_at:new Date()
     },
@@ -139,7 +139,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
             this.type = attrs.type;
         }
 
-        if( options && options.setRelated ){
+        options = options || {};
+
+        if( options.setRelated ){
             var relatedMap = this.flatten();
             var relatedOptions = _.clone(options);
             delete relatedOptions.setRelated;
@@ -192,10 +194,10 @@ var Entity = exports.Entity = Backbone.Model.extend({
                             delete attrs[erName];
                     }
                 }
-                else if( er.oneToMany && !(erData instanceof Common.entity.EntityCollection)){
+                else if( er.oneToMany && !(erData instanceof jstonkers.entity.EntityCollection)){
                     if( !self[erName] ){
                         log('no existing EntityCollection for ' + erName );
-                        // self[erName] = Common.entity.createEntityCollection();
+                        // self[erName] = jstonkers.entity.createEntityCollection();
                     }
                     if( self[erName] ){
                         // log('setting ' + erName + ' ' + JSON.stringify(erData) );
@@ -432,13 +434,13 @@ var Entity = exports.Entity = Backbone.Model.extend({
         // log('toJSON for ' + this.type );
         // print_ins(this.teams,false,3);
         if( this.type ){
-            entityDef = Common.entity.ids[this.type];
+            entityDef = jstonkers.entity.ids[this.type];
             // log( this.type + ' relations: ' + JSON.stringify(entityDef) );
 
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
-                // def = Common.entity.ids[ er.type ];
+                // def = jstonkers.entity.ids[ er.type ];
                 if( options.debug ) log('entity.toJSON: ' + erName + ' ' + JSON.stringify(er) );
 
                 if( er.oneToOne ){
@@ -542,16 +544,16 @@ var Entity = exports.Entity = Backbone.Model.extend({
             }else
                 result[id] = outgoing = this;
 
-            var entityDef = Common.entity.ids[this.type];
+            var entityDef = jstonkers.entity.ids[this.type];
 
             var o2oNames = {};
             var o2mNames = {};
 
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
-                // def = Common.entity.ids[ er.type ];
+                // def = jstonkers.entity.ids[ er.type ];
                 // log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
-                // print_ins( Common.entity.ids );
+                // print_ins( jstonkers.entity.ids );
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 if( er.oneToOne ){
                     if( doRecurse && (child = this.get(erName)) && child.refCount <= maxRefCount ){
@@ -561,7 +563,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 } else if( er.oneToMany ){
                     // log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
                     if( doRecurse && (child = this[erName]) ){
-                        // print_ins( child instanceof Common.entity.EntityCollection );
+                        // print_ins( child instanceof jstonkers.entity.EntityCollection );
                         // log( child.flatten )
                         // log( child instanceof exports.Entity );
                         // print_ins( child );
@@ -821,7 +823,9 @@ exports.registerEntity = function( entityDef, entity, options ){
     else if( _.isString(entityDef) ){
         var entityType = entityDef;
         // attempt to load
-        entityDef = require('./' + entityDef);
+        if( entityDef.indexOf('./') !== 0 )
+            entityDef = './' + entityDef;
+        entityDef = require(entityDef);
         entityDef.type = entityDef.type || entityType;
     }
 

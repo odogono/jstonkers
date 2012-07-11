@@ -9,7 +9,7 @@ app.post('/games/new', UserMW.load, UserMW.createIfMissing, function(req,res){
 
     // fetch a default game state
     var game = app.gameManager.createGame( req.user, function(err,game){
-        res.json( {status:Common.Status.ACTIVE, game_id:game.id, game_count:app.gameManager.games.length} );
+        res.json( {status:jstonkers.status.ACTIVE, game_id:game.id, game_count:app.gameManager.games.length} );
     });
 });
 
@@ -19,6 +19,21 @@ app.post('/games/new', UserMW.load, UserMW.createIfMissing, function(req,res){
 app.get('/games/:game_id', function(req,res){
     var gameId = req.param('game_id');
     res.render('error', { status: 404, message: 'Game' + gameId + ' Not Found' });
+});
+
+
+
+app.get('/games', function(req,res){
+
+    var previews = [
+        { id:1, name:'game a'},
+        { id:2, name:'game b'},
+        { id:3, name:'game c'}
+    ];
+
+    // partial('game_preview', { collection: previews } );
+
+    res.render( 'games', { msg: "hello there", previews:previews });
 });
 
 

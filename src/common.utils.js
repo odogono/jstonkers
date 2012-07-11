@@ -13,12 +13,12 @@ print_var = function(arg, options){
     if( !arg )
         log( JSON.stringify({},null,'\t') );
     else if( _.isObject(arg) ){
-        if(arg instanceof Common.entity.Entity )
+        if(arg instanceof jstonkers.entity.Entity )
             log( JSON.stringify(arg,null,'\t') );
-            // log( JSON.stringify(Common.entity.Factory.toEntityJSON(arg,options),null,'\t') );
-        else if( arg instanceof Common.entity.EntityCollection )
+            // log( JSON.stringify(jstonkers.entity.Factory.toEntityJSON(arg,options),null,'\t') );
+        else if( arg instanceof jstonkers.entity.EntityCollection )
             log( JSON.stringify(arg,null,'\t') );
-            // log( JSON.stringify(Common.entity.Factory.collectionToJSON(arg, options),null,'\t') );
+            // log( JSON.stringify(jstonkers.entity.Factory.collectionToJSON(arg, options),null,'\t') );
         else
             log( JSON.stringify(arg,null,'\t') );
     }else    
@@ -45,13 +45,6 @@ Bjs2Callback = function( next, options ){
         }
     });
 }
-
-Common.Status = {
-    ACTIVE: 'atv',
-    INACTIVE: 'iat',
-    DISABLED: 'dis',
-    LOGICALLY_DELETED: 'ldl',
-};
 
 Common.LogLevel = {
     OFF: 0,

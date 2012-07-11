@@ -5,7 +5,7 @@ require( '../src/main.server' );
 describe('Map', function(){
 
     beforeEach( function(done){
-        Common.sync.clear( function(err){
+        jstonkers.sync.clear( function(err){
             if( err ) return done(err);
             done();
         });
@@ -16,7 +16,7 @@ describe('Map', function(){
 
         it('should load', function(done){
             var dataPath = Common.path.join( Common.paths.data, 'maps', 'b.col.png' );
-            var map = Common.entity.Map.create();
+            var map = jstonkers.entity.Map.create();
 
             Step(
                 function(){
@@ -64,13 +64,13 @@ describe('Map', function(){
             ];
 
             _.each( data, function(test){
-                assert.deepEqual( Common.entity.Map.simplifyPath(test.path), test.expected );
+                assert.deepEqual( jstonkers.entity.Map.simplifyPath(test.path), test.expected );
             });
         });
 
         it('should find a path', function(done){
             var dataPath = Common.path.join( Common.paths.data, 'maps', 'b.col.png' );
-            var map = Common.entity.Map.create();
+            var map = jstonkers.entity.Map.create();
 
             Step(
                 function(){
@@ -101,7 +101,7 @@ describe('Map', function(){
     
         it('should choose the right path', function(done){
             var dataPath = Common.path.join( Common.paths.data, 'maps', 'c.col.png' );
-            var map = Common.entity.Map.create();
+            var map = jstonkers.entity.Map.create();
 
             Step(
                 function(){
@@ -125,7 +125,7 @@ describe('Map', function(){
 
         it('should choose the right path', function(done){
             var dataPath = Common.path.join( Common.paths.data, 'maps', 'a.col.png' );
-            var map = Common.entity.Map.create();
+            var map = jstonkers.entity.Map.create();
 
             Step(
                 function(){

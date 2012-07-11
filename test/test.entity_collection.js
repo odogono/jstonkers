@@ -14,11 +14,11 @@ describe('EntityCollection', function(){
     ];
 
     _.each( testEntities.reverse(), function(e){
-        Common.entity.registerEntity(e);
+        jstonkers.entity.registerEntity(e);
     });
 
     beforeEach( function(done){
-        Common.sync.clear( function(err){
+        jstonkers.sync.clear( function(err){
             if( err ) return done(err);
             done();
         });
@@ -32,8 +32,8 @@ describe('EntityCollection', function(){
 
         var collection = EntityCollection.create( {items:entities, entity:'test_a'} );
 
-        assert( collection.at(2) instanceof( Common.entity.TestA.entity ) );
-        assert.equal( collection.at(1).type,  Common.entity.TestA.type );
+        assert( collection.at(2) instanceof( jstonkers.entity.TestA.entity ) );
+        assert.equal( collection.at(1).type,  jstonkers.entity.TestA.type );
         assert.equal( collection.at(3).get('name'), 'test entity 4' );
         assert.equal( collection.get('item_count'), 10);
     });
@@ -41,13 +41,13 @@ describe('EntityCollection', function(){
     it('should create from an array of entities', function(){
         var i,entities = [];
         for( i=0;i<10;i++ )
-            entities.push( Common.entity.create( Common.entity.TYPE_TEST_A, {
+            entities.push( jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {
                     id:_.sprintf('test.%03d', i+1),
                     name:'test entity ' + (i+1)}  ));
 
         var collection = EntityCollection.create( {items:entities} );
-        assert( collection.at(2) instanceof Common.entity.TestA.entity );
-        assert.equal( collection.at(1).type, Common.entity.TestA.type );
+        assert( collection.at(2) instanceof jstonkers.entity.TestA.entity );
+        assert.equal( collection.at(1).type, jstonkers.entity.TestA.type );
         assert.equal( collection.at(3).get('name'), 'test entity 4' );
         assert.equal( collection.get('item_count'), 10);
         assert.equal( collection.length, 10); 
@@ -86,11 +86,11 @@ describe('EntityCollection', function(){
         /*it('should produce a map', function(){
             var i,entities = [];
             for( i=0;i<10;i++ )
-                entities.push( Common.entity.create({
+                entities.push( jstonkers.entity.create({
                         id:_.sprintf('test.%03d', i+1),
                         type:'test_a',
                         name:'test entity ' + (i+1)}  ));
-            var collection = Common.entity.createEntityCollection( {items:entities} );
+            var collection = jstonkers.entity.createEntityCollection( {items:entities} );
 
             var result = collection.flatten();
             assert.equal( _.keys(result).length, 10 );
@@ -99,11 +99,11 @@ describe('EntityCollection', function(){
         it('should produce a map', function(){
             var i,entities = [];
             for( i=0;i<10;i++ )
-                entities.push( Common.entity.create({
+                entities.push( jstonkers.entity.create({
                         id:_.sprintf('test.%03d', i+1),
                         type:'test_a',
                         name:'test entity ' + (i+1)}  ));
-            var collection = Common.entity.createEntityCollection( {items:entities} );
+            var collection = jstonkers.entity.createEntityCollection( {items:entities} );
 
             var result = collection.flatten();
             assert.equal( _.keys(result).length, 10 );
@@ -112,7 +112,7 @@ describe('EntityCollection', function(){
         it('should', function(){
             var i,entities = [];
             for( i=0;i<1;i++ )
-                entities.push( Common.entity.create({
+                entities.push( jstonkers.entity.create({
                         id:_.sprintf('test.%03d', i+1),
                         type:'test_a', name:'test entity ' + (i+1)}  ));
 

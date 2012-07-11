@@ -1,47 +1,54 @@
+jstonkers = {};
 
-Common.Vector2f = require('./vector2f');
-Common.PriorityQueue = require('./priority_queue');
+jstonkers.status = {
+    ACTIVE: 'atv',
+    INACTIVE: 'iat',
+    DISABLED: 'dis',
+    LOGICALLY_DELETED: 'ldl',
+};
 
-Common.entity = require('./entity/entity');
-Common.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
-Common.entity.createCollection = require('./entity/entity_collection').create;
+jstonkers.Vector2f = require('./vector2f');
+jstonkers.PriorityQueue = require('./priority_queue');
 
-_.extend(Common.entity, require('./entity/entity_relationship') );
+jstonkers.entity = require('./entity/entity');
+jstonkers.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
+jstonkers.entity.createCollection = require('./entity/entity_collection').create;
 
-Common.sync = require('./sync');
+_.extend(jstonkers.entity, require('./entity/entity_relationship') );
+
+jstonkers.sync = require('./sync');
 
 // add server specific functions to entity
 require('./entity/entity.server');
 
 
-Common.entity.CommandQueue = require('./command_queue');
+jstonkers.entity.CommandQueue = require('./command_queue');
 
-Common.entity.registerEntity('unit');
+jstonkers.entity.registerEntity('unit');
 
-Common.entity.registerEntity('map');
+jstonkers.entity.registerEntity('map');
 require('./entity/map.path_finding');
 require('./entity/map.server');
 
-Common.entity.registerEntity('team');
+jstonkers.entity.registerEntity('team');
 
-var Game = Common.entity.registerEntity('game');
+var Game = jstonkers.entity.registerEntity('game');
 require('./entity/game.logic');
 
-Common.entity.registerEntity('user');
+jstonkers.entity.registerEntity('user');
 
-var GameManager = Common.entity.registerEntity('game_manager');
+var GameManager = jstonkers.entity.registerEntity('game_manager');
 
 
 // load commands
 require( Common.paths.commands );
 
 
-Common.EventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
-Common.EventBus.bind( 'all', function(){
-    // var args = Array.prototype.slice.call(arguments,0);
+jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
+jstonkers.eventBus.bind( 'all', function(){
     console.log(arguments);
 });
-Common.EventBus.emit = Common.EventBus.trigger;
+jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
 
 
 process.on('exit', function() {

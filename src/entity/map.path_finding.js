@@ -3,7 +3,8 @@
 var Vector2f = require('../vector2f');
 var PriorityQueue = require('../priority_queue');
 var Entity = require('./entity');
-var Map = require('./map');
+// note - need to include Map from main namespace
+var Map = jstonkers.entity.Map; //require('./map');
 
 _.extend( Map.entity.prototype, {
 
@@ -200,6 +201,8 @@ Map.simplifyPath = function( path ){
     
     return result;
 }
+
+
 
 
 

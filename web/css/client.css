@@ -59,3 +59,11 @@ html, body  {
   background-image: url(/img/sprites.1.png);}
 .sprite.zoom_2 {
   background-image: url(/img/sprites.2.png);}
+
+
+.game_preview{
+    width: 160px;
+    height: 160px;
+    margin: 1em;
+    float: left;
+}

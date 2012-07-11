@@ -1,3 +1,4 @@
+var fs = require('fs');
 var entity = require('./entity');
 var CommandQueue = require( '../command_queue' );
 
@@ -56,6 +57,7 @@ exports.entity = entity.Entity.extend({
     // 
     // 
     addUser: function(user, team){
+        // print_var( this );
         // check hasn't already been added
         if( this.isUserInvolved(user) )
             return this;
@@ -83,8 +85,10 @@ exports.create = function(attrs, options){
     var result = entity.create( _.extend({type:'game'}, attrs) );
 
     if( options.statePath ){
-        var state = require( options.statePath );
+        // log('loading state from ' + options.statePath );
+        var state = JSON.parse( fs.readFileSync( options.statePath ) );
         state = result.parse(state,null,{parseFor:'game'});
+        
         result.set( state );
     }
 

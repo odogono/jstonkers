@@ -1,6 +1,11 @@
 {
-    "game_manager":{
+    "gm.001":{
         "id":"gm.001",
-        "description":"primary game manager"
+        "description":"primary game manager",
+
+        "user":{
+            "type":"user",
+            "name":"ai user"
+        }
     }
 }

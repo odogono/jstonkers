@@ -11,7 +11,7 @@ describe('app', function(){
         this.app = require(appPath);
 
         // clear db first
-        Common.sync.clear( function(err){
+        jstonkers.sync.clear( function(err){
             if( err ) return done(err);
             Server.initialize(function(){
                 done();    

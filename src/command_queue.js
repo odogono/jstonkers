@@ -124,7 +124,7 @@ exports.CommandQueue = EntityCollection.EntityCollection.extend({
     add: function(models, options) {
         if( _.isString(models) ){
             // attempt to load from entity registry
-            var entityDef = Common.entity.registerEntity( models );
+            var entityDef = jstonkers.entity.registerEntity( models );
 
             if( !entityDef ){
 
@@ -153,7 +153,7 @@ exports.create = function( attrs, options ){
     // this option has to be set in order to process any passed items/models
     // correctly
     options.parse = true;
-    attrs.status = Common.Status.ACTIVE;
+    attrs.status = jstonkers.status.ACTIVE;
     var result = new exports.CommandQueue( attrs, options );
     result.type = 'cmd_queue';
     return result;

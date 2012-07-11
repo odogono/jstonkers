@@ -61,7 +61,8 @@ require('./common.utils');
 URI = require('JSV/lib/uri/uri').URI;
 JSV = require('JSV/lib/jsv').JSV;
 program = require('commander');
-mustache = require( path.join( Common.paths.jslib, 'mustache.min' ) );
+// mustache = require( path.join( Common.paths.jslib, 'mustache.min' ) );
+mustache = require( path.join( Common.paths.jslib, 'mustache' ) );
 jsonpointer = require('jsonpointer/jsonpointer');
 Step = require('step/lib/step');
 connect = require('connect');
@@ -83,11 +84,10 @@ var backboneContext = {
 Common.vm.runInNewContext(Common.fs.readFileSync(path.join(Common.paths.jslib, 'backbone.js')), backboneContext);
 Backbone = backboneContext.Backbone;
 
-
 // Common.schema = require('./schema');
 // Common.schema.register( 
 //     'urn:schemas-opendoorgonorth:jstonkers:entity',
 //     Common.path.join(Common.paths.schema, 'entity.json') );
 
-// Common.sync = require('./sync');
-// Common.entity = entity = require('./entity');
+// jstonkers.sync = require('./sync');
+// jstonkers.entity = entity = require('./entity');

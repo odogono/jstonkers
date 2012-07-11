@@ -1,8 +1,10 @@
+var fs = require('fs');
 var entity = require('./entity');
 
 exports.ER = [
     { oneToMany:"game", name:"games" },
-    { type:'cmd_queue', name:"cmds" }
+    { type:'cmd_queue', name:"cmds" },
+    { oneToOne:'user' }
 ];
 
 exports.entity = entity.Entity.extend({
@@ -22,19 +24,29 @@ exports.entity = entity.Entity.extend({
         if( _.isFunction(options) ){
             callback = options;
         }
-        options = (options || {});
+        if( !user ){
+            user = this.get('user');
+        }
+
+        options = options || {};
+
         var self = this, statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json');
-        var game = Common.entity.Game.create( null,{statePath:statePath});
+        var game = jstonkers.entity.Game.create( null,{statePath:statePath});
         // game.set('created_by', user);
-        game.setPlayer( user );
+        // print_var( game );
+        game.addUser( user );
+
+        // print_var( self );
+        // print_ins( callback );
 
         game.saveRelatedCB(function(err,result){
             // print_ins( arguments );
-            // log('finished saving game ' + )
-            // res.json( {status:Common.Status.ACTIVE, game_id:game.id, game_count:app.gameManager.games.length} );
+            // log('finished saving game ' + result.id );
+            // res.json( {status:jstonkers.status.ACTIVE, game_id:game.id, game_count:app.gameManager.games.length} );
             self.games.add( game );
+            // print_var( self );
             // log( 'added game ' + game.id );
-            callback( null, game );
+            callback( null, game, self );
         });
     },
 
@@ -79,9 +91,9 @@ exports.create = function(attrs, options){
     options = (options || {});
     var result = entity.create( _.extend({type:'game_manager'}, attrs) );
     if( options.statePath ){
-        var state = require( options.statePath );
+        var state = JSON.parse( fs.readFileSync( options.statePath ) );
         // print_var( result );
-        result.set( result.parse(state,null,{parseFor:'game_manager'}) );    
+        result.set( result.parse(state,null,{parseFor:'gm.001'}) );    
     }
 
     if( options.restore ){
@@ -105,4 +117,3 @@ exports.create = function(attrs, options){
     }
     return result;
 };
-

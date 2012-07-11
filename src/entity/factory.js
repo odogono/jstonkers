@@ -44,7 +44,7 @@ exporters.generic = function( result, type, ent, options ){
             key = key.toLowerCase();
 
             // visit each child, and export each to the result
-            if( ent[key] && ent[key] instanceof Common.entity.EntityCollection ){
+            if( ent[key] && ent[key] instanceof jstonkers.entity.EntityCollection ){
 
                 ent[key].items.each( function(child){
                     if( !result[child.cid] ){
@@ -68,7 +68,7 @@ exporters.generic = function( result, type, ent, options ){
     // convert any entity references
 
     _.each( json, function(value,key){
-        if( value instanceof Common.entity.Entity ){
+        if( value instanceof jstonkers.entity.Entity ){
             if( options.exportRelations && !result[value.cid] ){
                 exporters[value.type] ?
                     exporters[value.type]( result, value.type, value, options ) :
@@ -130,7 +130,7 @@ exports.toJSON = function( exportEntity, options ){
         options.toJSON = true;
 
     // if we have a map of ids to entities, then break out the entities into an array
-    if( _.isObject(exportEntity) && !(exportEntity instanceof Common.entity.Entity) ){
+    if( _.isObject(exportEntity) && !(exportEntity instanceof jstonkers.entity.Entity) ){
         exportEntity = _.values(exportEntity);
     }
 
@@ -175,7 +175,7 @@ exports.toEntityJSON = function( exportEntity, options ){
     _.each( entityDetails.ER, function(er){
         if( er.oneToMany ){
             var key = (er.name || er.oneToMany).toLowerCase();
-            if( exportEntity[key] && exportEntity[key] instanceof Common.entity.EntityCollection ){
+            if( exportEntity[key] && exportEntity[key] instanceof jstonkers.entity.EntityCollection ){
                 if( exportEntity[key].length > 0 )
                     result[key] = exportEntity[key].map( function(e){ return e.id });
             }
@@ -251,7 +251,7 @@ exports.resolveEntityList = function( data, options, callback ){
     _.each( data, function(ent){
 
         // fetch a description of this types ER
-        var ers = Common.entity.getER( ent.type );
+        var ers = jstonkers.entity.getER( ent.type );
 
         // if there are no specified ers, then just return
         if( _.isEmpty(ers) )
@@ -280,7 +280,7 @@ exports.resolveEntityList = function( data, options, callback ){
                     if( resolver && resolveAll ){
                         resolver.find( ent.get(k), options, function(err,refEntity){
                             ent.set( k, refEntity );
-                            Common.entity.addEntityToEntity( ent, refEntity, k );
+                            jstonkers.entity.addEntityToEntity( ent, refEntity, k );
                         });
                     }
                     else
@@ -296,7 +296,7 @@ exports.resolveEntityList = function( data, options, callback ){
                 //             ent.set(key, refEntity, {silent:true});
 
                 //             // add the reference in the opposite direction
-                //             Common.entity.addEntityToEntity( ent, refEntity, key );
+                //             jstonkers.entity.addEntityToEntity( ent, refEntity, key );
                 //         });
                 //     }
                 //     else{
@@ -310,7 +310,7 @@ exports.resolveEntityList = function( data, options, callback ){
 
         /*
         // check whether the entity has a refering entity
-        _.each( Common.entity.ids, function(undefined,eid){
+        _.each( jstonkers.entity.ids, function(undefined,eid){
 
             Step(
                 function(){
@@ -331,7 +331,7 @@ exports.resolveEntityList = function( data, options, callback ){
                             ent.set(entKey, refEntity, {silent:true});
 
                             // add the reference in the opposite direction
-                            Common.entity.addEntityToEntity( ent, refEntity, entKey );
+                            jstonkers.entity.addEntityToEntity( ent, refEntity, entKey );
                         }
                         group();
                     } );

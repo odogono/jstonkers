@@ -4,7 +4,7 @@ require( '../src/main.server' );
 
 describe('GameManager', function(){
     beforeEach( function(done){
-        Common.sync.clear( function(err){
+        jstonkers.sync.clear( function(err){
             if( err ) return done(err);
             done();
         });
@@ -14,7 +14,7 @@ describe('GameManager', function(){
         it('should create a new game', function(done){
             var game, added = false;
             var statePath = Common.path.join( Common.paths.data, 'states', 'game_manager.json');
-            var gameManager = Common.entity.GameManager.create(null,{statePath:statePath});
+            var gameManager = jstonkers.entity.GameManager.create(null,{statePath:statePath});
 
             gameManager.on('add', function(game){
                 added = true;
@@ -22,7 +22,7 @@ describe('GameManager', function(){
             
             Step(
                 function(){
-                    gameManager.createGame( this );
+                    gameManager.createGame( null, this );
                 },
                 function(err,result){
                     if(err) throw err;
@@ -32,34 +32,36 @@ describe('GameManager', function(){
                     done();
                 }
             );
-        });
+        });//*/
 
         it('should destroy a game', function(done){
             var game, removed = false;
-            var gameManager = Common.entity.GameManager.create(null,{
+            var gm = jstonkers.entity.GameManager.create(null,{
                 statePath:Common.path.join( Common.paths.data, 'states', 'game_manager.json')
             });
 
-            gameManager.on('remove', function(game){
+            gm.on('remove', function(game){
                 removed = true;
             });
             
             Step(
                 function(){
-                    gameManager.createGame( this );
+                    gm.createGame( null, {debug:true}, this );
                 },
-                function(err,result){
-                    assert.equal( gameManager.games.length, 1 );
-                    gameManager.destroyGame( result.id, this );
+                function(err,game){
+                    if( err ) throw err;
+                    assert.equal( gm.games.length, 1 );
+                    // print_var( game.flatten({toJSON:true}) );
+                    gm.destroyGame( game.id, this );
                 },
                 function(err,result){
                     if(err) throw err;
-                    assert.equal( gameManager.games.length, 0 );
+                    assert.equal( gm.games.length, 0 );
                     assert( removed );
                     done();
                 }
             );
-        });
+        });//*/
     });
 
 });

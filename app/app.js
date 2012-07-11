@@ -15,11 +15,11 @@ program
 
 app.set('view options', {layout:'layouts/main'});
 app.set('view engine', 'mustache');
-// app.engine('mustache', mustache );// require( '../web/js/lib/mustache.min.js' ));
 
 app.engine('mustache', function(path, options, cb){
     Common.fs.readFile(path, 'utf8', function(err, str){
         if (err) return fn(err);
+        log('mustache ' + path + ' ' + JSON.stringify(options) );
         try {
             var renderFn = mustache.compile(str,options);
             if( options.cb )

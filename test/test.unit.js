@@ -5,7 +5,7 @@ require( '../src/main.server' );
 describe('Unit', function(){
 
     beforeEach( function(done){
-        Common.sync.clear( function(err){
+        jstonkers.sync.clear( function(err){
             if( err ) return done(err);
             done();
         });

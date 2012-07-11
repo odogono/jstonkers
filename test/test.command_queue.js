@@ -11,9 +11,9 @@ var CmdTestA = CommandQueue.Command.extend({
     }
 });
 
-Common.entity.registerEntity( 'cmd_test_a', CmdTestA );
+jstonkers.entity.registerEntity( 'cmd_test_a', CmdTestA );
 
-Common.entity.registerEntity({
+jstonkers.entity.registerEntity({
     type: 'test_container', ER:[ { type:'cmd_queue'} ]
 });
 
@@ -21,7 +21,7 @@ describe('Command Queue', function(){
 
     beforeEach( function(done){
         this.queue = CommandQueue.create();
-        Common.sync.clear( function(err){
+        jstonkers.sync.clear( function(err){
             if( err ) return done(err);
             done();
         });
@@ -35,7 +35,7 @@ describe('Command Queue', function(){
 
         
         it('should add commands correctly', function(){
-            // var a = Common.entity.create( CmdTestA, {execute_time:201} );
+            // var a = jstonkers.entity.create( CmdTestA, {execute_time:201} );
             this.queue.add( { id:'cmd_001', type:'cmd_test_a', execute_time:201 } );
             // print_ins( this.queue.at(0) );
 
@@ -254,7 +254,7 @@ describe('Command Queue', function(){
                 ]
             };
 
-            var a = Common.entity.create( ser );
+            var a = jstonkers.entity.create( ser );
 
             // var data = a.parse(ser,null,{parseFor:'test.001',removeId:false,debug:true});
             // print_var( data );
@@ -269,7 +269,7 @@ describe('Command Queue', function(){
                     "cmd_queue":[ {"type":"cmd_test_a", "execute_time":10} ]
                 }
             };
-            var a = Common.entity.create( {type:'test_container', id:'test.001'} );
+            var a = jstonkers.entity.create( {type:'test_container', id:'test.001'} );
             var data = a.parse(ser,null,{parseFor:'test.001'});
             a.set( data );
 
@@ -287,6 +287,30 @@ describe('Command Queue', function(){
 
             assert.deepEqual( this.queue.toJSON({relations:false}), { "type":"cmd_queue", "id":"test.001"});
         });//*/
+
+        it('should flatten to JSON with an empty queue', function(){
+            var a = jstonkers.entity.create( {type:'test_container', id:'test.001'} );
+
+            a.cmd_queue.set({id:'cq', debug:true});
+
+            var flat = a.flatten({toJSON:true});
+            var expected = {
+                "test.001":{
+                    "type":"test_container",
+                    "id":"test.001",
+                    "cmd_queue":"cq"
+                },
+                "cq":{
+                    "id":"cq",
+                    "debug":true,
+                    "type":"cmd_queue"
+                }
+            };
+
+            // print_ins( flat );
+            print_var( flat );
+            assert.deepEqual( flat, expected );
+        });
     });
 
 
@@ -302,7 +326,7 @@ describe('Command Queue', function(){
                     self.queue.saveCB( this );
                 },
                 function createCommandAndAdd(err,result){
-                    cmd = Common.entity.create( CmdTestA, {execute_time:-1} );
+                    cmd = jstonkers.entity.create( CmdTestA, {execute_time:-1} );
                     self.queue.add( cmd );
                     assert.equal( self.queue.length, 1 );
                     self.queue.saveCB( this );
@@ -346,7 +370,7 @@ describe('Command Queue', function(){
                 },
                 function createCommandAndAdd(err,result){
                     if( err ) throw err;
-                    var cmd = Common.entity.create( CmdTestA, {execute_time:-1} );
+                    var cmd = jstonkers.entity.create( CmdTestA, {execute_time:-1} );
                     self.queue.add( cmd );
                     assert.equal( self.queue.length, 1 );
                     self.queue.saveCB( this );
@@ -375,13 +399,13 @@ describe('Command Queue', function(){
         it('should persist as part of a parent entity', function(done){
             var self = this;
 
-            var container = Common.entity.create( Common.entity.TYPE_TEST_CONTAINER, {name:'game', colour:'red'} );
+            var container = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_CONTAINER, {name:'game', colour:'red'} );
 
-            assert.equal( container.type, Common.entity.TYPE_TEST_CONTAINER );
-            assert.equal( container.cmd_queue.type, Common.entity.TYPE_CMD_QUEUE );
+            assert.equal( container.type, jstonkers.entity.TYPE_TEST_CONTAINER );
+            assert.equal( container.cmd_queue.type, jstonkers.entity.TYPE_CMD_QUEUE );
 
-            var a = Common.entity.create( CmdTestA, {execute_time:201} );
-            var b = Common.entity.create( CmdTestA, {execute_time:101} );
+            var a = jstonkers.entity.create( CmdTestA, {execute_time:201} );
+            var b = jstonkers.entity.create( CmdTestA, {execute_time:101} );
 
             container.cmd_queue.add( a );
             container.cmd_queue.add( b );
@@ -394,7 +418,7 @@ describe('Command Queue', function(){
                     if( err ) throw( err );
                     var flat = result.flatten({toJSON:true});
                     assert.equal( flat['2'].type, 'cmd_queue' );
-                    var newContainer = Common.entity.create( Common.entity.TYPE_TEST_CONTAINER, {id:result.id} );
+                    var newContainer = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_CONTAINER, {id:result.id} );
                     newContainer.fetchRelatedCB( this );
                 },
                 function(err,result){

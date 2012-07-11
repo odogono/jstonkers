@@ -112,18 +112,18 @@ _.extend( RedisStorage.prototype, {
         // entity status index
         status = entity.get('status');
 
-        for( i in Common.Status ){
+        for( i in jstonkers.status ){
             // status = entity.get('status') || entity.status;
-            if( status === Common.Status[i] )
-                multi.sadd( keyPrefix + ':status:' + Common.Status[i], entity.id );
+            if( status === jstonkers.status[i] )
+                multi.sadd( keyPrefix + ':status:' + jstonkers.status[i], entity.id );
             else
-                multi.srem( keyPrefix + ':status:' + Common.Status[i], entity.id );
-            // log(entity.id + ' ' + Common.Status[i] );
+                multi.srem( keyPrefix + ':status:' + jstonkers.status[i], entity.id );
+            // log(entity.id + ' ' + jstonkers.status[i] );
         }
 
         // NOTE : logically deleting something does not remove from type and collection sets
         // - retrieving usually 
-        // if( status === Common.Status.LOGICALLY_DELETED ){
+        // if( status === jstonkers.status.LOGICALLY_DELETED ){
         //     multi.srem( keyPrefix + ':' + entity.type, entity.id );
         //     if( entity.entityCollection ){
         //         if( options.debug ) log('removing from entityCollection set');
@@ -442,7 +442,7 @@ _.extend( RedisStorage.prototype, {
     delete: function(model,options,callback){
         var i, j, entity, collection, ers, self = this;
         var keyPrefix = self.options.key_prefix;
-        var entityDetails = Common.entity.ids[model.type];
+        var entityDetails = jstonkers.entity.ids[model.type];
         var flattenOptions = {toJSON:false,recurse:false};
         // var factoryOptions = {toJSON:true,exportAsMap:false};
         if( options.destroyRelated ) {
@@ -454,7 +454,7 @@ _.extend( RedisStorage.prototype, {
 
         var cidToModel = _.values( model.flatten(flattenOptions) ).reverse();
         // if( options.debug ) print_var( cidToModel );
-        // var cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
+        // var cidToModel = jstonkers.entity.Factory.toJSON( model, factoryOptions );
 
         if( options.destroyHard ){
 
@@ -473,8 +473,8 @@ _.extend( RedisStorage.prototype, {
                 multi.srem( keyPrefix + ':' + entity.type, entity.id );
 
                 // delete from the status set for this model
-                for( j in Common.Status ){
-                    multi.srem( keyPrefix + ':status:' + Common.Status[j], entity.id );
+                for( j in jstonkers.status ){
+                    multi.srem( keyPrefix + ':status:' + jstonkers.status[j], entity.id );
                 }
 
                 // if the entity belongs to an entity collection, then remove it from its set
@@ -508,7 +508,7 @@ _.extend( RedisStorage.prototype, {
 
         // a normal delete is actually setting the status of each model to logically deleted
         for( i in cidToModel ){
-            cidToModel[i].set( 'status', Common.Status.LOGICALLY_DELETED );
+            cidToModel[i].set( 'status', jstonkers.status.LOGICALLY_DELETED );
         }
 
 
@@ -535,14 +535,14 @@ _.extend( RedisStorage.prototype, {
     update: function(model, options, callback) {
         var self = this,i;
         var keyPrefix = self.options.key_prefix;
-        var entityDetails = Common.entity.ids[model.type];        
+        var entityDetails = jstonkers.entity.ids[model.type];        
         var collectionSetKey;
         var cidToModel,entity;
 
 
         var multi = self.client.multi();
         // flatten the collection and any contained models
-        var cidToModel = model.flatten();
+        var cidToModel = model.flatten({forPersist:true});
 
         // log('redis.update with ' + JSON.stringify(options) );
         // if( options.debug ) print_var( cidToModel );
@@ -591,7 +591,7 @@ _.extend( RedisStorage.prototype, {
                 // A build a map of model cids to models, so that we can later update ids if need be
                 var factoryOptions = {toJSON:false,exportAsMap:true};
                 if( options.saveRelated ) factoryOptions.exportRelations = true;
-                cidToModel = Common.entity.Factory.toJSON( model, factoryOptions );
+                cidToModel = jstonkers.entity.Factory.toJSON( model, factoryOptions );
 
                 // check the models have ids, if not then generate some for them
                 var group = this.group();
@@ -606,7 +606,7 @@ _.extend( RedisStorage.prototype, {
             function saveEntities(){
                 // print_ins(cidToModel,false,3);
                 // referenceChildren means that the parents will have references to children
-                var jsonOutput = Common.entity.Factory.toJSON( cidToModel, {referenceItems:false,special:true} );
+                var jsonOutput = jstonkers.entity.Factory.toJSON( cidToModel, {referenceItems:false,special:true} );
 
                 // print_var(jsonOutput);
                 var group = this.group();
@@ -651,7 +651,7 @@ _.extend( RedisStorage.prototype, {
 
     retrieveEntityByQuery: function( query, resultSet, options, callback ){
         var self=this,key;// = options.key_prefix + ':' + entityId;
-        var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
+        var ldlKey = options.key_prefix + ":status:" + jstonkers.status.LOGICALLY_DELETED;
         var ignoreStatus = _.isUndefined(options.ignoreStatus) ? false : options.ignoreStatus;
 
         // build the query into a redis key
@@ -702,8 +702,8 @@ _.extend( RedisStorage.prototype, {
         var self = this, i, er, name, type, key, targetId;
         var entityId = _.isObject(entity) ? entity.id : entity;
         var entityKey = options.key_prefix + ':' + entityId;
-        var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
-        var entityDef;// = Common.entity.ids[entity.type];
+        var ldlKey = options.key_prefix + ":status:" + jstonkers.status.LOGICALLY_DELETED;
+        var entityDef;// = jstonkers.entity.ids[entity.type];
         var ignoreStatus = _.isUndefined(options.ignoreStatus) ? false : options.ignoreStatus;
         var debug = null;//entityId == 1;// || options.debug
 
@@ -729,7 +729,7 @@ _.extend( RedisStorage.prototype, {
 
             type = entityAttr.type || (_.isObject(entity) ? entity.type : null);
             // delete entityAttr.type;
-            entityDef = Common.entity.ids[type];
+            entityDef = jstonkers.entity.ids[type];
 
             if( !options.fetchRelated ){
                 callback( null, entityAttr );
@@ -738,7 +738,7 @@ _.extend( RedisStorage.prototype, {
 
             if( !entityDef && options.entityDefHint ){
                 // JSON.stringify(options.entityDefHint)
-                entityDef = Common.entity.ids[options.entityDefHint.type];
+                entityDef = jstonkers.entity.ids[options.entityDefHint.type];
             }
 
             // if(debug ) log('hmm plinkyplonk ' + JSON.stringify(entityDef) );
@@ -810,7 +810,7 @@ _.extend( RedisStorage.prototype, {
             collectionSetKey,
             result;
 
-        var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
+        var ldlKey = options.key_prefix + ":status:" + jstonkers.status.LOGICALLY_DELETED;
 
         if( options.ignoreStatus )
             ldlKey = null;
@@ -907,12 +907,12 @@ _.extend( RedisStorage.prototype, {
             // retrieveOptions,
             // collectionSetKey,
             result;
-        // var entityDetails = Common.entity.ids[model.type];
+        // var entityDetails = jstonkers.entity.ids[model.type];
         
         // var retrieveChildren = [];
         // var itemCounts = [];
         // var modelKey = [self.options.key_prefix, model.id].join(':');
-        // var ldlKey = options.key_prefix + ":status:" + Common.Status.LOGICALLY_DELETED;
+        // var ldlKey = options.key_prefix + ":status:" + jstonkers.status.LOGICALLY_DELETED;
 
         // if( options.ignoreStatus )
         //     ldlKey = null;
