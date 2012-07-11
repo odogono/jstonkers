@@ -293,7 +293,7 @@ describe('Command Queue', function(){
 
             a.cmd_queue.set({id:'cq', debug:true});
 
-            var flat = a.flatten({toJSON:true});
+            var flat = a.flatten({toJSON:true, debug:true});
             var expected = {
                 "test.001":{
                     "type":"test_container",

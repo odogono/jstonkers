@@ -56,12 +56,12 @@ describe('Entity', function(){
 
         it('should have a default status of active', function(){
             var inst = jstonkers.entity.create( {type:'test_a', id:'101'} );
-            assert.equal( inst.get('status'), jstonkers.status.ACTIVE );
+            assert.equal( inst.get('status'), jstonkers.Status.ACTIVE );
         });
 
         it('should set status', function(){
-            var inst = jstonkers.entity.create( {type:'test_a', status:jstonkers.status.ACTIVE, id:'101'} );
-            assert.equal( inst.get('status'), jstonkers.status.ACTIVE );
+            var inst = jstonkers.entity.create( {type:'test_a', status:jstonkers.Status.ACTIVE, id:'101'} );
+            assert.equal( inst.get('status'), jstonkers.Status.ACTIVE );
         });
     });//*/
 

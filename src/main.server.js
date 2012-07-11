@@ -1,6 +1,6 @@
 jstonkers = {};
 
-jstonkers.status = {
+jstonkers.Status = {
     ACTIVE: 'atv',
     INACTIVE: 'iat',
     DISABLED: 'dis',

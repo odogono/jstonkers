@@ -58,12 +58,12 @@ require('./common.utils');
 
 // include libs
 // uuid = require('node-uuid');
-URI = require('JSV/lib/uri/uri').URI;
-JSV = require('JSV/lib/jsv').JSV;
+// URI = require('JSV/lib/uri/uri').URI;
+// JSV = require('JSV/lib/jsv').JSV;
 program = require('commander');
 // mustache = require( path.join( Common.paths.jslib, 'mustache.min' ) );
 mustache = require( path.join( Common.paths.jslib, 'mustache' ) );
-jsonpointer = require('jsonpointer/jsonpointer');
+// jsonpointer = require('jsonpointer/jsonpointer');
 Step = require('step/lib/step');
 connect = require('connect');
 // parseCookie = require('connect').utils.parseCookie;

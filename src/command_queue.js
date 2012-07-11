@@ -153,7 +153,7 @@ exports.create = function( attrs, options ){
     // this option has to be set in order to process any passed items/models
     // correctly
     options.parse = true;
-    attrs.status = jstonkers.status.ACTIVE;
+    attrs.status = jstonkers.Status.ACTIVE;
     var result = new exports.CommandQueue( attrs, options );
     result.type = 'cmd_queue';
     return result;

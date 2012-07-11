@@ -24,7 +24,7 @@ exports.EntityCollection = entity.Entity.extend({
         page_size: 10, // the number of items in each page
         item_count: 0, // the total number of items
         page_count: 0, // the number of 'pages'
-        status:jstonkers.status.ACTIVE
+        status:jstonkers.Status.ACTIVE
     },
 
     initialize: function(){

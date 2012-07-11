@@ -4,7 +4,7 @@
 var Entity = exports.Entity = Backbone.Model.extend({
 
     defaults:{
-        status: jstonkers.status.ACTIVE,
+        status: jstonkers.Status.ACTIVE,
         // created_at:new Date(),
         // updated_at:new Date()
     },

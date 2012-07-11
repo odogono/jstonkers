@@ -1,38 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>jstonkers - games</title>
-        <link href="css/lib/bootstrap.css" rel="stylesheet">
-        <link rel="stylesheet" href="css/lib/leaflet.css" />
-        <link rel="stylesheet" href="css/client.css" />
-        <link href="css/lib/bootstrap-responsive.css" rel="stylesheet">
-    </head>
-    <body>
-        
-        <div class="container">
-            
-            <div class="row">
+{{> header}}
+<div class="container">
+    <div class="row">
+        {{#previews}}
+            {{> game_preview}}
+            preview!
+        {{/previews}}
 
-                {{#previews}}
-                    {{> game_preview}}
-                    preview!
-                {{/previews}}
-                <div class="border_b game_preview">
-                </div>
+        <a href="">
+            <div id="game_add" class="border_b game_preview">
             </div>
-
-        </div>
-
-        <script src="js/lib/jquery-1.7.2.min.js"></script>
-        <script src="js/lib/leaflet-src.js"></script>
-        <script src="js/lib/underscore.js"></script>
-        <script src="js/lib/underscore.string.js"></script>
-        <script type="text/javascript">_.mixin(_.str.exports());</script>
-        <script src="js/lib/backbone.js"></script>
-
-        <script type="text/javascript">
-            
-        </script>
-    </body>
-</html>
+        </a>
+    </div>
+</div>
+{{> footer}}

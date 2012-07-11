@@ -112,18 +112,18 @@ _.extend( RedisStorage.prototype, {
         // entity status index
         status = entity.get('status');
 
-        for( i in jstonkers.status ){
+        for( i in jstonkers.Status ){
             // status = entity.get('status') || entity.status;
-            if( status === jstonkers.status[i] )
-                multi.sadd( keyPrefix + ':status:' + jstonkers.status[i], entity.id );
+            if( status === jstonkers.Status[i] )
+                multi.sadd( keyPrefix + ':status:' + jstonkers.Status[i], entity.id );
             else
-                multi.srem( keyPrefix + ':status:' + jstonkers.status[i], entity.id );
-            // log(entity.id + ' ' + jstonkers.status[i] );
+                multi.srem( keyPrefix + ':status:' + jstonkers.Status[i], entity.id );
+            // log(entity.id + ' ' + jstonkers.Status[i] );
         }
 
         // NOTE : logically deleting something does not remove from type and collection sets
         // - retrieving usually 
-        // if( status === jstonkers.status.LOGICALLY_DELETED ){
+        // if( status === jstonkers.Status.LOGICALLY_DELETED ){
         //     multi.srem( keyPrefix + ':' + entity.type, entity.id );
         //     if( entity.entityCollection ){
         //         if( options.debug ) log('removing from entityCollection set');
@@ -473,8 +473,8 @@ _.extend( RedisStorage.prototype, {
                 multi.srem( keyPrefix + ':' + entity.type, entity.id );
 
                 // delete from the status set for this model
-                for( j in jstonkers.status ){
-                    multi.srem( keyPrefix + ':status:' + jstonkers.status[j], entity.id );
+                for( j in jstonkers.Status ){
+                    multi.srem( keyPrefix + ':status:' + jstonkers.Status[j], entity.id );
                 }
 
                 // if the entity belongs to an entity collection, then remove it from its set
@@ -508,7 +508,7 @@ _.extend( RedisStorage.prototype, {
 
         // a normal delete is actually setting the status of each model to logically deleted
         for( i in cidToModel ){
-            cidToModel[i].set( 'status', jstonkers.status.LOGICALLY_DELETED );
+            cidToModel[i].set( 'status', jstonkers.Status.LOGICALLY_DELETED );
         }
 
 
@@ -651,7 +651,7 @@ _.extend( RedisStorage.prototype, {
 
     retrieveEntityByQuery: function( query, resultSet, options, callback ){
         var self=this,key;// = options.key_prefix + ':' + entityId;
-        var ldlKey = options.key_prefix + ":status:" + jstonkers.status.LOGICALLY_DELETED;
+        var ldlKey = options.key_prefix + ":status:" + jstonkers.Status.LOGICALLY_DELETED;
         var ignoreStatus = _.isUndefined(options.ignoreStatus) ? false : options.ignoreStatus;
 
         // build the query into a redis key
@@ -702,7 +702,7 @@ _.extend( RedisStorage.prototype, {
         var self = this, i, er, name, type, key, targetId;
         var entityId = _.isObject(entity) ? entity.id : entity;
         var entityKey = options.key_prefix + ':' + entityId;
-        var ldlKey = options.key_prefix + ":status:" + jstonkers.status.LOGICALLY_DELETED;
+        var ldlKey = options.key_prefix + ":status:" + jstonkers.Status.LOGICALLY_DELETED;
         var entityDef;// = jstonkers.entity.ids[entity.type];
         var ignoreStatus = _.isUndefined(options.ignoreStatus) ? false : options.ignoreStatus;
         var debug = null;//entityId == 1;// || options.debug
@@ -810,7 +810,7 @@ _.extend( RedisStorage.prototype, {
             collectionSetKey,
             result;
 
-        var ldlKey = options.key_prefix + ":status:" + jstonkers.status.LOGICALLY_DELETED;
+        var ldlKey = options.key_prefix + ":status:" + jstonkers.Status.LOGICALLY_DELETED;
 
         if( options.ignoreStatus )
             ldlKey = null;
@@ -912,7 +912,7 @@ _.extend( RedisStorage.prototype, {
         // var retrieveChildren = [];
         // var itemCounts = [];
         // var modelKey = [self.options.key_prefix, model.id].join(':');
-        // var ldlKey = options.key_prefix + ":status:" + jstonkers.status.LOGICALLY_DELETED;
+        // var ldlKey = options.key_prefix + ":status:" + jstonkers.Status.LOGICALLY_DELETED;
 
         // if( options.ignoreStatus )
         //     ldlKey = null;

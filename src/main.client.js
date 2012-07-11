@@ -1,7 +1,7 @@
 jstonkers = window.jstonkers || { util:{}, model:{}, collection:{}, view:{}, controller:{} };
 // Common = {};
 
-jstonkers.status = {
+jstonkers.Status = {
     ACTIVE: 'atv',
     INACTIVE: 'iat',
     DISABLED: 'dis',

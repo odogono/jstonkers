@@ -264,8 +264,8 @@ describe('Sync.Redis', function(){
 
         
         it('should logically delete an entity', function(done){
-            var a = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {name:'alf',status:jstonkers.status.ACTIVE} );
-            assert.equal( a.get('status'), jstonkers.status.ACTIVE );
+            var a = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {name:'alf',status:jstonkers.Status.ACTIVE} );
+            assert.equal( a.get('status'), jstonkers.Status.ACTIVE );
             Step(
                 function(){
                     a.saveCB( null, this);
@@ -275,7 +275,7 @@ describe('Sync.Redis', function(){
                 },
                 function(err,result){
                     assert.equal(result.get('name'), 'alf');
-                    assert.equal(result.get('status'),jstonkers.status.ACTIVE);
+                    assert.equal(result.get('status'),jstonkers.Status.ACTIVE);
                     result.destroyCB(this);
                 },
                 function(err,result){
@@ -289,7 +289,7 @@ describe('Sync.Redis', function(){
                 function(err, finalResult ){
                     if( err ) throw err;
                     assert( finalResult.get('name'), 'alf' );
-                    assert( finalResult.get('status'), jstonkers.status.LOGICALLY_DELETED );
+                    assert( finalResult.get('status'), jstonkers.Status.LOGICALLY_DELETED );
                     done();
                 }
             );
@@ -297,7 +297,7 @@ describe('Sync.Redis', function(){
 
 
         it('should completely delete an entity', function(done){
-            var a = jstonkers.entity.create( {type:jstonkers.entity.TYPE_TEST_A, name:'ash', status:jstonkers.status.ACTIVE} );
+            var a = jstonkers.entity.create( {type:jstonkers.entity.TYPE_TEST_A, name:'ash', status:jstonkers.Status.ACTIVE} );
             var initialCount;
             var initialKeys;
             Step(
@@ -379,9 +379,9 @@ describe('Sync.Redis', function(){
                 function(err, result ){
                     if( err ) throw err;
                     assert( result.get('name'), 'enigma' );
-                    assert( result.get('status'), jstonkers.status.LOGICALLY_DELETED );
-                    assert( result.get('comrade').get('status'), jstonkers.status.LOGICALLY_DELETED );
-                    assert( result.get('comrade').get('associate').get('status'), jstonkers.status.LOGICALLY_DELETED );
+                    assert( result.get('status'), jstonkers.Status.LOGICALLY_DELETED );
+                    assert( result.get('comrade').get('status'), jstonkers.Status.LOGICALLY_DELETED );
+                    assert( result.get('comrade').get('associate').get('status'), jstonkers.Status.LOGICALLY_DELETED );
                     done();
                 }
             );
@@ -589,7 +589,7 @@ describe('Sync.Redis', function(){
 
             var col = jstonkers.entity.createCollection({entityType:'test_a'},[
                 { name:'test entity 1' },
-                { name:'test entity 2', status:jstonkers.status.INACTIVE },
+                { name:'test entity 2', status:jstonkers.Status.INACTIVE },
                 { name:'test entity 3' }
             ]);
 
@@ -602,7 +602,7 @@ describe('Sync.Redis', function(){
                     
                     var fetchCol = jstonkers.entity.createCollection({
                         entityType:'test_a',
-                        entityStatus:jstonkers.status.ACTIVE
+                        entityStatus:jstonkers.Status.ACTIVE
                     });
                     fetchCol.fetchCB( this );
                 },
@@ -812,7 +812,7 @@ describe('Sync.Redis', function(){
                 function(){
                     var col = jstonkers.entity.createEntityCollection({entity:jstonkers.entity.TYPE_TEST});
                     for( var i=0;i<5;i++ )
-                        col.add( jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {name:'test entity ' + i, status:jstonkers.status.INACTIVE} ) );
+                        col.add( jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {name:'test entity ' + i, status:jstonkers.Status.INACTIVE} ) );
                     retrieveId = col.at(2).id;
                     col.save( null, {success:this});
                 },
@@ -847,10 +847,10 @@ describe('Sync.Redis', function(){
                 function(){
                     var col = jstonkers.entity.createEntityCollection({entity:jstonkers.entity.TYPE_TEST});
                     for( var i=0;i<5;i++ )
-                        col.add( jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {name:'test entity ' + i, status:jstonkers.status.INACTIVE} ) );
+                        col.add( jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {name:'test entity ' + i, status:jstonkers.Status.INACTIVE} ) );
 
-                    col.at(1).set('status', jstonkers.status.ACTIVE );
-                    col.at(3).set('status', jstonkers.status.ACTIVE );
+                    col.at(1).set('status', jstonkers.Status.ACTIVE );
+                    col.at(3).set('status', jstonkers.Status.ACTIVE );
                     
                     entityIds = col.items.map( function(i){ return i.id; });
                     col.save( null, {success:this});
@@ -858,7 +858,7 @@ describe('Sync.Redis', function(){
                 function fetchAllEntityA(){
                     var next = this;
                     var col = jstonkers.entity.createEntityCollection({entity:jstonkers.entity.TYPE_TEST});
-                    col.fetch({find:{status:{$ne:jstonkers.status.INACTIVE}},
+                    col.fetch({find:{status:{$ne:jstonkers.Status.INACTIVE}},
                         success:function(model,resp){
                         // print_ins( arguments );
                         next( null, model );
