@@ -93,7 +93,7 @@ L.JStonkersMap = L.Map.extend({
         }
         var origin = this.originLayerPoint; //this.latLngToLayerPoint( new L.LatLng(0,0) ); //
         var block = new L.Point(layerPoint.x - origin.x, layerPoint.y - origin.y);
-        var zoom = this.tileLayer._getOffsetZoom(this.getZoom());
+        var zoom = this.tileLayer._getZoomForUrl();
         var oblock = block;
 
         if (zoom > 0) {
@@ -109,8 +109,8 @@ L.JStonkersMap = L.Map.extend({
         if( !this.originLayerPoint ){
             this.originLayerPoint = this.latLngToLayerPoint( new L.LatLng(0,0) );
         }
-        var zoom = this.tileLayer._getOffsetZoom(this.getZoom());
-        
+        var zoom = this.tileLayer._getZoomForUrl();
+
         if (zoom > 0) {
             block = new L.Point(block.x >> zoom, block.y >> zoom);
         } else {
