@@ -1,14 +1,14 @@
-jstonkers = {};
-
-jstonkers.Status = {
-    ACTIVE: 'atv',
-    INACTIVE: 'iat',
-    DISABLED: 'dis',
-    LOGICALLY_DELETED: 'ldl',
+jstonkers = {
+    Status:{
+        ACTIVE: 'atv',
+        INACTIVE: 'iat',
+        DISABLED: 'dis',
+        LOGICALLY_DELETED: 'ldl',
+    },
+    Vector2f: require('./vector2f'),
+    PriorityQueue: require('./priority_queue'),
 };
 
-jstonkers.Vector2f = require('./vector2f');
-jstonkers.PriorityQueue = require('./priority_queue');
 
 jstonkers.entity = require('./entity/entity');
 jstonkers.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;

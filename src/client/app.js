@@ -1,4 +1,7 @@
-jstonkers.App = Backbone.Router.extend({
+
+var log = debug('client:app');
+
+jstonkers.client.App = Backbone.Router.extend({
     initialize: function(options){
         this.params = jstonkers.params = options;
         this.urlRoot = jstonkers.params.url.root;
@@ -17,7 +20,9 @@ jstonkers.App = Backbone.Router.extend({
 
     initiateSocket: function(){
 
-        this.socket.connect();
+        this.socket.connect({},function(err){
+            log('connected!');
+        });
 
         // var socket = io.connect('http://localhost/');
         // var socket = io.connect('http://localhost:' + jstonkers.params.server.port );
@@ -32,12 +37,12 @@ jstonkers.App = Backbone.Router.extend({
 
 
     createDefaultModels: function(options){
-        this.socket = new jstonkers.client.ServerComms({url:'http://localhost:' + jstonkers.params.server.port});
+        this.socket = new jstonkers.client.ServerComms( this.params.server );
     },
 
 
     routeMain: function(){
-        clog('route: main');
+        log('route: main');
         this.initiateSocket();
     },
 

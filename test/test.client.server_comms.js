@@ -1,3 +1,5 @@
+process.env.DEBUG = 'client.*';
+
 var Common = require( '../src/common' ),
     request = require('supertest'),
     appPath = Common.path.join(Common.paths.app,'app'),
@@ -7,7 +9,9 @@ var Common = require( '../src/common' ),
 
 
 io = require('socket.io/node_modules/socket.io-client');
-debug = require('debug');
+
+// debug.enable('client.*');
+
 
 jstonkers.client = jstonkers.client || {};
 require('../src/client/server_comms');
@@ -50,9 +54,7 @@ describe('client.server_comms', function(){
                 function(err,res){
                     if( err ) throw err;
                     var time, next = this;
-                    
                     sessionRequest = res;
-
                     serverComms = new jstonkers.client.ServerComms(res.body.server);
                     serverComms.connect({},function(err){
                         // print_ins( this );

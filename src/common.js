@@ -57,6 +57,7 @@ if( Common.config.env && Common.config.env[process.env.NODE_ENV] ){
 require('./common.utils');
 
 // include libs
+debug = require('debug');
 program = require('commander');
 Step = require('step/lib/step');
 express = require('express');

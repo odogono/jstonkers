@@ -1,4 +1,4 @@
-sLog = debug('client:server_comms');
+var dlog = debug('client:server_comms');
 
 // 
 // Handles all 'realtime' communication duties for the app
@@ -30,31 +30,31 @@ jstonkers.client.ServerComms = Backbone.Model.extend({
         options = options || {};
         var url = this.buildConnectionString(); //options.url || this.get('url');
 
-        log('connecting to ' + url + '...');
+        dlog('connecting to ' + url + '...');
 
         this.socket = io.connect(url)
         .on('error', function(reason){
-            sLog('connect error ' + reason );
+            dlog('connect error ' + reason );
             self.trigger('disconnect', 'error', reason);
         })
         .on('connect', function(){
             // var sio_id = this.socket.sessionid;
-            sLog('connected');
+            dlog('connected');
             callback.call(self);
         })
         .on('connect_failed', function(){
-            sLog('connect_failed: ' + JSON.stringify(arguments));
+            dlog('connect_failed: ' + JSON.stringify(arguments));
             self.set({connected:false});
         })
         .on('message', function(){
             // self.onMessage();
-            sLog('message: ' + JSON.stringify(arguments) );
+            dlog('message: ' + JSON.stringify(arguments) );
         })
         .on('reconnecting', function(reconnectionDelay,reconnectionAttempts){
-            sLog('reconnecting ' + reconnectionAttempts );
+            dlog('reconnecting ' + reconnectionAttempts );
         })
         .on('disconnect', function(){
-            sLog('disconnected');
+            dlog('disconnected');
             self.set({connected:false});
         });
         

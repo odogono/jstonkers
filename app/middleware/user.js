@@ -1,3 +1,5 @@
+var debug = require('debug')('app:mw:user');
+
 // 
 // Route handling middleware for dealing with Users
 // 
@@ -11,7 +13,7 @@ exports.load = function(req, res, next){
     // load by user id
     if( req.session.userId ){
         User.create({id:req.session.userId}).fetchCB( function(err,user){
-            log('retrieved existing user from session userId ' + user.id);
+            debug('retrieved existing user from session userId ' + user.id);
             req.user = user;
             next();
         });
@@ -20,7 +22,7 @@ exports.load = function(req, res, next){
         // load user based on session id
         User.retrieveBySessionId( req.sessionID, function(err, user){
             if(user){
-                log('retrieved user from session id ' + user.id);
+                debug('retrieved user from session id ' + user.id);
                 req.user = user;
             }
             next();
@@ -38,7 +40,7 @@ exports.create = function(req,res,next){
             req.user = result;
             req.session.userId = result.id;
             req.siotoken = result.get('siotoken');
-            log('created new user ' + result.id);
+            debug('created new user ' + result.id);
             next();
         });
     } else
@@ -71,7 +73,7 @@ exports.loadOrCreate = function(req,res,next){
         // load by user id
         if( req.session.userId ){
             User.create({id:req.session.userId}).fetchCB( function(err,user){
-                log('retrieved existing user from session userId ' + user.id);
+                debug('retrieved existing user from session userId ' + user.id);
                 req.user = user;
                 next();
             });
@@ -80,7 +82,7 @@ exports.loadOrCreate = function(req,res,next){
             // load user based on session id
             User.retrieveBySessionId( req.sessionID, function(err, user){
                 if(user){
-                    log('retrieved user from session id ' + user.id);
+                    debug('retrieved user from session id ' + user.id);
                     req.user = user;
                     req.session.userId = user.id;
                     next();
@@ -88,7 +90,7 @@ exports.loadOrCreate = function(req,res,next){
                 else {
                     var params = {sid:req.sessionID};
                     User.create( params ).saveCB( function(err, result){
-                        log('created new user ' + result.id);
+                        debug('created new user ' + result.id);
                         next();
                     });
                 }

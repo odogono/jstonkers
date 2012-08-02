@@ -39,6 +39,7 @@
         {{/cmap}}
 
         <script src="/js/lib/jquery-1.7.2.min.js"></script>
+        <script src="/js/lib/debug.js"></script>
         <script src="/js/lib/leaflet-src.js"></script>
         <script src="/js/lib/underscore.js"></script>
         <script src="/js/lib/underscore.string.js"></script>
@@ -47,12 +48,7 @@
 
         <script src="/js/jstonkers.js"></script>
 
-        <script src="/js/client.js"></script>
-        <script src="/js/models.js"></script>
         <script src="/js/client.view.map.js"></script>
-        <script src="/js/client.app.js"></script>
-
-        
 
         <script src="/js/l-control-coordinates.js"></script>
 
@@ -71,14 +67,14 @@
                     var self = this;
                     var coordinatesControl = new L.Control.Coordinates();
                     this.addControl(coordinatesControl);
-                    // this.on('zoomend', function(e){
-                    //     jstonkers.log('zoom finished at ' + self.getZoom() );
+                    this.on('zoomend', function(e){
+                        console.log('zoom finished at ' + self.getZoom() );
                     //     // map.setView( this.getCenter(), map.getZoom(),true );
                     //     // if (options.maxBounds) {
                     //         // TODO predrag validation instead of animation
                     //         // L.Util.requestAnimFrame(map._panInsideMaxBounds, map, true, map._container);
                     //     // }
-                    // });
+                    });
                 });
 
                 map = new L.JStonkersMap('map',{});
@@ -111,7 +107,7 @@
                 // markerLayer.addLayer(marker);
                 map.addLayer(markerLayer);
 
-                window.app = new jstonkers.App();
+                App = new jstonkers.client.App( {{{appParams}}} );
                 log('loaded');
                 // map.setView( map.worldToMap([1000,1000]), map.getZoom() );
             });

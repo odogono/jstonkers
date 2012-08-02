@@ -1,6 +1,8 @@
 jstonkers = window.jstonkers || { client:{util:{}, model:{}, collection:{}, view:{}, controller:{}} };
 require('./client/utils');
 
+debug.enable('client.*');
+
 var client = _.extend( jstonkers.client, {
     Vector2f: require('./vector2f'),
     PriorityQueue: require('./priority_queue'),

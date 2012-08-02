@@ -12,11 +12,15 @@
 
         <div class="container">
             <div class="row">
+                <div class="offset2 span8 border_b"><img src="/img/title.png" /></div>
+            </div>
+            <div class="row">
                 <div id="messages" class="offset2 span8 border_b"></div>
             </div>
         </div>
 
         <script src="/js/lib/jquery-1.7.2.min.js"></script>
+        <script src="/js/lib/debug.js"></script>
         <script src="/js/lib/leaflet-src.js"></script>
         <script src="/js/lib/underscore.js"></script>
         <script src="/js/lib/underscore.string.js"></script>
@@ -27,7 +31,7 @@
         <script src="/js/jstonkers.js"></script>
         <script>
         $(function(){
-            App = new jstonkers.App( {{{appParams}}} );
+            App = new jstonkers.client.App( {{{appParams}}} );
         });
         </script>
     </body>

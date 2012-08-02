@@ -1,7 +1,3 @@
-// var app = module.parent.exports;
-// var UserMW = require('../middleware/user');
-
-
 
 exports.index = function(req, res){
     var app = req.app;
@@ -12,13 +8,13 @@ exports.index = function(req, res){
             port:app.config.server.port,
             siotoken: req.siotoken
         }};
-    req.session.location = 'home';
-
-    if( req.accepts('json') ){
-        res.json( appParams );
-    } 
-    else
+    if( req.accepts('html') ){
         res.render( 'main', {appParams:JSON.stringify(appParams)} );
+    }
+    else if( req.accepts('json') ){
+        res.json( appParams );
+    }
+        
 };
 
 

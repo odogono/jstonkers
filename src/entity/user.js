@@ -1,4 +1,5 @@
 var entity = require('./entity');
+var dlog = debug('entity:user');
 
 // exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#user';
 
@@ -31,7 +32,7 @@ exports.retrieveBySessionId = function(sessionId, options, callback){
     }
 
     var result = exports.create();
-    log('retrieveBySessionId ' + sessionId );
+    dlog('retrieveBySessionId ' + sessionId );
     result.fetchCB({query:{sid:sessionId}}, function(err,retrieved){
         if( err ){ callback(err); return; }
         if( retrieved.isNew() )

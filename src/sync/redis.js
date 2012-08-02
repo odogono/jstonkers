@@ -2,6 +2,7 @@ var redis = require("redis");
 var Entity = require('../entity/entity');
 var EntityCollection = require('../entity/entity_collection');
 var uuid = require('node-uuid');
+var debug = require('debug')('app:sync');
 
 exports.info = 'redis based sync';
 
@@ -1003,14 +1004,15 @@ exports.sync = function(method, model, options) {
 }
 
 exports.generateUuid = function( options, callback ){
-    var config = Common.config.sync.redis;
-    var prefix = config.key_prefix;
-    var key = prefix + ':' + config.uuid.key;
+    var config = Common.config.sync.redis,
+        prefix = config.key_prefix;
 
     if( _.isFunction(options) && _.isUndefined(callback) ){
         callback = options;
         options = {};
     }
+
+    var key = prefix + ':' + (options.uuid_key || config.uuid.key);
 
     // store.client.incr( key, callback );
     store.client.incr( key, function(err,id){
@@ -1093,12 +1095,14 @@ exports.createSioTokenForSession = function( sessionId, callback ){
     var config = Common.config.sync.redis;
     var prefix = config.key_prefix;
     var token = uuid.v4();
-    
-    store.client.set( prefix + ':siot:' + token, sessionId, function(err, result){
-        if( err ) throw err;
-        log('set siotoken to ' + token );
-        callback(err, token );
-    });
+
+    exports.generateUuid( {uuid_key:'uuid_sio'}, function(err,token){
+        store.client.set( prefix + ':siot:' + token, sessionId, function(err, result){
+            if( err ) throw err;
+            debug('set siotoken to ' + token );
+            callback(err, token );
+        });
+    })
 }
 
 
@@ -1107,7 +1111,7 @@ exports.getSessionIdFromSioToken = function( sioToken, callback ){
     var prefix = config.key_prefix;
     store.client.get( prefix + ':siot:' + sioToken, function(err, sessionId){
         if( err ) throw err;
-        log('retrieved siotoken ' + sioToken );
+        debug('retrieved siotoken ' + sioToken );
         callback( err, sessionId );
     });
 }

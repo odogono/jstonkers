@@ -1,4 +1,4 @@
-;
+
 L.Projection.NoWrap = {
     project: function (latlng) {
         return new L.Point(latlng.lng, latlng.lat);
@@ -33,7 +33,6 @@ L.LatLngBounds.prototype.extend = function (/*LatLng or LatLngBounds*/ obj) {
     }
     return this;
 }
-
 
 
 L.JStonkersMap = L.Map.extend({
