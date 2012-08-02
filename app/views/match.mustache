@@ -47,9 +47,6 @@
         <script src="/js/lib/backbone.js"></script>
 
         <script src="/js/jstonkers.js"></script>
-
-        <script src="/js/client.view.map.js"></script>
-
         <script src="/js/l-control-coordinates.js"></script>
 
         <script type="text/javascript">
@@ -108,7 +105,6 @@
                 map.addLayer(markerLayer);
 
                 App = new jstonkers.client.App( {{{appParams}}} );
-                log('loaded');
                 // map.setView( map.worldToMap([1000,1000]), map.getZoom() );
             });
         </script>

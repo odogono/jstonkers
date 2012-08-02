@@ -90,6 +90,8 @@ require('./client/baseview');
 require('./client/server_comms');
 require('./client/app');
 
+require('./client/view.map');
+
 $(function() {
     // log('hello there');
 
