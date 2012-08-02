@@ -5,7 +5,8 @@
 var Common = require( '../../src/common' );
 
 var EventEmitter = require('events').EventEmitter
-    , methods = express.methods
+    // , methods = express.methods
+    , methods = [ 'get', 'post', 'put', 'delete' ]
     , http = require('http')
     , assert = require('assert');
 
@@ -41,7 +42,8 @@ function Request(app, res) {
  */
 
 Request.prototype.__proto__ = EventEmitter.prototype;
-
+// log('hey wat');
+// print_ins( express.Router.methods );
 methods.forEach(function(method){
   Request.prototype[method] = function(path){
     return this.request(method, path);

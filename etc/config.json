@@ -5,6 +5,14 @@
                 "port": 3011    
             },
 
+            "repl_server": {
+                "enabled":false
+            },
+
+            "socket_server":{
+                "enabled":true
+            },
+
             "session":{
                 "prefix":"test:jstonk:sess"
             },
@@ -31,11 +39,11 @@
     
     "repl_server": {
         "enabled":true,
-        "port": 9000
+        "port": 3002
     },
 
     "socket_server": {
-        "enabled":false
+        "enabled":true
     },
 
     "client":{
@@ -45,14 +53,15 @@
     },
     
     "session":{
-        "prefix":"jstonk",
-        "secret":"jst-secret"
+        "prefix":"jstonk:sess",
+        "secret":"jst-secret",
+        "id":"jstonk.sid"
     },
 
     "sync":{
         "redis":{
             "redisdb":0,
-            "key_prefix":"jstonk:sess",
+            "key_prefix":"jstonk",
             "uuid":{
                 "key":"uuid"
             }

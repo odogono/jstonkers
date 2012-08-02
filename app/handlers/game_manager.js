@@ -1,29 +1,38 @@
-var app = module.parent.exports;
-var UserMW = require('../middleware/user');
+// var app = module.parent.exports;
 
 
-app.post('/games/new', UserMW.load, UserMW.createIfMissing, function(req,res){
+exports.create = function( req,res ){
+    var app = req.app,
+        gameManager = app.gameManager;
+// app.post('/games/new', UserMW.load, UserMW.createIfMissing, function(req,res){
     // is this user allowed to create a new game ?
 
     // process the arguments for creating the game
 
     // fetch a default game state
-    var game = app.gameManager.createGame( req.user, function(err,game){
-        res.json( {status:jstonkers.Status.ACTIVE, game_id:game.id, game_count:app.gameManager.games.length} );
+    var game = gameManager.createGame( req.user, function(err,game){
+        res.json( {status:jstonkers.Status.ACTIVE, game_id:game.id, game_count:gameManager.games.length} );
     });
-});
+};
 
 // main game page
 // if html request, returns a page with the game state enclosed
 // if json request, returns a json object of the game state
-app.get('/games/:game_id', function(req,res){
-    var gameId = req.param('game_id');
-    res.render('error', { status: 404, message: 'Game' + gameId + ' Not Found' });
-});
+exports.view = function(req,res){
+    var app = req.app,
+        gameManager = app.gameManager,
+        gameId = req.param('game_id');
+    // res.render('error', { status: 404, message: 'Game' + gameId + ' Not Found' });
+    if( req.is('json') )
+        res.json({msg:'thanks'});
+    else
+        res.render( 'match', { msg: "hello there" });
+};
 
 
-
-app.get('/games', function(req,res){
+exports.viewAll = function(req,res){
+    var app = req.app,
+        gameManager = app.gameManager;
 
     var previews = [
         { id:1, name:'game a'},
@@ -32,14 +41,15 @@ app.get('/games', function(req,res){
     ];
 
     res.render( 'games', { msg: "hello there", previews:previews });
-});
+};
 
 
+exports.delete = function(req,res){
+    var app = req.app,
+        gameManager = app.gameManager,
+        gameId = req.param('game_id');
 
-app.delete('/games/:game_id', function(req,res){
-    var gameId = req.param('game_id');
-
-    app.gameManager.destroyGame( gameId, function(err, result){
+    gameManager.destroyGame( gameId, function(err, result){
         if( err ){
             print_ins( err );
             throw err;
@@ -48,7 +58,7 @@ app.delete('/games/:game_id', function(req,res){
             res.json({ game_id:gameId });
     });
     
-});
+};
 
 // app.get('/', function(req,res){
     

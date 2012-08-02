@@ -62,14 +62,14 @@ L.JStonkersMap = L.Map.extend({
     },
 
     initializeTileLayer: function(){
-        var url = 'http://work.localhost/jstonkers/web/img/tiles/a/{z}-{x}-{y}.png';
+        var url = '/img/tiles/a/{z}-{x}-{y}.png';
         var params = { minZoom: -2, maxZoom: 4 };
         // var params = { minZoom: 2, maxZoom: 8 };
         this.tileLayer = new L.TileLayer(url, {
             maxZoom: params.maxZoom - params.minZoom, //6
             minZoom: 0,
             zoomOffset: params.minZoom,
-            errorTileUrl:'http://work.localhost/jstonkers/web/img/tiles/a/n-n.png',
+            errorTileUrl:'/img/tiles/a/n-n.png',
             // zoomOffset: params.minZoom-1,
             zoomReverse:true, 
             continuousWorld: true});

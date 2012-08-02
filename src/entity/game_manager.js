@@ -84,6 +84,44 @@ exports.entity = entity.Entity.extend({
                 callback( err );
             }
         );
+    },
+
+    // 
+    // 
+    // 
+    loadState: function( statePath, options, callback ){
+        var self = this;
+        var callback = _.isFunction(options) ? options : callback || (options ? options.callback : null);
+        options = options || {};
+        
+        var parseFor = options.parseFor || 'gm.001';
+        var state = JSON.parse( fs.readFileSync( statePath ) );
+
+        // print_var( result );
+        self.set( self.parse(state,null,{parseFor:parseFor}) );
+        if( options.debug ) log('loaded gm state from ' + statePath );
+
+        if( options.restore ){
+            Step(
+                function(){
+                    self.fetchRelatedCB( this );        
+                },
+                function(err,existing){
+                    if( err ){
+                        // doesn't exist - go for saving instead
+                        self.saveCB(this);
+                    }else{
+                        this();
+                    }
+                }, 
+                function(err,saved){
+                    if( callback )
+                        callback();
+                }
+            );
+        }
+
+        return self;
     }
 });
 
@@ -91,29 +129,7 @@ exports.create = function(attrs, options){
     options = (options || {});
     var result = entity.create( _.extend({type:'game_manager'}, attrs) );
     if( options.statePath ){
-        var state = JSON.parse( fs.readFileSync( options.statePath ) );
-        // print_var( result );
-        result.set( result.parse(state,null,{parseFor:'gm.001'}) );    
-    }
-
-    if( options.restore ){
-        Step(
-            function(){
-                result.fetchRelatedCB( this );        
-            },
-            function(err,existing){
-                if( err ){
-                    // doesn't exist - go for saving instead
-                    result.saveCB(this);
-                }else{
-                    this();
-                }
-            }, 
-            function(err,saved){
-                if( options.callback )
-                    options.callback();
-            }
-        );
+        result.loadState( options.statePath, options );
     }
     return result;
 };

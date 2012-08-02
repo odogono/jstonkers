@@ -81,34 +81,52 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return this.save( attrs, options );
     },
 
+    // 
+    // 
+    // 
     saveRelatedCB: function( options, callback){
         options = this.convertCallback( options, callback );
         options.saveRelated = true;
         return this.save( null, options );
     },
 
+    // 
+    // 
+    // 
     fetchCB: function(options,callback){
         options = this.convertCallback( options, callback );
         return this.fetch( options );
     },
 
+    // 
+    // 
+    // 
     fetchRelatedCB: function(options,callback){
         options = this.convertCallback( options, callback );
         options.fetchRelated = true;
         return this.fetch( options );
     },
 
+    // 
+    // 
+    // 
     destroyCB:function(options,callback){
         options = this.convertCallback(options,callback);
         return this.destroy(options);
     },
 
+    // 
+    // 
+    // 
     destroyRelatedCB: function( options,callback ){
         options = this.convertCallback(options,callback);
         options.destroyRelated = true;
         return this.destroy(options);  
     },
 
+    // 
+    // 
+    // 
     triggerRelated: function(events){
         var entity, relatedMap = this.flatten();
 
@@ -120,6 +138,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return this;
     },
 
+    // 
+    // 
+    // 
     set: function(key, value, options) {
         var i, er, attrs, attr, val,entity,subEntity;
         var self = this, entityDef;
@@ -345,6 +366,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return resp;
     },
 
+    // 
+    // 
+    // 
     removeID: function(options){
         var i, er, erName,child;
         var entityDef = exports.ids[this.type];
@@ -377,6 +401,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
         }
     },
 
+    // 
+    // 
+    // 
     equals: function(other){
         var tn = this.isNew(), on = other.isNew();
         if( tn !== on )
@@ -386,6 +413,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return this.id === other.id;
     },
 
+    // 
+    // 
+    // 
     clone: function(options) {
         options = options || {};
         var recurse = _.isUndefined(options.recurse) ? false : options.recurse;
@@ -403,6 +433,9 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return result;
     },
 
+    // 
+    // 
+    // 
     toJSON: function( options ){
         var i, entityDef, er, erName, relation, output;
         options || (options = {});
@@ -552,17 +585,19 @@ var Entity = exports.Entity = Backbone.Model.extend({
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
                 // def = jstonkers.entity.ids[ er.type ];
-                // log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
+                // if( options.debug ) log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
                 // print_ins( jstonkers.entity.ids );
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
+                
+
                 if( er.oneToOne ){
                     if( doRecurse && (child = this.get(erName)) && child.refCount <= maxRefCount ){
                         // log('child refCount: ' + child.refCount + '/' + maxRefCount );
                         child.flatten( options );
                     }
-                } else if( er.oneToMany ){
-                    // log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
-                    if( doRecurse && (child = this[erName]) ){
+                } else if( er.oneToMany && (child=this[erName]) ){
+                    // if( options.debug ) log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
+                    if( doRecurse ) {//&& (child = this[erName]) ){
                         // print_ins( child instanceof jstonkers.entity.EntityCollection );
                         // log( child.flatten )
                         // log( child instanceof exports.Entity );
@@ -570,25 +605,32 @@ var Entity = exports.Entity = Backbone.Model.extend({
                         child.flatten(options);
                     }
                     
-                    if( options.toJSON && options.referenceItems && this[erName].length > 0 ){
-                        // log('flattening ' + erName );
-                        outgoing[erName] = this[erName].toJSON( {collectionAsIdList:true} );
+                    if( options.toJSON && options.referenceItems ){
+                        // if( options.debug ) log('flattening ' + erName );
+
+                        if( child.shouldSerialise() || child.length < 0 )
+                            outgoing[erName] = child.id || child.cid;
+                        else // if( this[erName].length > 0 )
+                            outgoing[erName] = child.toJSON( {collectionAsIdList:true} );
+                        // else
+                            // outgoing[erName] = this[erName].id || this[erName].cid;
                     }
                 }
             }
 
+            // look through attributes for entities that should be flattened as well
             for( i in this.attributes ){
                 child = this.attributes[i];
-
                 if( child instanceof exports.Entity ){
-                    childId = child.id || child.cid;
+                    // childId = child.id || child.cid;
                     if( options.allEntities && doRecurse )
                         child.flatten(options);
-                    
+
                         if( options.toJSON ){
-                            if( doRelations )
+                            if( doRelations ){
+                                // if(options.debug)log('flatten to id ' + child.id );
                                 outgoing[i] = child.id || child.cid;
-                            else
+                            }else
                                 delete outgoing[i];
                         }
                     

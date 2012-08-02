@@ -34,7 +34,6 @@ exports.retrieveBySessionId = function(sessionId, options, callback){
     log('retrieveBySessionId ' + sessionId );
     result.fetchCB({query:{sid:sessionId}}, function(err,retrieved){
         if( err ){ callback(err); return; }
-
         if( retrieved.isNew() )
             callback( 'not found' );
         else
@@ -42,3 +41,20 @@ exports.retrieveBySessionId = function(sessionId, options, callback){
     });
     return result;
 };
+
+exports.retrieveBySioToken = function( sioToken, options, callback ){
+    if( _.isFunction(options) ){
+        callback = options;
+        options = {};
+    }
+
+    var result = exports.create();
+    result.fetchCB({query:{sioToken:sioToken}}, function(err,retrieved){
+        if( err ){ callback(err); return; }
+        if( retrieved.isNew() )
+            callback( 'not found' );
+        else
+            callback(null, retrieved);
+    });
+    return result;
+}

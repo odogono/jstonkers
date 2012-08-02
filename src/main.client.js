@@ -1,41 +1,33 @@
-jstonkers = window.jstonkers || { util:{}, model:{}, collection:{}, view:{}, controller:{} };
-// Common = {};
+jstonkers = window.jstonkers || { client:{util:{}, model:{}, collection:{}, view:{}, controller:{}} };
+require('./client/utils');
 
-jstonkers.Status = {
-    ACTIVE: 'atv',
-    INACTIVE: 'iat',
-    DISABLED: 'dis',
-    LOGICALLY_DELETED: 'ldl',
-};
+var client = _.extend( jstonkers.client, {
+    Vector2f: require('./vector2f'),
+    PriorityQueue: require('./priority_queue'),
 
-jstonkers.Vector2f = require('./vector2f');
-jstonkers.PriorityQueue = require('./priority_queue');
+    entity: require('./entity/entity'),
+});
 
-jstonkers.entity = require('./entity/entity');
-jstonkers.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
-jstonkers.entity.createCollection = require('./entity/entity_collection').create;
-_.extend(jstonkers.entity, require('./entity/entity_relationship') );
+_.extend( client.entity, {
+    EntityCollection: require('./entity/entity_collection').EntityCollection,
+    createCollection: require('./entity/entity_collection').create,
+});
+
+var entity = _.extend( client.entity, require('./entity/entity_relationship') );
 
 
 // jstonkers.entity.CommandQueue = require('./command_queue');
 
-jstonkers.entity.registerEntity( _.extend({type:'unit'}, require('./entity/unit')) );
-jstonkers.entity.registerEntity( _.extend({type:'map'}, require('./entity/map')) );
-require('./entity/map.path_finding');
+entity.registerEntity( _.extend({type:'unit'}, require('./entity/unit')) );
+entity.registerEntity( _.extend({type:'map'}, require('./entity/map')) );
+require('./entity/map.path_finding')( entity.Map );
 
-jstonkers.entity.registerEntity( _.extend({type:'team'}, require('./entity/team')) );
-jstonkers.entity.registerEntity( _.extend({type:'game'}, require('./entity/game')) );
-jstonkers.entity.registerEntity( _.extend({type:'user'}, require('./entity/user')) );
-
-
-jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
-jstonkers.eventBus.bind( 'all', function(){
-    console.log(arguments);
-});
-jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
+entity.registerEntity( _.extend({type:'team'}, require('./entity/team')) );
+entity.registerEntity( _.extend({type:'game'}, require('./entity/game')) );
+entity.registerEntity( _.extend({type:'user'}, require('./entity/user')) );
 
 
-jstonkers.sprites = {
+client.sprites = {
     offsets:[
         [
             [ 0,0 ],
@@ -91,8 +83,13 @@ jstonkers.sprites = {
     ]
 };
 
+
+require('./client/baseview');
+require('./client/server_comms');
+require('./client/app');
+
 $(function() {
-    log('hello there');
+    // log('hello there');
 
     /*var socket = io.connect('http://localhost/');
     socket.on('connect', function () {

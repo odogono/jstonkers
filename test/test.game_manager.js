@@ -11,7 +11,17 @@ describe('GameManager', function(){
     });
 
     describe('create', function(){
-        it('should create a new game', function(done){
+
+        it('should restore from a state', function(){
+            var statePath = Common.path.join( Common.paths.data, 'states', 'game_manager_a.json');
+            var gameManager = jstonkers.entity.GameManager.create(null,{statePath:statePath});
+
+            assert.equal( gameManager.getGame("game.001").get('description'), 'restored test game a');
+            // print_var( gameManager.games.flatten({toJSON:true}) );
+            // print_var( gameManager );
+        });
+
+        /*it('should create a new game', function(done){
             var game, added = false;
             var statePath = Common.path.join( Common.paths.data, 'states', 'game_manager.json');
             var gameManager = jstonkers.entity.GameManager.create(null,{statePath:statePath});
@@ -29,12 +39,14 @@ describe('GameManager', function(){
                     assert( !result.isNew() );
                     assert( added );
                     assert.equal( gameManager.getGame(result.id).id, result.id );
+                    // print_var( gameManager.flatten({toJSON:true}) );
+                    // print_var( gameManager.toJSON() );
                     done();
                 }
             );
         });//*/
 
-        it('should destroy a game', function(done){
+        /*it('should destroy a game', function(done){
             var game, removed = false;
             var gm = jstonkers.entity.GameManager.create(null,{
                 statePath:Common.path.join( Common.paths.data, 'states', 'game_manager.json')

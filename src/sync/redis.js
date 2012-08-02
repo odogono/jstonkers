@@ -1,6 +1,7 @@
 var redis = require("redis");
 var Entity = require('../entity/entity');
 var EntityCollection = require('../entity/entity_collection');
+var uuid = require('node-uuid');
 
 exports.info = 'redis based sync';
 
@@ -1086,3 +1087,27 @@ exports.clear = function( callback ){
         }
     );
 };
+
+
+exports.createSioTokenForSession = function( sessionId, callback ){
+    var config = Common.config.sync.redis;
+    var prefix = config.key_prefix;
+    var token = uuid.v4();
+    
+    store.client.set( prefix + ':siot:' + token, sessionId, function(err, result){
+        if( err ) throw err;
+        log('set siotoken to ' + token );
+        callback(err, token );
+    });
+}
+
+
+exports.getSessionIdFromSioToken = function( sioToken, callback ){
+    var config = Common.config.sync.redis;
+    var prefix = config.key_prefix;
+    store.client.get( prefix + ':siot:' + sioToken, function(err, sessionId){
+        if( err ) throw err;
+        log('retrieved siotoken ' + sioToken );
+        callback( err, sessionId );
+    });
+}

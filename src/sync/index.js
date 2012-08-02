@@ -61,6 +61,13 @@ exports.set = function( key, value ){
     // }
 }
 
+exports.createSioTokenForSession = function( sessionId, callback ){
+    state.defaultSync.createSioTokenForSession( sessionId, callback );
+}
+
+exports.getSessionIdFromSioToken = function( sioToken, callback ){
+    state.defaultSync.getSessionIdFromSioToken( sioToken, callback );
+}
 
 /**
 *   Begins buffering sync operations

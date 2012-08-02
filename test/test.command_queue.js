@@ -13,8 +13,10 @@ var CmdTestA = CommandQueue.Command.extend({
 
 jstonkers.entity.registerEntity( 'cmd_test_a', CmdTestA );
 
+jstonkers.entity.registerEntity({ type:'test_a' });
+
 jstonkers.entity.registerEntity({
-    type: 'test_container', ER:[ { type:'cmd_queue'} ]
+    type: 'test_container', ER:[ { type:'cmd_queue' }, {oneToOne:'test_a', name:'friend'}, { oneToMany:'test_a', name:'friends'} ]
 });
 
 describe('Command Queue', function(){
@@ -290,25 +292,36 @@ describe('Command Queue', function(){
 
         it('should flatten to JSON with an empty queue', function(){
             var a = jstonkers.entity.create( {type:'test_container', id:'test.001'} );
+            var fr = jstonkers.entity.create( {type:'test_a', id:'test.a.001'} );
 
+            a.friends.add(fr);
+            a.set('friend', fr);
             a.cmd_queue.set({id:'cq', debug:true});
 
-            var flat = a.flatten({toJSON:true, debug:true});
+            var flat = a.flatten({toJSON:true, debug:false});
             var expected = {
                 "test.001":{
                     "type":"test_container",
                     "id":"test.001",
-                    "cmd_queue":"cq"
+                    "friend":"test.a.001",
+                    "cmd_queue":"cq",
+                    "friends": [
+                        "test.a.001"
+                    ]
                 },
                 "cq":{
                     "id":"cq",
                     "debug":true,
                     "type":"cmd_queue"
+                },
+                "test.a.001":{
+                    "type":"test_a",
+                    "id":"test.a.001"
                 }
             };
 
             // print_ins( flat );
-            print_var( flat );
+            // print_var( flat );
             assert.deepEqual( flat, expected );
         });
     });

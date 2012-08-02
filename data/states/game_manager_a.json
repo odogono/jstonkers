@@ -1,0 +1,47 @@
+{
+    "game.001": {
+        "type": "game",
+        "description": "restored test game a",
+        "id": "game.001",
+        "teams": [ "team.001", "team.002" ],
+        "cmds": {
+            "type": "cmd_queue"
+        }
+    },
+    "team.001": {
+        "type": "team",
+        "user": "user.admin",
+        "id": "team.001",
+        "units": [ "unit.001" ]
+    },
+    "unit.001": {
+        "position": [ 272, 336 ],
+        "type": "unit",
+        "id": "unit.001"
+    },
+    "user.admin": {
+        "type": "user",
+        "name": "ai user",
+        "id": "user.admin"
+    },
+    "team.002": {
+        "type": "team",
+        "id": "team.002",
+        "units": [ "unit.002" ]
+    },
+    "unit.002": {
+        "position": [ 1996, 340 ],
+        "type": "unit",
+        "id": "unit.002"
+    },
+    "gm.001": {
+        "type": "game_manager",
+        "id": "gm.001",
+        "description": "primary game manager",
+        "user": "user.admin",
+        "games": [ "game.001" ],
+        "cmds": {
+            "type": "cmd_queue"
+        }
+    }
+}

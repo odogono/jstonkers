@@ -4,9 +4,9 @@ var Vector2f = require('../vector2f');
 var PriorityQueue = require('../priority_queue');
 var Entity = require('./entity');
 // note - need to include Map from main namespace
-var Map = jstonkers.entity.Map; //require('./map');
+// var Map = jstonkers.entity.Map;
 
-_.extend( Map.entity.prototype, {
+var MapFunctions = {
 
     get: function(attr,y) {
         var data;
@@ -162,13 +162,13 @@ _.extend( Map.entity.prototype, {
         // return Map.simplifyPath(path);
     }
     
-});
+}
 
 
 
 // Takes a array of points and turns them an array of waypoints
 // ie, [ [0,0],[1,0],[2,0],[3,0] ] becomes [ [0,0], [3,0] ]
-Map.simplifyPath = function( path ){
+var simplifyPath = function( path ){
     var i, n1, n2;
     var result = [];
     
@@ -241,3 +241,7 @@ var createMapPathNode = function(options){
     return result;
 }
 
+module.exports = function( Map ){
+    _.extend( Map.entity.prototype, MapFunctions );  
+    Map.simplifyPath = simplifyPath;
+};

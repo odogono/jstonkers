@@ -27,7 +27,8 @@ jstonkers.entity.CommandQueue = require('./command_queue');
 jstonkers.entity.registerEntity('unit');
 
 jstonkers.entity.registerEntity('map');
-require('./entity/map.path_finding');
+require('./entity/map.path_finding')( jstonkers.entity.Map );
+// require('./entity/map.path_finding');
 require('./entity/map.server');
 
 jstonkers.entity.registerEntity('team');
@@ -56,6 +57,10 @@ process.on('exit', function() {
   log('shutting down');
 });
 
+
+var gameManager = exports.gameManager = GameManager.create();
+
+
 exports.initialize = function(options,callback){
     if( _.isFunction(options) ){
         callback = options;
@@ -63,10 +68,9 @@ exports.initialize = function(options,callback){
     options = (options || {});
     
     // boot the game manager
-    var statePath = Common.path.join( Common.paths.data, 'states', 'game_manager.json');
-    var gameManager = exports.gameManager = GameManager.create(null,
-        {statePath:statePath, restore:true, callback:callback});
-
+    var statePath = options.statePath || Common.path.join( Common.paths.data, 'states', 'game_manager.json');
+    gameManager.loadState(statePath,{restore:true}, callback );
+    log('game manager initialised');
 }
 
 // print_var( gameManager );
