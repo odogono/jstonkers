@@ -1096,13 +1096,13 @@ exports.createSioTokenForSession = function( sessionId, callback ){
     var prefix = config.key_prefix;
     var token = uuid.v4();
 
-    exports.generateUuid( {uuid_key:'uuid_sio'}, function(err,token){
+    // exports.generateUuid( {uuid_key:'uuid_sio'}, function(err,token){
         store.client.set( prefix + ':siot:' + token, sessionId, function(err, result){
             if( err ) throw err;
             debug('set siotoken to ' + token );
             callback(err, token );
         });
-    })
+    // })
 }
 
 

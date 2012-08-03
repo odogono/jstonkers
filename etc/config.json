@@ -9,7 +9,7 @@
                 "enabled":false
             },
 
-            "socket_server":{
+            "socketio":{
                 "enabled":true
             },
 
@@ -38,12 +38,12 @@
     },
     
     "repl_server": {
-        "enabled":true,
+        "enabled":false,
         "port": 3002
     },
 
-    "socket_server": {
-        "enabled":true
+    "socketio": {
+        "enabled":false
     },
 
     "client":{

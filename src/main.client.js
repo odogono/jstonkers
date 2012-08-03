@@ -1,7 +1,17 @@
-jstonkers = window.jstonkers || { client:{util:{}, model:{}, collection:{}, view:{}, controller:{}} };
+jstonkers = window.jstonkers || { client:{util:{}, model:{}, collection:{}, view:{ game:{} }} };
+
+jstonkers.Status = {
+    ACTIVE: 'atv',
+    INACTIVE: 'iat',
+    DISABLED: 'dis',
+    LOGICALLY_DELETED: 'ldl',
+};
+
 require('./client/utils');
 
 debug.enable('client.*');
+
+var log = debug('client:main');
 
 var client = _.extend( jstonkers.client, {
     Vector2f: require('./vector2f'),
@@ -9,6 +19,13 @@ var client = _.extend( jstonkers.client, {
 
     entity: require('./entity/entity'),
 });
+
+jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
+jstonkers.eventBus.bind( 'all', function(){
+    log( JSON.stringify(arguments) );
+});
+jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
+
 
 _.extend( client.entity, {
     EntityCollection: require('./entity/entity_collection').EntityCollection,
@@ -90,6 +107,10 @@ require('./client/baseview');
 require('./client/server_comms');
 require('./client/app');
 
+require('./client/view.ticker');
+require('./client/view.game.all');
+require('./client/view.game.view');
+require('./client/view.home');
 require('./client/view.map');
 
 $(function() {

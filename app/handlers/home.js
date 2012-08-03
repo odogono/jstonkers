@@ -9,12 +9,12 @@ exports.index = function(req, res){
             siotoken: req.siotoken
         }};
     if( req.accepts('html') ){
+        app.locals.container = app.partial('home', appParams );
         res.render( 'main', {appParams:JSON.stringify(appParams)} );
     }
     else if( req.accepts('json') ){
         res.json( appParams );
     }
-        
 };
 
 

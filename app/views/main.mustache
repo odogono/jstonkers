@@ -10,13 +10,8 @@
     </head>
     <body>
 
-        <div class="container">
-            <div class="row">
-                <div class="offset2 span8 border_b"><img src="/img/title.png" /></div>
-            </div>
-            <div class="row">
-                <div id="messages" class="offset2 span8 border_b"></div>
-            </div>
+        <div id="content" class="container">
+            {{{container}}}
         </div>
 
         <script src="/js/lib/jquery-1.7.2.min.js"></script>
@@ -26,8 +21,8 @@
         <script src="/js/lib/underscore.string.js"></script>
         <script type="text/javascript">_.mixin(_.str.exports());</script>
         <script src="/js/lib/backbone.js"></script>
-        <script src="/socket.io/socket.io.js"></script>
-
+        {{#settings.sio_enabled}}<script src="/socket.io/socket.io.js"></script>{{/settings.sio_enabled}}
+        <script src="/js/templates.js"></script>
         <script src="/js/jstonkers.js"></script>
         <script>
         $(function(){

@@ -5,7 +5,7 @@ var Common = require( '../src/common' ),
 var Server = require('../src/main.server');
 
 Common.config.server.manualStart = true;
-Common.config.socket_server.enabled = false;
+Common.config.socketio.enabled = false;
 Common.config.client.browserify = false;
 
 describe('app', function(){

@@ -1,7 +1,7 @@
 var app = module.parent.exports;
 var socketio = require('socket.io');
 
-if( !app.config.socket_server.enabled ) {
+if( !app.config.socketio.enabled ) {
     log('socket server disabled');
     return;
 }

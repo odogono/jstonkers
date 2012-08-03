@@ -34,13 +34,30 @@ exports.viewAll = function(req,res){
     var app = req.app,
         gameManager = app.gameManager;
 
-    var previews = [
-        { id:1, name:'game a'},
-        { id:2, name:'game b'},
-        { id:3, name:'game c'}
-    ];
+    // var previews = [
+    //     { id:1, name:'game a'},
+    //     { id:2, name:'game b'},
+    //     { id:3, name:'game c'}
+    // ];
 
-    res.render( 'games', { msg: "hello there", previews:previews });
+    
+
+    // res.render( 'games', { msg: "hello there", previews:previews });
+    var appParams = {
+        url:{root:'/'},
+        server:{
+            url:'http://localhost',
+            port:app.config.server.port,
+            siotoken: req.siotoken
+        }};
+
+    if( req.accepts('html') ){
+        app.locals.container = app.partial('game/all', appParams );
+        res.render( 'main', {appParams:JSON.stringify(appParams)} );
+    }
+    else if( req.accepts('json') ){
+        res.json( appParams );
+    }  
 };
 
 

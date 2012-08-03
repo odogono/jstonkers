@@ -17,7 +17,7 @@ jstonkers.client = jstonkers.client || {};
 require('../src/client/server_comms');
 
 Common.config.server.manualStart = true;
-Common.config.socket_server.enabled = true;
+Common.config.socketio.enabled = true;
 Common.config.client.browserify = false;
 
 var app = require(appPath);

@@ -8,11 +8,12 @@ var RedisStore = require('connect-redis')(express);
 var app = module.exports = express();
 
 var middleware = {
+    templates: require('./middleware/templates'),
     user: require('./middleware/user')
 };
 
 var handlers = {
-    main: require('./handlers/main'),
+    home: require('./handlers/home'),
     game: require('./handlers/game_manager')
 };
 
@@ -30,8 +31,10 @@ program
 
 
 app.configure( function(){
+    app.set('sio_enabled', config.socketio.enabled );
     app.set('view options', {layout:'layouts/main'});
     app.set('views', Common.path.join(__dirname,'views') );
+    app.set('partials', Common.path.join(__dirname,'templates') );
 
     // set up mustache templates
     require('./app.mustache');
@@ -43,11 +46,22 @@ app.configure( function(){
         app.use( bundle );
     }
 
+    app.use( middleware.templates({
+        src: Common.path.join(__dirname, 'templates'),
+        dest: Common.path.join( Common.paths.web, 'templates.js'),
+        mount: '/js/templates.js'
+    }) );
+
     app.use( express.cookieParser(config.session.secret) );
     app.use( express.session({ key:config.session.id, secret:config.session.secret, store:app.store }) );
     app.use( express.bodyParser());
     app.use( express.logger({ format: ":date :response-time\t:method :status\t\t:url" }) );
     // app.use( middleware.user.loadOrCreate );
+    // app.use( function(req,res,next){
+    //     app.locals.sio_enabled = false;
+    //     next();
+    // });
+
     app.use( app.router );
 });
 
@@ -67,9 +81,9 @@ app.gameManager = Server.gameManager;
 
 
 // 
-// Handlers - Main
+// Handlers - Home
 // 
-app.get('/', middleware.user.loadOrCreate, handlers.main.index );
+app.get('/', middleware.user.loadOrCreate, handlers.home.index );
 
 
 // 

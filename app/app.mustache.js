@@ -8,13 +8,23 @@ app.set('view engine', 'mustache');
 // hack in partials support
 var existing = mustache.Renderer.prototype._partial;
 mustache.Renderer.prototype._partial = function(name,context){
+    log('rendering partial (' + name + ')' );
+    
     // load the partial from file if the partial doesn't exist or the view cache is disabled
     if( !this._partialCache[name] || !app.enabled('view cache') ){
-        var partialRaw = fs.readFileSync( path.join(app.settings.views,name+'.mustache'), 'utf8');
+        var partialRaw = fs.readFileSync( path.join(app.settings.partials,name+'.mustache'), 'utf8');
         mustache.compilePartial( name, partialRaw );
     }
     return existing.apply( this, arguments );
 };
+
+// 
+// Returns a partial rendered into a string with the given options (as well as app.locals)
+// 
+app.partial = function(path, options){
+    var locals = _.extend({}, this.locals, options );
+    return mustache.render( '{{>' + path + '}}', locals );
+}
 
 app.engine('mustache', function(path, options, cb){
     mustache.templateCache = mustache.templateCache || {};

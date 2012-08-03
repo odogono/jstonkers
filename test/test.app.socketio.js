@@ -7,7 +7,7 @@ var Common = require( '../src/common' ),
 var Server = require('../src/main.server');
 
 Common.config.server.manualStart = true;
-Common.config.socket_server.enabled = true;
+Common.config.socketio.enabled = true;
 Common.config.client.browserify = false;
 var socketOptions = { transports: ['websocket'], 'force new connection': true };
 var app = require(appPath);

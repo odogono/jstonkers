@@ -1,4 +1,4 @@
-
+/*
 jstonkers.log = function(msg,logStatic){
     var $container = $('#log'),
         $entry = null,
@@ -16,7 +16,7 @@ jstonkers.log = function(msg,logStatic){
     else {
         // find the first child - change it - and add it to the end
         $container.append( $container.find('li:first').text(msg).detach() );
-    }//*/
+    }
 };
 
 
@@ -28,21 +28,5 @@ if (window.console && typeof console.log === "function"){
   clog = log = function () { console.log.apply(console, arguments); };
 } else {
   clog = log = function(){ return; }
-}
+}//*/
 
-
-jstonkers.Status = {
-    ACTIVE: 'atv',
-    INACTIVE: 'iat',
-    DISABLED: 'dis',
-    LOGICALLY_DELETED: 'ldl',
-};
-
-
-
-
-jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
-jstonkers.eventBus.bind( 'all', function(){
-    clog(arguments);
-});
-jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
