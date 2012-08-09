@@ -12,6 +12,11 @@ Request.prototype.setCookies = function(res){
     return this;
 }
 
+Request.prototype.json = function(){
+    this.set('Accept', 'application/json');
+    return this;
+}
+
 var Cookie = require('express/node_modules/cookie');
 exports.parseCookies = function(res,secret){
     var i, headers, cookie, key, value;

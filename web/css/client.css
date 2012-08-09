@@ -60,10 +60,27 @@ html, body  {
 .sprite.zoom_2 {
   background-image: url(/img/sprites.2.png);}
 
+#content{
+  margin-top: 3em;
+}
 
-.game_preview{
+.game-preview{
+    float:left;
+    margin: 1em;
+}
+.game-preview .caption{
+    width: 160px;
+}
+
+.game-thumb{
     width: 160px;
     height: 160px;
-    margin: 1em;
     float: left;
+}
+
+.game-preview .game-add{
+    margin-left: 40px;
+    margin-top: 50px;
+    font-size: 128px;
+    color: #0D0;
 }

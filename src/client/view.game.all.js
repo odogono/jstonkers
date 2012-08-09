@@ -14,6 +14,8 @@ jstonkers.client.view.game.All = Backbone.View.extend({
     *   render updates are simply changing values.
     */
     make: function(tagName, attributes, content) {
-        return $(Templates.game.all).get(0);
+        var data = {};
+        var content = Mustache.render( Templates.game.all, data );
+        return $(content).get(0);
     }
 });

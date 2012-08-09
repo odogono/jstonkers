@@ -65,6 +65,13 @@ app.configure( function(){
     app.use( app.router );
 });
 
+app.configure('test', function(){
+    app.use( express.static(app.path.web) );
+    app.use( express.logger({ format: ":date :response-time\t:method :status\t\t:url" }) );
+    // app.use( express.errorHandler({ dumpExceptions : true, showStack : true }));
+});
+
+
 app.configure('development', function(){
     app.use( express.favicon() );
     app.use( express.static(app.path.web) );

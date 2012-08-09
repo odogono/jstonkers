@@ -1,8 +1,15 @@
 var Common = require( '../src/common' ),
-    httpRequest = require('./support/http'),
+    request = require('supertest'),
     appPath = Common.path.join(Common.paths.app,'app'),
-    parseCookie = require('connect').utils.parseCookie;
+    utils = require('./support/utils');
 var Server = require('../src/main.server');
+
+Common.config.server.manualStart = true;
+Common.config.socketio.enabled = false;
+Common.config.client.browserify = false;
+
+var app = require(appPath);
+
 
 describe('app', function(){
 
@@ -18,19 +25,21 @@ describe('app', function(){
         });
     });
 
+    /*
     describe('users', function(){
         it('should follow on', function(done){
             var app = require(appPath);
             Step(
                 function(){
-                    httpRequest(app).get('/userinit').json().end(this);
+                    request(app).get('/userinit').json().end(this);
                 },
                 function(res){
-                    log( res.body );
+                    // print_ins( arguments );
+                    // log( res.body );
                     log('followed up')
                     done();
                 }
             );
         });
-    });
+    });//*/
 });

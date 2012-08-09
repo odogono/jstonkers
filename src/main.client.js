@@ -1,4 +1,5 @@
-jstonkers = window.jstonkers || { client:{util:{}, model:{}, collection:{}, view:{ game:{} }} };
+jstonkers = window.jstonkers || {};
+jstonkers.client = jstonkers.client || {util:{}, model:{}, collection:{}, view:{ game:{} }};
 
 jstonkers.Status = {
     ACTIVE: 'atv',
@@ -8,8 +9,6 @@ jstonkers.Status = {
 };
 
 require('./client/utils');
-
-debug.enable('client.*');
 
 var log = debug('client:main');
 

@@ -3,7 +3,7 @@ var app = module.parent.exports;
 var repl = require('repl');
 var net = require('net');
 
-if( app.config.repl_server.enabled ) {
+if( app.config.repl.enabled ) {
     net.createServer(function (connection) {
         connection.write("Welcome to the backdoor\n");
         require('child_process').exec("uname -a", function (err, stdout, stderr) {
@@ -24,7 +24,7 @@ if( app.config.repl_server.enabled ) {
             //     app.socketio.broadcast({move: {id: id, x: x, y: y}});
             // };
         });
-    }).listen(app.config.repl_server.port);
+    }).listen(app.config.repl.port);
     
-    log('repl server listening on port ' + app.config.repl_server.port );
+    log('repl server listening on port ' + app.config.repl.port );
 }

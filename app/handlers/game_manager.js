@@ -70,7 +70,8 @@ exports.viewAll = function(req,res){
 
     // res.render( 'games', { msg: "hello there", previews:previews });
     var appParams = {
-        url:{root:'/'},
+        url:{root:'/', games:"/games"},
+        active:'games.all',
         server:{
             url:'http://localhost',
             port:app.config.server.port,

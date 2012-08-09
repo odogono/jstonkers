@@ -37,7 +37,7 @@
     "gm.001": {
         "type": "game_manager",
         "id": "gm.001",
-        "description": "primary game manager",
+        "description": "test game manager instance",
         "user": "user.admin",
         "games": [ "game.001" ],
         "cmds": {

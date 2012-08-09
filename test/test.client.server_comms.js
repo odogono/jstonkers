@@ -48,7 +48,7 @@ describe('client.server_comms', function(){
                     // request a token so we can sio connect
                     request(app)
                         .get('/')
-                        .set('Accept', 'application/json')
+                        .json()//.set('Accept', 'application/json')
                         .end(this);
                 },
                 function(err,res){

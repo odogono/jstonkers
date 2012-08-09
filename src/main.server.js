@@ -68,9 +68,10 @@ exports.initialize = function(options,callback){
     options = (options || {});
     
     // boot the game manager
-    var statePath = options.statePath || Common.path.join( Common.paths.data, 'states', 'game_manager.json');
-    gameManager.loadState(statePath,{restore:true}, callback );
-    log('game manager initialised');
+    var stateFile = Common.config.game_manager.state || 'game_manager.json';
+    var statePath = options.statePath || Common.path.join( Common.paths.data, 'states', stateFile );
+    gameManager.loadState(statePath,{restore:Common.config.game_manager.restore}, callback );
+    log('game manager ' + gameManager.cid + ' initialised');
 }
 
 // print_var( gameManager );

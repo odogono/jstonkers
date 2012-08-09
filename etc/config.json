@@ -43,8 +43,8 @@
         "port": 3001
     },
     
-    "repl_server": {
-        "enabled":false,
+    "repl": {
+        "enabled":true,
         "port": 3002
     },
 
@@ -72,6 +72,11 @@
                 "key":"uuid"
             }
         }
+    },
+
+    "game_manager":{
+        "restore":false,
+        "state":"game_manager_a.json"
     },
 
     "maps": {

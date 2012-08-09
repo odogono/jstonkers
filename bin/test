@@ -7,8 +7,7 @@ var path = require('path'),
 // set environment to test if not already set
 if( !process.env.NODE_ENV ) process.env.NODE_ENV = 'test';
 
-// process.argv.push( '--serial');
-// require(expresso);
 
+process.argv.splice(2,0, '--globals', 'app,YUI,jstonkers,attr');
 
 require(mocha);

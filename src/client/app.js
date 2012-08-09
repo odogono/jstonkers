@@ -17,6 +17,8 @@ jstonkers.client.App = Backbone.Router.extend({
         this.params = jstonkers.params = options;
         this.urlRoot = jstonkers.params.url.root;
 
+        console.log( this.params );
+
         // contains state information about the app itself
         this.model = new Backbone.Model( options );
 
@@ -104,7 +106,7 @@ jstonkers.client.App = Backbone.Router.extend({
 
     routeGames: function(){
         log('route: games');
-        // this.setContentView( 'games' );
+        this.setContentView( 'games' );
     },
 
 

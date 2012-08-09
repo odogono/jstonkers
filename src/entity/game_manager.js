@@ -140,7 +140,7 @@ exports.entity = entity.Entity.extend({
 
         // print_var( result );
         self.set( self.parse(state,null,{parseFor:parseFor}) );
-        if( options.debug ) log('loaded gm state from ' + statePath );
+        /*if( options.debug )*/ log( self.cid + ' loaded gm state from ' + statePath );
 
         if( options.restore ){
             Step(
@@ -160,6 +160,9 @@ exports.entity = entity.Entity.extend({
                         callback();
                 }
             );
+        }else{
+            if( callback )
+                callback();
         }
 
         return self;

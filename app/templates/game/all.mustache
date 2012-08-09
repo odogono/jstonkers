@@ -1,12 +1,14 @@
 <div data-view="game.all">
     <div class="row">
-        {{#previews}}
-            {{> game_preview}}
-            preview!
-        {{/previews}}
+        {{#games}}
+            {{> game/preview}}
+        {{/games}}
 
-        <a href="">
-            <div id="game_add" class="border_b game_preview">
+        <a id="game-add" href="">
+            <div class="game-preview" data-view="game.preview">
+                <div class="border_b game-thumb">
+                    <div class="game-add">+</div>
+                </div>
             </div>
         </a>
     </div>

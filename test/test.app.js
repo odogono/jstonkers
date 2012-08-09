@@ -49,7 +49,7 @@ describe('app', function(){
                 function(err,res){
                     request(app)
                         .post('/games/new')
-                        .set('Accept', 'application/json')
+                        .json()
                         .end(this);
                 },
                 function(err,res){
@@ -61,7 +61,7 @@ describe('app', function(){
                     assert.equal( res.body.result.game_count, 2 );
                     request(app)
                         .get('/games/' + gameId )
-                        .set('Accept', 'application/json')
+                        .json()
                         .setCookies(res)
                         .end(this);
                 },

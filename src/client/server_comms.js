@@ -31,7 +31,7 @@ jstonkers.client.ServerComms = Backbone.Model.extend({
         var url = this.buildConnectionString(); //options.url || this.get('url');
 
         dlog('connecting to ' + url + '...');
-
+        // log('HEY! REQUESTING IT ' + url );
         this.socket = io.connect(url)
         .on('error', function(reason){
             dlog('connect error ' + reason );
