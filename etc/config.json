@@ -75,8 +75,17 @@
     },
 
     "game_manager":{
+        "//":"whether state is restored from the db",
         "restore":false,
-        "state":"game_manager_a.json"
+
+        "//":"the game manager state to load at startup",
+        "state":"game_manager_a.json",
+
+        "//":"whether the game process loop will be running",
+        "loop_active":true,
+
+        "//":"the frames per second the run loop will run at",
+        "fps":10
     },
 
     "maps": {

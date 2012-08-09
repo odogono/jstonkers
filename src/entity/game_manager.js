@@ -111,15 +111,17 @@ exports.entity = entity.Entity.extend({
 
     // the main event loop
     process: function( options, callback ){
+        var self = this;
+        // log('gameManager.process');
         Step(
             function processGames(){
                 var group = this.group();
-                this.games.each( function(game){
+                self.games.each( function(game){
                     game.process(options, group());
                 });        
             },
             function processCommands(){
-                this.cmds.process( options, this );
+                self.cmds.process( options, this );
             },
             function(err, result){
                 callback( err );

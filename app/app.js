@@ -132,10 +132,16 @@ app.start = function(options,callback){
         function(){
             app.server.listen(port,this);
         },
+        function(){
+            Server.start(options,this);
+        },
         function(err){
             if( err ) throw err;
-            log('started on port ' + port + ' in env ' + app.get('env') );// config.env.current );
+            log('started on port ' + port + ' in env ' + app.get('env') );
             portInc++;
+            this();
+        },
+        function(err){
             if( callback ) 
                 callback();
         }

@@ -74,4 +74,35 @@ exports.initialize = function(options,callback){
     log('game manager ' + gameManager.cid + ' initialised');
 }
 
+exports.start = function(options,callback){
+    log('starting game manager');
+
+    var runLoopOptions = {};
+
+    var runLoop = function(err){
+        if( err ) throw err;
+        gameManager.process( runLoopOptions, processCallback );
+    }
+
+    var processCallback = function(err){
+        if( err ) throw err;
+        // process.nextTick( runLoop );
+    }
+
+    
+    if( Common.config.game_manager.loop_active ){
+        var fps = Common.config.game_manager.fps || 30;
+        log('game manager loop running at ' + fps + 'fps');
+        setInterval( runLoop, (1/fps)*1000 );    
+    }
+    
+    // runLoop();
+
+    if( callback ){
+        process.nextTick(function() {
+            callback();
+        });
+    }
+}
+
 // print_var( gameManager );
