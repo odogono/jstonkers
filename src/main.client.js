@@ -109,8 +109,8 @@ require('./client/server_comms');
 require('./client/app');
 
 require('./client/view.ticker');
-require('./client/view.game.all');
-require('./client/view.game.view');
+require('./client/view.games.all');
+require('./client/view.games.view');
 require('./client/view.home');
 require('./client/view.map');
 
