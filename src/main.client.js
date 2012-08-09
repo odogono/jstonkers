@@ -20,11 +20,13 @@ var client = _.extend( jstonkers.client, {
     entity: require('./entity/entity'),
 });
 
+
 jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
 jstonkers.eventBus.bind( 'all', function(){
     log( JSON.stringify(arguments) );
 });
 jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
+
 
 
 _.extend( client.entity, {

@@ -38,7 +38,8 @@ Common.version = require('../package').version;
 Common.config = require( path.join(Common.paths.etc, 'config.json') );
 
 // apply environment specific config
-if( Common.config.env && Common.config.env[process.env.NODE_ENV] ){
+var env = process.env.NODE_ENV || 'development';
+if( Common.config.env && Common.config.env[env] ){
 
     function mergeRecursive(obj1, obj2) {
         for (var p in obj2) {
@@ -50,8 +51,8 @@ if( Common.config.env && Common.config.env[process.env.NODE_ENV] ){
         }
         return obj1;
     }
-    Common.config = mergeRecursive( Common.config, Common.config.env[process.env.NODE_ENV] );
-    Common.config.env.current = process.env.NODE_ENV;
+    Common.config = mergeRecursive( Common.config, Common.config.env[env] );
+    Common.config.env.current = env;
 }
 
 require('./common.utils');

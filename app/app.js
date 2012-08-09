@@ -1,10 +1,9 @@
-var Common = require( '../src/common' );
-var Server = require('../src/main.server');
-var http = require('http');
+var Common = require( '../src/common' ),
+    Server = require('../src/main.server');
+    http = require('http');
 var express = require('express');
-// var cookie = require('express/node_modules/cookie');
-// var connectUtils = require('express/node_modules/connect').utils;
 var RedisStore = require('connect-redis')(express);
+
 var app = module.exports = express();
 
 var middleware = {
@@ -14,7 +13,8 @@ var middleware = {
 
 var handlers = {
     home: require('./handlers/home'),
-    game: require('./handlers/game_manager')
+    game: require('./handlers/game_manager'),
+    user: require('./handlers/user')
 };
 
 
@@ -94,6 +94,16 @@ app.get('/games/?', middleware.user.loadOrCreate, handlers.game.viewAll );
 app.delete('/games/:game_id', middleware.user.loadOrCreate, handlers.game.delete );
 app.post('/games/new',  middleware.user.loadOrCreate, handlers.game.create );
 
+
+// 
+// Handlers - User
+// 
+
+// app.get('/users/:user_id', handlers.user.view );
+// app.post('/users/:user_id', handlers.user.update );
+// app.get('/users/invite', handlers.user.invite );
+
+
 // require('./handlers/main');
 require('./handlers/game_manager');
 
@@ -117,7 +127,7 @@ app.start = function(options,callback){
         },
         function(err){
             if( err ) throw err;
-            log('started on port ' + port + ' in env ' + config.env.current );
+            log('started on port ' + port + ' in env ' + app.get('env') );// config.env.current );
             portInc++;
             if( callback ) 
                 callback();

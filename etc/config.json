@@ -30,6 +30,12 @@
                     }
                 }
             }
+        },
+        "development":{
+            "client":{
+                "//":"allows reloading of bundle on file change",
+                "watch":true
+            }
         }
     },
     

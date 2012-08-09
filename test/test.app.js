@@ -1,12 +1,15 @@
 var Common = require( '../src/common' ),
-    httpRequest = require('./support/http'),
+    request = require('supertest'),
     appPath = Common.path.join(Common.paths.app,'app'),
-    parseCookie = require('connect').utils.parseCookie;
+    utils = require('./support/utils');
 var Server = require('../src/main.server');
 
 Common.config.server.manualStart = true;
 Common.config.socketio.enabled = false;
 Common.config.client.browserify = false;
+
+var app = require(appPath);
+
 
 describe('app', function(){
 
@@ -31,67 +34,69 @@ describe('app', function(){
     });
 
     describe('game management', function(){
-        /*it('returns details of current games', function(done){
+
+        it('creates a new game', function(done){
             
-            var app = require( appPath );
-            // print_ins( app );
             var serverOptions = { statePath:Common.path.join( Common.paths.data, 'states', 'game_manager_a.json') };
 
             Step(
                 function clearDB(){
                     jstonkers.sync.clear(this);
                 },
-                function initServer(err){
-                    Server.initialize(serverOptions, this);
-                },
-                function(){
-                    httpRequest(app).get('/games').end(this);
-                },
-                // function(err){
-                //     if( err ) throw err;
-                //     log('started');
-                //     // print_ins( arguments );
-                //     app.server.close(this);
-                // },
-                function(res){
-                    // var response = JSON.parse( res.body );
-                    // if( err ) throw err;
-                    log('finished');
-                    log(res.body);
-                    done();
-                }
-            );
-        });//*/
-
-        it('app start/stop 1', function(done){
-            log('----');
-            Common.config.server.manualStart = true;
-            var app = require( appPath );
-            var serverOptions = { statePath:Common.path.join( Common.paths.data, 'states', 'game_manager_a.json') };
-
-            Step(
-                function clearDB(){
-                    jstonkers.sync.clear(this);
-                },
-                function startApp(){
+                function (){
                     app.start(serverOptions, this);
                 },
-                function(err){
-                    if( err ) throw err;
-                    log('started');
-                    var route = app._router.match('get','/testroute',0);
-                    var res = route.callbacks[0]();
-                    print_ins(res);
-                    app.stop(this);
+                function(err,res){
+                    request(app)
+                        .post('/games/new')
+                        .set('Accept', 'application/json')
+                        .end(this);
                 },
-                function(err){
+                function(err,res){
                     if( err ) throw err;
-                    log('stopped');
-                    done();
+                    var gameId = res.body.result.game_id;
+
+                    assert( res.body.result.game_id );
+                    assert.equal( res.body.result.status, jstonkers.Status.ACTIVE );
+                    assert.equal( res.body.result.game_count, 2 );
+                    request(app)
+                        .get('/games/' + gameId )
+                        .set('Accept', 'application/json')
+                        .setCookies(res)
+                        .end(this);
+                },
+                function(err,res){
+                    if( err ) throw err;
+                    // print_var(res.body);
+                    app.stop( done );
+                }
+            );
+        });
+
+        /*
+        it('returns details of current games', function(done){
+            
+            var serverOptions = { statePath:Common.path.join( Common.paths.data, 'states', 'game_manager_a.json') };
+
+            Step(
+                function clearDB(){
+                    jstonkers.sync.clear(this);
+                },
+                function (){
+                    app.start(serverOptions, this);
+                },
+                function(){
+                    request(app).get('/games').set('Accept', 'application/json').end(this);
+                },
+                function(err,res){
+                    if( err ) throw err;
+                    print_var(res.body);
+                    app.stop( done );
                 }
             );
         });//*/
 
+    /*
         it('app start/stop 2', function(done){
             log('----');
             Common.config.server.manualStart = true;

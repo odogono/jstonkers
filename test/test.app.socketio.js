@@ -2,7 +2,7 @@ var Common = require( '../src/common' ),
     request = require('supertest'),
     appPath = Common.path.join(Common.paths.app,'app'),
     // parseCookie = require('connect').utils.parseCookie,
-    utils = require('express/node_modules/connect').utils,
+    utils = require('./support/utils'),
     io = require('socket.io/node_modules/socket.io-client');
 var Server = require('../src/main.server');
 
@@ -11,39 +11,6 @@ Common.config.socketio.enabled = true;
 Common.config.client.browserify = false;
 var socketOptions = { transports: ['websocket'], 'force new connection': true };
 var app = require(appPath);
-
-
-// provide simple setting of cookies from a response object
-var Request = require('supertest/node_modules/superagent').Request;
-Request.prototype.setCookies = function(res){
-    var self = this;
-    if( res && res.headers ){
-        res.headers['set-cookie'].forEach( function(cookie){
-            self.set('Cookie', cookie);
-        });
-    }
-    return this;
-}
-
-var Cookie = require('express/node_modules/cookie');
-var parseCookies = function(res,secret){
-    var i, headers, cookie, key, value;
-    var result = [];
-    var cookies = (res && res.headers && res.headers['set-cookie']) ? res.headers['set-cookie'] : null;
-    if( cookies ){
-        for( i in cookies ){
-            cookie = Cookie.parse( cookies[i] );
-            if( secret ){
-                for( key in cookie ){
-                    cookie[key] = utils.parseSignedCookie( cookie[key], secret );
-                }
-            }
-            result.push( cookie );
-        }
-    }
-    return result;
-}
-
 
 
 describe('realtime', function(){

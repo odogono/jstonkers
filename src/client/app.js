@@ -3,10 +3,11 @@ var log = debug('client:app');
 
 jstonkers.client.App = Backbone.Router.extend({
 
-    routes:{
-        'games':        'routeGames',
-        '*path':        'routeHome',
-    },
+    // routes:{
+    //     'games':        'routeGames',
+    //     'games/':        'routeGames',
+    //     '*path':        'routeHome',
+    // },
 
     views:{},
     models:{},
@@ -30,8 +31,8 @@ jstonkers.client.App = Backbone.Router.extend({
 
     
         // define app routes - doing this here (as opposed to in this.routes) means we can use regex
-        // this.route(/^\/?\??([\&\w=]+)?$/, 'default', this.routeMain);
-        // this.route(/^\/?news\/?\??([\&\w=]+)?$/, 'news', this.routeMain);
+        this.route(/^\/?\??([\&\w=]+)?$/, 'default', this.routeHome);
+        this.route(/^\/?games\/?\??([\&\w=]+)?$/, 'games', this.routeGames);
         // this.route(/^\/?upload\/?\??([\&\w=]+)?$/, 'upload', this.routeImageUpload);
 
         jstonkers.eventBus.bind('navigate', function(target){
@@ -84,15 +85,12 @@ jstonkers.client.App = Backbone.Router.extend({
         this.contentView = view;
 
         if( viewElName === name ){
-            log('glomming onto existing view');
             this.contentView.setElement( $viewEl );
             this.contentView.render( this );
         } else {
             var el = this.contentView.render( this ).el;
             $('#content').empty().append( el );    
         }
-
-        
 
         this.contentView.trigger('show');
         this.contentView.delegateEvents();

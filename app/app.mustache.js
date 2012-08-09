@@ -8,7 +8,6 @@ app.set('view engine', 'mustache');
 // hack in partials support
 var existing = mustache.Renderer.prototype._partial;
 mustache.Renderer.prototype._partial = function(name,context){
-    log('rendering partial (' + name + ')' );
     
     // load the partial from file if the partial doesn't exist or the view cache is disabled
     if( !this._partialCache[name] || !app.enabled('view cache') ){

@@ -64,8 +64,49 @@ exports.entity = entity.Entity.extend({
         });
     },
 
+    // 
+    // 
+    // 
+    getState: function( user, gameId ){
+        var game = this.games.get(gameId);
+        var flattenOptions = { toJSON:true, exclude:{type:'cmd_queue'} };
+        // TODO : return game state suitable for particular user - be they participant or guest
+
+        // TODO : return game state without internal entity references
+        var result = game.flatten( flattenOptions );
+        print_var(result);
+    },
+
+    getSummary: function( user, gameId ){
+        var game = this.games.get(gameId);
+        print_var( this.games.map(function(game){
+            return this.id;
+        }));
+        if( !game )
+            throw new Error('game ' + gameId + ' not found');
+
+        return game.toJSON({relations:false});
+    },
+
+    // 
+    // 
+    // 
     getGame: function(gameId){
         return this.games.get(gameId);
+    },
+
+    // 
+    // Returns an array of summaries for each of the games
+    // 
+    getSummaries: function(options){
+        return this.games.map( function(game){
+            return {
+                id:game.id, 
+                description:game.get('description'), 
+                time:game.get('time'),
+                status:game.get('status')
+            };
+        });
     },
 
     // the main event loop
