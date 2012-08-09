@@ -1,5 +1,5 @@
 
-jstonkers.client.view.game.All = Backbone.View.extend({
+jstonkers.client.view.games.All = Backbone.View.extend({
 
     initialize: function(){
     },
@@ -15,7 +15,7 @@ jstonkers.client.view.game.All = Backbone.View.extend({
     */
     make: function(tagName, attributes, content) {
         var data = {};
-        var content = Mustache.render( Templates.game.all, data );
+        var content = Mustache.render( Templates.games.all, data );
         return $(content).get(0);
     }
 });

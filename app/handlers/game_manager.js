@@ -82,7 +82,7 @@ exports.viewAll = function(req,res){
     appParams.games = gameManager.getSummaries();
 
     if( req.accepts('html') ){
-        app.locals.container = app.partial('game/all', appParams );
+        app.locals.container = app.partial('games/all', appParams );
         res.render( 'main', {appParams:JSON.stringify(appParams)} );
     }
     else if( req.accepts('json') ){

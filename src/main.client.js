@@ -1,5 +1,5 @@
 jstonkers = window.jstonkers || {};
-jstonkers.client = jstonkers.client || {util:{}, model:{}, collection:{}, view:{ game:{} }};
+jstonkers.client = jstonkers.client || {util:{}, model:{}, collection:{}, view:{ games:{} }};
 
 jstonkers.Status = {
     ACTIVE: 'atv',

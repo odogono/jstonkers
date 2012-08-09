@@ -29,7 +29,7 @@ jstonkers.client.App = Backbone.Router.extend({
         this.views.home = new jstonkers.client.view.Home({model:this.models.home});
 
         this.models.games = new Backbone.Model();
-        this.views.games = new jstonkers.client.view.game.All({model:this.models.games});
+        this.views.games = new jstonkers.client.view.games.All({model:this.models.games});
 
     
         // define app routes - doing this here (as opposed to in this.routes) means we can use regex
@@ -68,7 +68,7 @@ jstonkers.client.App = Backbone.Router.extend({
         var $viewEl = $('#content div[data-view]');
         var viewElName = $viewEl.data('view');
 
-        // log('existing view ' + $viewEl.data('view') );
+        log('existing view ' + $viewEl.data('view') );
 
         if( this.contentView && this.contentView.cid === view.cid ){
             log('already set view ' + view.id + '(' + view.cid + ')' );
