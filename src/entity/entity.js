@@ -397,31 +397,16 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 if( !(exclusions && relation.match(exclusions)) ){
                     if( !relation.isNew() && relationsAsId )
                         result[prop] = relation.id;
-                    else if( doRelations )
-                        result[prop] = relation.toJSON();
-                    // result[prop] = relation.isNew() ? relation : relation.id;
+                    else if( doRelations ){
+                        // if( options.debug ) log('resulting ' + prop );
+                        result[prop] = relationsAsId ? relation.id : relation.toJSON();
+                    }
                 }
             }
             else
-                result[prop] = relation;//*/
-            /*if( (relation = attrs[prop]) instanceof exports.Entity && !relation.isNew() )
-                result[prop] = relation.id;
-            else
-                result[prop] = relation;//*/
+                result[prop] = relation;
         }
-        // if( options.debug ) print_var( result );
-
-        // 
-        // var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
-
-        // if( !result )
-            // return {};
-
-        // if( options.debug ) log('1st ' + JSON.stringify(result) );
-        // if( !result )
-        //     print_ins(this);
-        // log('toJSON for ' + this.type );
-        // print_ins(this.teams,false,3);
+        
         if( this.type ){
             entityDef = jstonkers.entity.ids[this.type];
             // if( debug ) log( this.type + ' relations: ' + JSON.stringify(entityDef) );
@@ -443,7 +428,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
                         // if( options.debug )log('no hoopy ' + erName + ' ' + JSON.stringify(exclusions) );
                         continue;
                     }
-                    if( options.debug )log('hoopy ' + erName + ' ' + JSON.stringify(exclusions) );
+                    // if( options.debug )log('hoopy ' + erName + ' ' + JSON.stringify(exclusions) );
                     if( !relation.isNew() && relationsAsId )
                         result[erName] = relation.id;// || this[erName].cid;
                     else if( doRelations ) {
@@ -518,19 +503,16 @@ var Entity = exports.Entity = Backbone.Model.extend({
         // exporting relation references is the default
         var doRelations = _.isUndefined(options.relations) ? true : options.relations;
 
-        // var removeId = options.removeId;
-
         // exclusion options
         var exclusions = options.exclude;
         // var debug = options.debug;
-        
+
+        var toJsonOptions = _.extend({relationsAsId:true}, options);
         
 
         if( !result[id] ){
             if( options.toJSON ){
-                result[id] = outgoing = this.toJSON(options);
-                // print_var(outgoing);
-                // process.exit();
+                result[id] = outgoing = this.toJSON(toJsonOptions);
                 
                 outgoing['type'] = this.type;
                 if( this.id )
