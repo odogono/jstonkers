@@ -324,7 +324,7 @@ describe('Entity', function(){
         }
 
         var a = jstonkers.entity.create({type:'test_e'});
-        var parsed = a.parse( data, null, {debug:true,parseFor:'1'});
+        var parsed = a.parse( data, null, {debug:false,parseFor:'1'});
         assert.deepEqual( parsed, expected );
     });
     
@@ -342,6 +342,25 @@ describe('Entity', function(){
             assert.equal( b.get('name'), 'eurovision' );
             assert( !b.id );
             assert( !b.get('id') );
+        });
+
+        it('should clone an entity with relation', function(){
+            var a = jstonkers.entity.create({
+                id:'euro',
+                name:'eurovision',
+                type:'test_e',
+                comrade:{
+                    id:'foxtrot_1',
+                    type:'test_f'
+                }
+            });
+
+            // log('begin');
+            var b = a.clone({recurse:true, debug:false});
+            // log('end');
+            // print_var( b );
+            assert( !b.id );
+            assert( !b.get('comrade').id );
         });
 
         it('should clone an entity with a one2one relation', function(){
@@ -365,17 +384,34 @@ describe('Entity', function(){
             });
             assert.equal( a.get('comrade').refCount, 1 );
 
+            // log('go');
             var b = a.clone({recurse:true});
             assert.equal( b.get('comrade').get('name'), 'foxtrot' );
             assert.equal( b.get('comrade').get('associate').get('name'), 'arnold' );
+            // print_var( b );
             assert( !b.get('comrade').id );
+
             assert.equal( b.get('comrade').refCount, 1 );
             assert( b.get('comrade').get('associate') );
             assert.equal( b.get('comrade').get('associate').refCount, 1 );
         });
     });
 
-    
+    describe('matching', function(){
+        it('should match an entity', function(){
+            var a = jstonkers.entity.create({
+                id:"enigma_1",
+                name:"enigma",
+                type:"test_e"
+            });
+
+            assert( !a.match() );
+            assert( a.match({type:'test_e'}) );
+        });
+
+        
+    });
+
     describe('flatten', function(){
         it('should produce a flattened map of a one2one relation', function(){
             var a = jstonkers.entity.create({
@@ -420,7 +456,68 @@ describe('Entity', function(){
 
             assert( result['b.001'] );
             assert( !result['f.001'] );
-        })
+        });
+
+        it('should exclude members on request', function(){
+            var a = jstonkers.entity.create({
+                id:"enigma_1",
+                name: "enigma",
+                status: "atv",
+                type: "test_e",
+                comrade:{
+                    id:"foxtrot_1",
+                    name: "foxtrot",
+                    status: "atv",
+                    type:"test_f",
+                    associate:{
+                        id:'alpha_a',
+                        status:'atv',
+                        type:'test_a'
+                    }
+                },
+                friend:{
+                    id:'beta_1',
+                    name:'bernard',
+                    type:'test_b'
+                }
+            });
+
+            var result = a.flatten({debug:false,toJSON:true,exclude:{type:'test_f'}});
+            assert( result['beta_1'] );
+            assert( !result['foxtrot_1'] );
+            assert( !result['enigma_1']['comrade'] );
+        });
+
+        it('should exclude a one2many relation', function(){
+            var a = jstonkers.entity.create({
+                id:'alpha_a', 
+                type:'test_a',
+                test_b:{
+                    active:false
+                }   
+            });
+            // print_ins(a);
+            // assert.equal( a.test_b.length, 0 );
+            var result = a.flatten({debug:false,toJSON:true,exclude:{type:'test_b'}} );
+            // print_var( result );
+            assert( !result.test_b );
+            assert( !result.alpha_a.test_b );
+        });
+
+        it('should match using a function', function(){
+            var a = jstonkers.entity.create({
+                id:'alpha_a', 
+                type:'test_a',
+                test_b:[
+                    { type:'test_b', count:5 },
+                    { type:'test_b', count:2 },
+                    { type:'test_b', count:6 }
+                ]
+            });
+
+            // print_var(a);
+            // a.match()
+        });
     });
 
     

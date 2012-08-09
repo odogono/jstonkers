@@ -34,95 +34,24 @@ var Entity = exports.Entity = Backbone.Model.extend({
         });
     },
 
+    /**
+     * [setEntity description]
+     * @param {[type]} type     [description]
+     * @param {[type]} instance [description]
+     * @param {[type]} options  [description]
+     */
     setEntity: function( type, instance, options ){
         this.set( type, instance, options );
     },
 
-    // converts a single callback function into something backbone compatible 
-    convertCallback: function(options,callback){
-        // log('convertCallback ' + JSON.stringify(options ) );
-        options || (options={});
-        if( _.isFunction(options) ){
-            callback = options;
-            options = {};
-        }
-        // var debugit = options.debugB;
-        if( callback ){
-            options = _.extend(options,{
-                success: function(model,resp){
-                    callback( null, model, resp, options );
-                },
-                error: function(model,err,resp){
-                    callback( err, model, resp );
-                }
-            });
-        }
-        return options;
+    /**
+     * [getEntityType description]
+     * @return {[type]}
+     */
+    getEntityType: function(){
+        return this.get('type');
     },
 
-    // provide a more common success failure style
-    // saveCB( {key:'value'}, function(){} )
-    saveCB: function(key, value, options, callback){
-        var attrs;
-        if( arguments.length === 1 ){
-            callback = key;
-            options = {};
-        }
-        else if( _.isObject(key) || key == null){
-            attrs = key;
-            callback = options;
-            options = value;
-        } else {
-            attrs = {};
-            attrs[key] = value;
-        }
-
-        options = this.convertCallback( options, callback );
-        return this.save( attrs, options );
-    },
-
-    // 
-    // 
-    // 
-    saveRelatedCB: function( options, callback){
-        options = this.convertCallback( options, callback );
-        options.saveRelated = true;
-        return this.save( null, options );
-    },
-
-    // 
-    // 
-    // 
-    fetchCB: function(options,callback){
-        options = this.convertCallback( options, callback );
-        return this.fetch( options );
-    },
-
-    // 
-    // 
-    // 
-    fetchRelatedCB: function(options,callback){
-        options = this.convertCallback( options, callback );
-        options.fetchRelated = true;
-        return this.fetch( options );
-    },
-
-    // 
-    // 
-    // 
-    destroyCB:function(options,callback){
-        options = this.convertCallback(options,callback);
-        return this.destroy(options);
-    },
-
-    // 
-    // 
-    // 
-    destroyRelatedCB: function( options,callback ){
-        options = this.convertCallback(options,callback);
-        options.destroyRelated = true;
-        return this.destroy(options);  
-    },
 
     // 
     // 
@@ -253,7 +182,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         if( resp[targetId] ){
             resp = resp[targetId];
         } else if( !targetId ){
-            // log('no target id for ' + JSON.stringify(resp) + ' ' + JSON.stringify(xhr) );
+            // if( debug ) log('no target id for ' + JSON.stringify(resp) + ' ' + JSON.stringify(xhr) );
             // // print_ins(resp);
             // // choose the first key
             // for(targetId in resp)
@@ -263,12 +192,12 @@ var Entity = exports.Entity = Backbone.Model.extend({
             // if(!targetId)
             //     return resp;
         }
-
         var entityDef = exports.ids[ resp.type || this.type ];
 
         var associateRelations = function(data, options){
             var i, er, erId, items, erName, entityDef;
             options = (options || {});
+
             if( !data )
                 return;
 
@@ -279,11 +208,12 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
             if( !(entityDef = (options.entityDef || exports.ids[ type ])) )
                 return;
+
+            // if( debug ) log('calling it ' + type + ' ' + JSON.stringify(data) );
             if( removeId ){
                 delete data['id'];
             }
-
-            // if( options.debug ) log('calling it ' + type + ' ' + JSON.stringify(options) );
+            
             // if( options.debug ) print_var( data );
             // if( options.debug ) print_var( entityDef );
 
@@ -323,8 +253,12 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 erId = data[erName];
 
                 if( er.oneToOne ){
+                    // if( debug ) log('considering ' + erName + ' ' + erId );
                     if( origResp[erId] ){
+                        // if( debug ) log('calling it ' + erId + ' ' + JSON.stringify(origResp[erId]) );
                         data[erName] = associateRelations( origResp[erId] );
+                    } else if( _.isObject(erId) ) {
+                        data[erName] = associateRelations( erId );
                     }
                 }
                 else if( er.oneToMany && erId ){
@@ -366,9 +300,11 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return resp;
     },
 
-    // 
-    // 
-    // 
+    /**
+     * Removes IDs from the entity and all contained
+     * @param  {[type]} options [description]
+     * @return {[type]}         [description]
+     */
     removeID: function(options){
         var i, er, erName,child;
         var entityDef = exports.ids[this.type];
@@ -382,7 +318,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
         if( !entityDef.ER ){
             // log('no relations for ' + this.type );
-            return;
+            return this;
         }
 
         for( i in entityDef.ER ){
@@ -399,11 +335,14 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 }
             }
         }
+        return this;
     },
 
-    // 
-    // 
-    // 
+    /**
+     * Tests equality between this instance and another
+     * @param  {[type]} other [description]
+     * @return {boolean}       true if equal
+     */
     equals: function(other){
         var tn = this.isNew(), on = other.isNew();
         if( tn !== on )
@@ -413,9 +352,11 @@ var Entity = exports.Entity = Backbone.Model.extend({
         return this.id === other.id;
     },
 
-    // 
-    // 
-    // 
+    /**
+     * Returns a clone of this instance
+     * @param  {[type]} options [description]
+     * @return {[type]}         [description]
+     */
     clone: function(options) {
         options = options || {};
         var recurse = _.isUndefined(options.recurse) ? false : options.recurse;
@@ -427,8 +368,8 @@ var Entity = exports.Entity = Backbone.Model.extend({
         }
 
         var flat = this.flatten(flattenOptions);
-        var parsed = this.parse( flat, null, {parseFor:this.id,removeId:true} );
-
+        // if( options.debug ) print_var( flat );
+        var parsed = this.parse( flat, null, {parseFor:this.id, removeId:true, debug:options.debug} );
         var result = new this.constructor( parsed );
         return result;
     },
@@ -442,6 +383,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         var doRelations = _.isUndefined(options.relations) ? true : options.relations;//options.relations;
         var relationsAsId = options.relationsAsId;
         var returnDefaults = options.returnDefaults;
+        var exclusions = options.exclude;
         
         // clone the attributes into the result objects
         var attrs = this.attributes, result = {};
@@ -449,12 +391,26 @@ var Entity = exports.Entity = Backbone.Model.extend({
             if( prop.charAt(0) === '_' )
                 continue;
             // TODO - rewrite ER checking inside this loop
-
-            if( (relation = attrs[prop]) instanceof exports.Entity && !relation.isNew() )
+            relation = attrs[prop];
+            if( relation instanceof exports.Entity ){
+                // if( options.debug )log('checking ' + relation.id + ' for exclude');
+                if( !(exclusions && relation.match(exclusions)) ){
+                    if( !relation.isNew() && relationsAsId )
+                        result[prop] = relation.id;
+                    else if( doRelations )
+                        result[prop] = relation.toJSON();
+                    // result[prop] = relation.isNew() ? relation : relation.id;
+                }
+            }
+            else
+                result[prop] = relation;//*/
+            /*if( (relation = attrs[prop]) instanceof exports.Entity && !relation.isNew() )
                 result[prop] = relation.id;
             else
-                result[prop] = relation;
+                result[prop] = relation;//*/
         }
+        // if( options.debug ) print_var( result );
+
         // 
         // var result = Backbone.Model.prototype.toJSON.apply( this, arguments );
 
@@ -468,7 +424,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         // print_ins(this.teams,false,3);
         if( this.type ){
             entityDef = jstonkers.entity.ids[this.type];
-            // log( this.type + ' relations: ' + JSON.stringify(entityDef) );
+            // if( debug ) log( this.type + ' relations: ' + JSON.stringify(entityDef) );
 
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
@@ -476,27 +432,25 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 // def = jstonkers.entity.ids[ er.type ];
                 if( options.debug ) log('entity.toJSON: ' + erName + ' ' + JSON.stringify(er) );
 
-                if( er.oneToOne ){
-                    // if( options)
-                    relation = this.attributes[erName];
-                    if( !relation )
-                        continue;
-                    // if( options.debug ) log('o2o ' + erName );
-                    if( !relation.isNew() && relationsAsId )
-                        result[erName] = relation.id;
-                    else if( doRelations )
-                        result[erName] = relation.toJSON();
-                    else
-                        delete result[erName];
-                } else if( er.oneToMany ){
+                // if( er.oneToOne ){
+                // } else if( er.oneToMany ){
+                if( er.oneToMany ){
                     relation = this[erName];
+                    // 
                     if( !relation )
                         continue;
+                    if( exclusions && relation.match(exclusions) ){
+                        // if( options.debug )log('no hoopy ' + erName + ' ' + JSON.stringify(exclusions) );
+                        continue;
+                    }
+                    if( options.debug )log('hoopy ' + erName + ' ' + JSON.stringify(exclusions) );
                     if( !relation.isNew() && relationsAsId )
                         result[erName] = relation.id;// || this[erName].cid;
                     else if( doRelations ) {
-                        if( (output = relation.toJSON()) )
+                        if( (output = relation.toJSON()) ){
+                            // log('export ' + erName + ' ' +  output);
                             result[erName] = output;
+                        }
                     }
                 }
             }
@@ -564,10 +518,20 @@ var Entity = exports.Entity = Backbone.Model.extend({
         // exporting relation references is the default
         var doRelations = _.isUndefined(options.relations) ? true : options.relations;
 
+        // var removeId = options.removeId;
+
+        // exclusion options
+        var exclusions = options.exclude;
+        // var debug = options.debug;
+        
+        
+
         if( !result[id] ){
             if( options.toJSON ){
                 result[id] = outgoing = this.toJSON(options);
-
+                // print_var(outgoing);
+                // process.exit();
+                
                 outgoing['type'] = this.type;
                 if( this.id )
                     outgoing['id'] = this.id;
@@ -576,6 +540,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
             }else
                 result[id] = outgoing = this;
+
 
             var entityDef = jstonkers.entity.ids[this.type];
 
@@ -589,31 +554,37 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 // print_ins( jstonkers.entity.ids );
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 
-
                 if( er.oneToOne ){
                     if( doRecurse && (child = this.get(erName)) && child.refCount <= maxRefCount ){
-                        // log('child refCount: ' + child.refCount + '/' + maxRefCount );
-                        child.flatten( options );
+                        // if( debug ) log('1 ' + child.id + ' ' + JSON.stringify(exclusions) );
+                        if( !(exclusions && child.match(exclusions)) )
+                            child.flatten( options );
+                        // if( debug ) log('child refCount: ' + child.refCount + '/' + maxRefCount );
+                        // if( debug ) log('child ' + child.type );
+                            
                     }
                 } else if( er.oneToMany && (child=this[erName]) ){
-                    // if( options.debug ) log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
-                    if( doRecurse ) {//&& (child = this[erName]) ){
-                        // print_ins( child instanceof jstonkers.entity.EntityCollection );
-                        // log( child.flatten )
-                        // log( child instanceof exports.Entity );
-                        // print_ins( child );
-                        child.flatten(options);
-                    }
-                    
-                    if( options.toJSON && options.referenceItems ){
-                        // if( options.debug ) log('flattening ' + erName );
 
-                        if( child.shouldSerialise() || child.length < 0 )
-                            outgoing[erName] = child.id || child.cid;
-                        else // if( this[erName].length > 0 )
-                            outgoing[erName] = child.toJSON( {collectionAsIdList:true} );
-                        // else
-                            // outgoing[erName] = this[erName].id || this[erName].cid;
+                    if( !(exclusions && child.match(exclusions)) ){
+                        // if( options.debug ) log('exam ER ' + JSON.stringify(entityDef) + ' -> ' + JSON.stringify(er) );
+                        if( doRecurse ) {//&& (child = this[erName]) ){
+                            // print_ins( child instanceof jstonkers.entity.EntityCollection );
+                            // log( child.flatten )
+                            // log( child instanceof exports.Entity );
+                            // print_ins( child );
+                            child.flatten(options);
+                        }
+                        
+                        if( options.toJSON && options.referenceItems ){
+                            // if( options.debug ) log('flattening ' + erName );
+
+                            if( child.shouldSerialise() || child.length < 0 )
+                                outgoing[erName] = child.id || child.cid;
+                            else // if( this[erName].length > 0 )
+                                outgoing[erName] = child.toJSON( {collectionAsIdList:true} );
+                            // else
+                                // outgoing[erName] = this[erName].id || this[erName].cid;
+                        }
                     }
                 }
             }
@@ -622,16 +593,21 @@ var Entity = exports.Entity = Backbone.Model.extend({
             for( i in this.attributes ){
                 child = this.attributes[i];
                 if( child instanceof exports.Entity ){
-                    // childId = child.id || child.cid;
+                    
                     if( options.allEntities && doRecurse )
-                        child.flatten(options);
+                        // if( debug ) log('2 ' + child.id );
+                        // if( !(exclusions && child.match(exclusions,{debug:true})) ){
+                        {
+                            // if( debug ) log('2 including ' + child.id );
+                            child.flatten(options);
 
-                        if( options.toJSON ){
-                            if( doRelations ){
-                                // if(options.debug)log('flatten to id ' + child.id );
-                                outgoing[i] = child.id || child.cid;
-                            }else
-                                delete outgoing[i];
+                            if( options.toJSON ){
+                                if( doRelations ){
+                                    // if(options.debug)log('flatten to id ' + child.id );
+                                    outgoing[i] = child.id || child.cid;
+                                }else
+                                    delete outgoing[i];
+                            }
                         }
                     
                 }
@@ -639,6 +615,38 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
         }
         return result;
+    },
+
+    /**
+     * Tests the entity against cases to check for
+     * some kind of equality
+     * @param  {Array|Object} cases   [description]
+     * @param  {Object} options [description]
+     * @return {boolean}         returns true if any of the cases apply
+     */
+    match: function( cases, options ){
+        var i, p, kase, self = this;
+        if( !cases )
+            return false;
+        options = options || {};
+        if( !_.isArray(cases) )
+            cases = [ cases ];
+
+        for( i in cases ){
+            kase = cases[i];
+            if( _.isObject(kase) ){
+                for( p in kase ){
+                    if( p === 'type' && this.getEntityType() == kase[p] )
+                        return true;
+                    if( self[p] && self[p] === kase[p] ){
+                        // if( options.debug ) log('matching with ' + JSON.stringify(this) + ' ' + JSON.stringify(kase) );
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
 });
