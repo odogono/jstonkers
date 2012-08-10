@@ -1,3 +1,4 @@
+var dlog = debug('entity');
 // var erFuncs = require('./entity_relationship');
 // exports.schema = 'urn:schemas-opendoorgonorth:heroes:entity#';
 
@@ -842,6 +843,7 @@ exports.unregisterEntity = function(){
 *   - the incoming object must have a type and entity field
 */
 exports.registerEntity = function( entityDef, entity, options ){
+    dlog('registering entity ' + JSON.stringify(entityDef) );
     // check for a direct registration of an entity
     if( _.isObject(entity) && entity.__super__ ){
         // the first arg may be the type of the entity
@@ -860,6 +862,7 @@ exports.registerEntity = function( entityDef, entity, options ){
         entityDef = require(entityDef);
         entityDef.type = entityDef.type || entityType;
     }
+
 
     // check whether this entity is already registered 
     if( exports.ids[entityDef.type] ){

@@ -167,16 +167,14 @@ app.on('close', function(){
     log('app server closed');
 });
 
-// log('creating app server');
 app.server = http.createServer(app);
-// log('created app server');
 
 // important that socketio is included after the app.server is created
 require('./socketio');
+require('./repl');
 
 if( !config.server.manualStart )
     app.start();
 
-// console
-require('./repl');
-//*/
+
+

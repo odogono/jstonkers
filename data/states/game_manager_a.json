@@ -12,12 +12,12 @@
         "type": "team",
         "user": "user.admin",
         "id": "team.001",
-        "units": [ "unit.001" ]
+        "units": [ "tank.001" ]
     },
-    "unit.001": {
+    "tank.001": {
         "position": [ 272, 336 ],
-        "type": "unit",
-        "id": "unit.001"
+        "type": "tank",
+        "id": "tank.001"
     },
     "user.admin": {
         "type": "user",

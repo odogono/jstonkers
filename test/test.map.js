@@ -4,6 +4,10 @@ require( '../src/main.server' );
 
 describe('Map', function(){
 
+    after(function(){
+        for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
+    });
+    
     beforeEach( function(done){
         jstonkers.sync.clear( function(err){
             if( err ) return done(err);

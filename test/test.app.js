@@ -8,10 +8,14 @@ Common.config.server.manualStart = true;
 Common.config.socketio.enabled = false;
 Common.config.client.browserify = false;
 
+
 var app = require(appPath);
 
-
 describe('app', function(){
+
+    after(function(){
+        for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
+    });
 
     /*beforeEach( function(done){
         log('beforeEach');
@@ -27,11 +31,11 @@ describe('app', function(){
         });
     });//*/
 
-    afterEach( function(done){
-        // print_ins( this.app );
-        // this.app.httpServer.close();
-        done();
-    });
+    // afterEach( function(done){
+    //     // print_ins( this.app );
+    //     // this.app.httpServer.close();
+    //     done();
+    // });
 
     describe('game management', function(){
 
@@ -71,6 +75,10 @@ describe('app', function(){
                     app.stop( done );
                 }
             );
+        });
+
+        it('does something else', function(){
+            assert(true);
         });
 
         /*

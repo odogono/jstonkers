@@ -14,10 +14,10 @@
     },
 
     "ship_1":{
-        "position":[272,336]
+        "type":"ship", "position":[272,336]
     },
 
     "ship_2":{
-        "position":[1996,340]
+        "type":"ship", "position":[1996,340]
     }
 }

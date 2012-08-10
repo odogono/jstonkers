@@ -2,7 +2,9 @@ var fs = require('fs');
 var entity = require('./entity');
 var CommandQueue = require( '../command_queue' );
 
+
 // exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#game';
+exports.type = 'game';
 
 exports.ER = [
     { oneToMany:"team", name:"teams" },
@@ -21,12 +23,11 @@ exports.entity = entity.Entity.extend({
         this.cmds.on('add', function(cmd){
             cmd.game = self;
         });
+        this.teams.on('change:user', function(team){
+            // log('team evt ' + JSON.stringify(arguments) );
+        });
         // add the default game command
         // this.cmds.add( {type:'cmd_init_game'} );
-    },
-
-    process: function( options, callback ){
-        return this.cmds.process( options, callback );
     },
 
     isAGame: function(){
@@ -52,32 +53,6 @@ exports.entity = entity.Entity.extend({
         var existing = this.users();
         return !!_.find( existing, function(u){ return u.equals(user); } );
     },
-
-    // 
-    // 
-    // 
-    addUser: function(user, team){
-        // print_var( this );
-        // check hasn't already been added
-        if( this.isUserInvolved(user) )
-            return this;
-
-        if( !team ){
-            team = this.teams.at(0);
-            if( !team.isAI() )
-                team = this.teams.at(1);
-        }
-
-        // log('adding to team ' + team.cid );
-
-        return team.setUser( user );
-    },
-
-    removeUser: function(user){
-        this.teams.at(0).setUser( null );
-        this.teams.at(1).setUser( null );
-    }
-
 });
 
 exports.create = function(attrs, options){

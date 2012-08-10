@@ -17,7 +17,9 @@ exports.entity = entity.Entity.extend({
     },
 
     setUser: function( user ){
-        return this.set({user:user});
+        var result = this.set({user:user});
+        // user.trigger('game:joined', this, user);
+        return result;
     },
 
     isAI: function(){

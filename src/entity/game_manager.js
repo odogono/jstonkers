@@ -1,6 +1,7 @@
 var fs = require('fs');
 var entity = require('./entity');
 
+exports.type = 'game_manager';
 exports.ER = [
     { oneToMany:"game", name:"games" },
     { type:'cmd_queue', name:"cmds" },
@@ -15,8 +16,27 @@ exports.entity = entity.Entity.extend({
         this.cmds.on('add', function(cmd){
             cmd.manager = self;
         });
+        this.games.on('add', function(game){
+            self.trigger('game:added', game);
+            game.teams.each( function(team){
+                var user;
+                if( (user = team.get('user')) ){
+                    self.trigger('game.team.user:joined', game, team, user );
+                    Backbone.EventBus.trigger('game.team.user:joined', game, team, user );
+                }
+            });
+        });
+        this.games.on('remove', function(game){
+            game.teams.each( function(team){
+                var user;
+                if( (user = team.get('user')) )
+                    self.trigger('game.team.user:left', game, team, user );
+            });
+            self.trigger('game:removed', game);
+        })
         this.games.on('all', function(type){
-            self.trigger.apply(self, arguments);
+            // log('gm all ' + type );
+            // self.trigger.apply(self, arguments);
         });
     },
 
@@ -24,18 +44,15 @@ exports.entity = entity.Entity.extend({
         if( _.isFunction(options) ){
             callback = options;
         }
-        if( !user ){
-            user = this.get('user');
-        }
-
+        
+        user = user || this.get('user');
         options = options || {};
 
-        var self = this, statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json');
+        var stateFile = options.stateFile || 'game_a';
+        var self = this, statePath = Common.path.join( Common.paths.data, 'states', stateFile + '.json');
         var game = jstonkers.entity.Game.create( null,{statePath:statePath});
-        // game.set('created_by', user);
-        // print_var( game );
+        
         game.addUser( user );
-
         // print_var( self );
         // print_ins( callback );
 

@@ -3,6 +3,10 @@ require( '../src/main.server' );
 
 describe('Sync.Redis', function(){
 
+    after(function(){
+        for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
+    });
+    
     var testEntities = [
         { type: 'test_a', ER:[ { oneToMany: 'test_b' } ] },
         { type: 'test_b', ER:[ { oneToMany:'test_c'} ] },

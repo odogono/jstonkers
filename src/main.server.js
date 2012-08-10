@@ -9,6 +9,14 @@ jstonkers = {
     PriorityQueue: require('./priority_queue'),
 };
 
+jstonkers.eventBus = Backbone.EventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
+jstonkers.eventBus.bind( 'all', function(type){
+    // console.log(arguments);
+    log('event_bus: ' + type );
+});
+jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
+
+
 
 jstonkers.entity = require('./entity/entity');
 jstonkers.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
@@ -32,9 +40,11 @@ require('./entity/map.path_finding')( jstonkers.entity.Map );
 require('./entity/map.server');
 
 jstonkers.entity.registerEntity('team');
+jstonkers.entity.registerEntity( require('./entity/unit_tank') );
+jstonkers.entity.registerEntity( require('./entity/unit_ship') );
 
 var Game = jstonkers.entity.registerEntity('game');
-require('./entity/game.logic');
+require('./entity/game.server');
 
 jstonkers.entity.registerEntity('user');
 
@@ -43,13 +53,6 @@ var GameManager = jstonkers.entity.registerEntity('game_manager');
 
 // load commands
 require( Common.paths.commands );
-
-
-jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
-jstonkers.eventBus.bind( 'all', function(){
-    console.log(arguments);
-});
-jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
 
 
 process.on('exit', function() {

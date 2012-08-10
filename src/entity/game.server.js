@@ -1,0 +1,42 @@
+// Server-side entity functions
+var game = require('./game');
+
+_.extend( game.entity.prototype, {
+
+    onStart: function(){
+        log('game has started');
+    },
+
+    process: function( options, callback ){
+        return this.cmds.process( options, callback );
+    },
+
+
+    // 
+    // 
+    // 
+    addUser: function(user, team){
+        // print_var( this );
+        // check hasn't already been added
+        if( this.isUserInvolved(user) )
+            return this;
+
+        if( !team ){
+            team = this.teams.at(0);
+            if( !team.isAI() )
+                team = this.teams.at(1);
+        }
+
+        // log('adding to team ' + team.cid );
+        log('triggering user-joined');
+        this.trigger('game.team:user-joined', this, team, user );
+
+        return team.setUser( user );
+    },
+
+    removeUser: function(user){
+        this.teams.at(0).setUser( null );
+        this.teams.at(1).setUser( null );
+    }
+
+});

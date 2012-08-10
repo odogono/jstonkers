@@ -8,6 +8,6 @@ var path = require('path'),
 if( !process.env.NODE_ENV ) process.env.NODE_ENV = 'test';
 
 
-process.argv.splice(2,0, '--globals', 'app,YUI,jstonkers,attr');
+// process.argv.splice(2,0, '--globals', 'app,YUI,jstonkers,attr');
 
 require(mocha);

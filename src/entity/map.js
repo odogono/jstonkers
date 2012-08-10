@@ -1,6 +1,6 @@
 var entity = require('./entity');
 // exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#map';
-
+exports.type = 'map';
 
 exports.entity = entity.Entity.extend({
 });

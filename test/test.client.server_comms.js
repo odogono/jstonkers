@@ -31,6 +31,10 @@ describe('client.server_comms', function(){
         done();
     });
 
+    after(function(){
+        for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
+    });
+
     describe('stuff', function(){
 
         it('should connect', function(done){
