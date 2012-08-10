@@ -74,14 +74,15 @@ exports.entity = entity.Entity.extend({
 
         // TODO : return game state without internal entity references
         var result = game.flatten( flattenOptions );
-        print_var(result);
+        // print_var(result);
+        return result;
     },
 
     getSummary: function( user, gameId ){
         var game = this.games.get(gameId);
-        print_var( this.games.map(function(game){
-            return this.id;
-        }));
+        // print_var( this.games.map(function(game){
+        //     return this.id;
+        // }));
         if( !game )
             throw new Error('game ' + gameId + ' not found');
 

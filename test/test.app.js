@@ -63,7 +63,7 @@ describe('app', function(){
                         .get('/games/' + gameId )
                         .json()
                         .setCookies(res)
-                        .end(this);
+                        .end(this);//*/
                 },
                 function(err,res){
                     if( err ) throw err;

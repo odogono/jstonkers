@@ -28,7 +28,8 @@
         <div id="content" class="container">
             {{{container}}}
         </div>
-
+        <img id="font2x" src="/img/font.2x.png" style="display:none;" />
+        <img id="font" src="/img/font.png" style="display:none;" />
         <script src="/js/lib/jquery-1.7.2.min.js"></script>
         <script src="/js/lib/debug.js"></script>
         <script src="/js/lib/leaflet-src.js"></script>
@@ -38,6 +39,7 @@
         <script src="/js/lib/backbone.js"></script>
         {{#settings.sio_enabled}}<script src="/socket.io/socket.io.js"></script>{{/settings.sio_enabled}}
         <script src="/js/lib/mustache.js"></script>
+        <script src="/js/lib/RequestAnimationFrame.js"></script>
         <script src="/js/templates.js"></script>
         <script src="/js/jstonkers.js"></script>
         <script>

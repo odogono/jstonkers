@@ -3,6 +3,11 @@ exports.index = function(req, res){
     var app = req.app;
     var appParams = {
         url:{root:'/'},
+        active:'home',
+        user:{
+            id:req.user.id,
+            name:req.user.get('name')
+        },
         server:{
             url:'http://localhost',
             port:app.config.server.port,

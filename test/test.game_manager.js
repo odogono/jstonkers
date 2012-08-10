@@ -1,6 +1,7 @@
 require( '../src/common' );
 require( '../src/main.server' );
 
+var emptyStatePath = Common.path.join( Common.paths.data, 'states', 'game_manager.json');
 
 describe('GameManager', function(){
     beforeEach( function(done){
@@ -21,10 +22,10 @@ describe('GameManager', function(){
             // print_var( gameManager );
         });
 
-        /*it('should create a new game', function(done){
+
+        it('should create a new game', function(done){
             var game, added = false;
-            var statePath = Common.path.join( Common.paths.data, 'states', 'game_manager.json');
-            var gameManager = jstonkers.entity.GameManager.create(null,{statePath:statePath});
+            var gameManager = jstonkers.entity.GameManager.create(null,{statePath:emptyStatePath});
 
             gameManager.on('add', function(game){
                 added = true;
@@ -39,14 +40,28 @@ describe('GameManager', function(){
                     assert( !result.isNew() );
                     assert( added );
                     assert.equal( gameManager.getGame(result.id).id, result.id );
-                    // print_var( gameManager.flatten({toJSON:true}) );
-                    // print_var( gameManager.toJSON() );
                     done();
                 }
             );
         });//*/
 
-        /*it('should destroy a game', function(done){
+
+        it('should create a new game with a user', function(done){
+            var game, added = false;
+            var gameManager = jstonkers.entity.GameManager.create(null,{statePath:emptyStatePath});
+
+            Step(
+                function(){
+                    gameManager.createGame( userA, null, this );
+                },
+                function(err, result){
+                    if( err ) throw err;
+                }
+            );            
+        });
+
+
+        it('should destroy a game', function(done){
             var game, removed = false;
             var gm = jstonkers.entity.GameManager.create(null,{
                 statePath:Common.path.join( Common.paths.data, 'states', 'game_manager.json')

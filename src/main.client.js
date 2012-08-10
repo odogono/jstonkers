@@ -20,10 +20,10 @@ var client = _.extend( jstonkers.client, {
 });
 
 
-jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'event_bus'});
-jstonkers.eventBus.bind( 'all', function(){
-    log( JSON.stringify(arguments) );
-});
+jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'eventBus'});
+// jstonkers.eventBus.bind( 'all', function(){
+    // console.log( JSON.stringify(arguments) );
+// });
 jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
 
 
@@ -103,6 +103,7 @@ client.sprites = {
     ]
 };
 
+jstonkers.client.BitmapFontCanvas = require('../bitmap_font_canvas');
 
 require('./client/baseview');
 require('./client/server_comms');
