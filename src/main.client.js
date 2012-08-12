@@ -114,6 +114,7 @@ require('./client/view.games.all');
 require('./client/view.games.view');
 require('./client/view.home');
 require('./client/view.map');
+require('./client/view.global');
 
 $(function() {
     // log('hello there');

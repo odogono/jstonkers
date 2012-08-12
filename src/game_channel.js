@@ -14,6 +14,7 @@ var GameChannel = exports.GameChannel = function(){
 
 exports.create = function(game, options){
     var result = new GameChannel();
+    // result.game
 
     return result;
 }

@@ -29,6 +29,9 @@ describe('Command Queue', function(){
         });
     });
 
+    after(function(){
+        for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
+    });
     
     describe('create', function(){
         it('should create', function(){

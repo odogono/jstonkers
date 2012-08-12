@@ -11,7 +11,6 @@ _.extend( game.entity.prototype, {
         return this.cmds.process( options, callback );
     },
 
-
     // 
     // 
     // 
@@ -37,6 +36,15 @@ _.extend( game.entity.prototype, {
     removeUser: function(user){
         this.teams.at(0).setUser( null );
         this.teams.at(1).setUser( null );
+    },
+
+
+    addObserver: function( user ){
+
+    },
+
+    removeObserver: function( user ){
+        
     }
 
 });

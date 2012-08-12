@@ -89,8 +89,10 @@ exports.loadOrCreate = function(req,res,next){
                 }
                 else {
                     var params = {sid:req.sessionID,name:'guest'};
-                    User.create( params ).saveCB( function(err, result){
-                        debug('created new user ' + result.id);
+                    User.create( params ).saveCB( function(err, user){
+                        debug('created new user ' + user.id);
+                        req.user = user;
+                        req.session.userId = user.id;
                         next();
                     });
                 }

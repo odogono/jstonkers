@@ -1,11 +1,16 @@
+process.env.DEBUG = 'app.*';
+
 var Common = require( '../src/common' ),
     request = require('supertest'),
     appPath = Common.path.join(Common.paths.app,'app'),
     utils = require('./support/utils');
 var Server = require('../src/main.server');
 
+// debug.enable('client.*');
+
 Common.config.server.manualStart = true;
 Common.config.socketio.enabled = false;
+Common.config.repl.enabled = false;
 Common.config.client.browserify = false;
 
 
@@ -17,18 +22,8 @@ describe('app', function(){
         for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
     });
 
-    /*beforeEach( function(done){
-        log('beforeEach');
-        var self = this;
-        this.app = require(appPath);
-
-        // clear db first
-        jstonkers.sync.clear( function(err){
-            if( err ) return done(err);
-            Server.initialize(function(){
-                done();    
-            });
-        });
+    beforeEach( function(done){
+        jstonkers.sync.clear(done);
     });//*/
 
     // afterEach( function(done){
@@ -37,8 +32,30 @@ describe('app', function(){
     //     done();
     // });
 
-    describe('game management', function(){
+    describe('basics', function(){
+        it('should', function(done){
+            var serverOptions = { statePath:Common.path.join( Common.paths.data, 'states', 'game_manager_a.json') };
+            Step(
 
+                function (){
+                    app.start(serverOptions, this);
+                },
+                function(){
+                    request(app).get('/').json().end(this);
+                },
+                function(err,res){
+                    if( err ) throw err;
+                    if( res.body.error ) throw res.body.error;
+                    print_var(res.body);
+                    app.stop( done );
+                }
+            );
+            
+        })
+    });
+    
+    describe('game management', function(){
+        /*
         it('creates a new game', function(done){
             
             var serverOptions = { statePath:Common.path.join( Common.paths.data, 'states', 'game_manager_a.json') };
@@ -67,7 +84,7 @@ describe('app', function(){
                         .get('/games/' + gameId )
                         .json()
                         .setCookies(res)
-                        .end(this);//*/
+                        .end(this);
                 },
                 function(err,res){
                     if( err ) throw err;
@@ -79,7 +96,7 @@ describe('app', function(){
 
         it('does something else', function(){
             assert(true);
-        });
+        });//*/
 
         /*
         it('returns details of current games', function(done){

@@ -1,21 +1,10 @@
 
 exports.index = function(req, res){
     var app = req.app;
-    var appParams = {
-        url:{root:'/'},
-        active:'home',
-        user:{
-            id:req.user.id,
-            name:req.user.get('name')
-        },
-        server:{
-            url:'http://localhost',
-            port:app.config.server.port,
-            siotoken: req.siotoken
-        }};
+    app.locals.appParams.active = 'home';
     if( req.accepts('html') ){
-        app.locals.container = app.partial('home', appParams );
-        res.render( 'main', {appParams:JSON.stringify(appParams)} );
+        app.locals.container = app.partial('home', app.locals.appParams );
+        res.render( 'main', {appParams:JSON.stringify(app.locals.appParams)} );
     }
     else if( req.accepts('json') ){
         res.json( appParams );

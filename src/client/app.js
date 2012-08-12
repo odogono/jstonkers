@@ -21,6 +21,10 @@ jstonkers.client.App = Backbone.Router.extend({
 
         // contains state information about the app itself
         this.model = new Backbone.Model( options );
+        this.model.on('change:active', function(model,active,changes){
+            // log( 'MAIN MODEL changed active to ' + active );
+            // console.log( arguments );
+        })
 
         this.createDefaultModels( options );
 
@@ -33,16 +37,22 @@ jstonkers.client.App = Backbone.Router.extend({
             image:$('#font').get(0), charWidth:8, charHeight:8, kern:0
         });
 
+        this.views.global = new jstonkers.client.view.Global({id:'global', model:this.model,el:$('.navbar')});
+
         this.models.home = new Backbone.Model();
-        this.views.home = new jstonkers.client.view.Home({model:this.models.home});
+        this.views.home = new jstonkers.client.view.Home({id:'home',model:this.models.home});
 
         this.models.games = new Backbone.Model();
-        this.views['games.all'] = new jstonkers.client.view.games.All({model:this.models.games});
+        this.views['games.all'] = new jstonkers.client.view.games.All({id:'games.all',model:this.models.games});
+
+        this.models.game = new Backbone.Model();
+        this.views['games.view'] = new jstonkers.client.view.games.View({id:'games.view',model:this.models.game});
 
     
         // define app routes - doing this here (as opposed to in this.routes) means we can use regex
         this.route(/^\/?\??([\&\w=]+)?$/, 'default', this.routeHome);
-        this.route(/^\/?games\/?\??([\&\w=]+)?$/, 'games', this.routeGames);
+        this.route(/^\/?games\/?$/, 'games.all', this.routeAllGame);
+        this.route(/^\/?games\/([\w]+)/, 'games.view', this.routeGame);
         // this.route(/^\/?upload\/?\??([\&\w=]+)?$/, 'upload', this.routeImageUpload);
 
         jstonkers.eventBus.bind('navigate', function(target){
@@ -50,8 +60,15 @@ jstonkers.client.App = Backbone.Router.extend({
                 case 'games.all':
                     self.navigate('games', true);
                     break;
+                // case 'games.view':
+                    // self.navigate('games', true);
+                    // break;
+                default:
+                    self.navigate(target, true);
+                    // log('unknown target ' + target);
+                    break;
             }
-            log('navigating to ' + target );
+            
         });
         
         Backbone.history.start({pushState: true, root:jstonkers.params.url.root});
@@ -79,7 +96,7 @@ jstonkers.client.App = Backbone.Router.extend({
         var $viewEl = $('#content div[data-view]');
         var viewElName = $viewEl.data('view');
 
-        log('page view ' + viewElName + ' new view ' + name);
+        // log('page view ' + viewElName + ' new view ' + name);
 
         if( this.contentView && this.contentView.cid === view.cid ){
             log('already set view ' + view.id + '(' + view.cid + ')' );
@@ -94,6 +111,7 @@ jstonkers.client.App = Backbone.Router.extend({
         }
 
         log('set view ' + name + '(' + view.cid + ')' );
+        this.model.set('active', name);
 
         this.contentView = view;
 
@@ -103,11 +121,13 @@ jstonkers.client.App = Backbone.Router.extend({
             this.contentView.render( this );
             // console.log( this.contentView.el );
         } else {
+            log('rendering new');
             var el = this.contentView.render( this ).el;
-            $('#content').empty().append( el );    
+            $('#content').empty().append( el );
         }
 
         this.contentView.trigger('show');
+        jstonkers.eventBus.trigger('view:show', name);
         this.contentView.delegateEvents();
         return this.contentView;
     },
@@ -117,7 +137,7 @@ jstonkers.client.App = Backbone.Router.extend({
         this.setContentView( 'home' );
     },
 
-    routeGames: function(){
+    routeAllGame: function(){
         log('route: games');
         this.setContentView( 'games.all' );
     },
@@ -125,6 +145,7 @@ jstonkers.client.App = Backbone.Router.extend({
 
     routeGame: function(){
         log('route: game');
+        this.setContentView( 'games.view' );
     },
 
     parseQS: function( qs ){

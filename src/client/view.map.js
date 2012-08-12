@@ -1,3 +1,4 @@
+var log = debug('client:view:map');
 
 L.Projection.NoWrap = {
     project: function (latlng) {
@@ -33,6 +34,29 @@ L.LatLngBounds.prototype.extend = function (/*LatLng or LatLngBounds*/ obj) {
     }
     return this;
 }
+
+L.Control.Coordinates = L.Control.extend({
+    options: {
+        position: 'topright'
+    },
+
+
+    onAdd: function (map) {
+        var self = this;
+        this._container = L.DomUtil.create('div', 'leaflet-control-coordinates');
+        L.DomEvent.disableClickPropagation(this._container);
+        this._container.innerHTML = '<div class="coord-row"><span class="label">X:</span> <span name="x" class="value">0</span></div><div class="coord-row"><span class="label">Z:</span> <span name="y" class="value">0</span></div>';
+        this._$x = $('span[name="x"]', this._container );
+        this._$y = $('span[name="y"]', this._container );
+
+        map
+            .on('mousemove', function(e){
+                self._$x.text( e.blockPoint.x );
+                self._$y.text( e.blockPoint.y );
+            });//*/
+        return this._container;
+    }
+});
 
 
 L.JStonkersMap = L.Map.extend({
@@ -100,7 +124,7 @@ L.JStonkersMap = L.Map.extend({
         } else {
             block = new L.Point(block.x >> (zoom * -1), block.y >> (zoom * -1));
         }
-        mlog('layerPointToBlock ' + zoom + ' ' + oblock + ' ' + block  + ' ' + origin );
+        log('layerPointToBlock ' + zoom + ' ' + oblock + ' ' + block  + ' ' + origin );
         return block;
     },
 
@@ -172,3 +196,19 @@ L.JStonkersMap = L.Map.extend({
     }
 
 });
+
+
+L.Map.addInitHook(function () {
+    var self = this;
+    var coordinatesControl = new L.Control.Coordinates();
+    this.addControl(coordinatesControl);
+    this.on('zoomend', function(e){
+        console.log('zoom finished at ' + self.getZoom() );
+    //     // map.setView( this.getCenter(), map.getZoom(),true );
+    //     // if (options.maxBounds) {
+    //         // TODO predrag validation instead of animation
+    //         // L.Util.requestAnimFrame(map._panInsideMaxBounds, map, true, map._container);
+    //     // }
+    });
+});
+

@@ -4,7 +4,7 @@
 exports.create = function( req,res ){
     var app = req.app,
         gameManager = app.gameManager;
-    
+
     // is this user allowed to create a new game ?
 
     // process the arguments for creating the game
@@ -12,19 +12,11 @@ exports.create = function( req,res ){
     // fetch a default game state
     var game = gameManager.createGame( req.user, function(err,game){
 
-        var appParams = {
-        url:{root:'/'},
-        server:{
-            url:'http://localhost',
-            port:app.config.server.port,
-            siotoken: req.siotoken
-        }};
-
         // gather details of available games
         appParams.result = {status:jstonkers.Status.ACTIVE, game_id:game.id, game_count:gameManager.games.length};
         appParams.games = gameManager.getSummaries();
 
-        res.json( appParams );
+        res.json( app.locals.appParams );
     });
 };
 
@@ -36,20 +28,13 @@ exports.view = function(req,res){
         gameManager = app.gameManager,
         gameId = req.param('game_id');
     // res.render('error', { status: 404, message: 'Game' + gameId + ' Not Found' });
-
-    var appParams = {
-        url:{root:'/'},
-        server:{
-            url:'http://localhost',
-            port:app.config.server.port,
-            siotoken: req.siotoken
-        }};
-
+    app.locals.appParams.active = 'games.view';
     appParams.result = gameManager.getSummary( req.user, gameId );
     appParams.entities = gameManager.getState( req.user, gameId );
 
     if( req.accepts('html') ){
-        res.render( 'match', { msg: "hello there" });
+        app.locals.container = app.partial('games/view', app.locals.appParams );
+        res.render( 'main', {appParams:JSON.stringify(app.locals.appParams)} );
     } else {
         res.json( appParams );
     }
@@ -60,30 +45,13 @@ exports.viewAll = function(req,res){
     var app = req.app,
         gameManager = app.gameManager;
 
-    // var previews = [
-    //     { id:1, name:'game a'},
-    //     { id:2, name:'game b'},
-    //     { id:3, name:'game c'}
-    // ];
-
-    
-
-    // res.render( 'games', { msg: "hello there", previews:previews });
-    var appParams = {
-        url:{root:'/', games:"/games"},
-        active:'games.all',
-        server:{
-            url:'http://localhost',
-            port:app.config.server.port,
-            siotoken: req.siotoken
-        }};
-
     // gather details of available games
+    app.locals.appParams.active = 'games.all';
     appParams.games = gameManager.getSummaries();
 
     if( req.accepts('html') ){
-        app.locals.container = app.partial('games/all', appParams );
-        res.render( 'main', {appParams:JSON.stringify(appParams)} );
+        app.locals.container = app.partial('games/all', app.locals.appParams );
+        res.render( 'main', {appParams:JSON.stringify(app.locals.appParams)} );
     }
     else if( req.accepts('json') ){
         res.json( appParams );

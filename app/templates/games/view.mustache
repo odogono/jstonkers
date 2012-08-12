@@ -1,2 +1,18 @@
-<div data-view="game.view">
+<div data-view="games.view">
+    <div class="row">
+        <div class="offset1 span10 border_b">
+            <div id="leaflet-map" class="">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div id="messages" class="offset2 span8 border_b"></div>
+    </div>
+
+    {{#cmap}}
+    <div id="collision" style="display:none;">
+        <canvas width="{{width}}" height="{{height}}"></canvas>
+        <img src="{{href}}" width="{{width}}" height="{{height}}" />
+    </div>
+    {{/cmap}}
 </div>

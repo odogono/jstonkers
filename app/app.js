@@ -68,7 +68,7 @@ app.configure( function(){
 app.configure('test', function(){
     app.use( express.static(app.path.web) );
     app.use( express.logger({ format: ":date :response-time\t:method :status\t\t:url" }) );
-    // app.use( express.errorHandler({ dumpExceptions : true, showStack : true }));
+    app.use( express.errorHandler({ dumpExceptions : true, showStack : true }));
 });
 
 
@@ -86,20 +86,41 @@ app.configure('production', function(){
 
 app.gameManager = Server.gameManager;
 
+// 
+// Set up basic appParams for all routes
+// 
+app.all('*', middleware.user.loadOrCreate, function(req,res,next){
+    app.locals.appParams = {
+        url:{
+            root:'/',
+            games:'/games'
+        },
+        user:{
+            id:req.user.id,
+            name:req.user.get('name')
+        },
+        server:{
+            url:'http://localhost',
+            port:app.config.server.port,
+            siotoken: req.siotoken
+        }};
+    next();
+});
+
 
 // 
 // Handlers - Home
 // 
-app.get('/', middleware.user.loadOrCreate, handlers.home.index );
+app.get('/',  handlers.home.index );
 
 
 // 
 // Handlers - Game
 // 
-app.get('/games/:game_id', middleware.user.loadOrCreate, handlers.game.view );
-app.get('/games/?', middleware.user.loadOrCreate, handlers.game.viewAll );
-app.delete('/games/:game_id', middleware.user.loadOrCreate, handlers.game.delete );
-app.post('/games/new',  middleware.user.loadOrCreate, handlers.game.create );
+app.get('/games/:game_id', handlers.game.view );
+app.get('/games/?', handlers.game.viewAll );
+app.delete('/games/:game_id', handlers.game.delete );
+app.post('/games/new',  handlers.game.create );
 
 
 // 

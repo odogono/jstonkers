@@ -6,40 +6,14 @@ if( !app.config.socketio.enabled ) {
     return;
 }
 
-var io;
+var io = app.socketio = socketio.listen(app.server);
 var buffer = [];
 
-/*
-var existingAppStart = app.start;
-app.start = function(options,callback){
-    var self = this;
-
-    Step(
-        function(){
-            io = app.socketio = socketio.listen(app.server);
-            io.on('connection', onConnection);
-
-            log('socket server started');
-            this();
-        },
-        function(){
-            existingAppStart(options,this);
-        },
-        function(){
-            // print_ins( callback );
-            if( callback )
-                callback();
-        }
-    )
-}//*/
-
-
-
-
-io = app.socketio = socketio.listen(app.server);
 
 io.on('connection', function(client){
     var session = client.handshake.session;
+
+    log('connected with sio.id ' + client.id + ' user.id '  );
 
     client
         .on('message', function(msg){
@@ -48,11 +22,32 @@ io.on('connection', function(client){
         .on('disconnect', function(){
             // log('disconnected');
         })
-        .on('ping', function(time,cb){
-            if( cb ){
-                cb(time);
+        .on('ping', function(time,callback){
+            if( callback ){
+                callback(time);
             } else
                 this.emit('pong', time);
+        })
+        .on('join_game', function(gameId,callback){
+
+        })
+        .on('leave_game', function(gameId){
+
+        })
+        .on('order', function(callback){
+
+        })
+        .on('game_state', function(callback){
+
+        })
+        .on('unit_info', function(callback){
+
+        })
+        .on('user_info', function( userId, callback ){
+
+        })
+        .on('telegram', function( message, targetId, callback ){
+
         });
 });
 

@@ -19,7 +19,7 @@ html, body  {
 .border_c{
   border: 16px solid green;
 }
-#map{
+#leaflet-map{
   background-color: black;
     height:480px;
 }

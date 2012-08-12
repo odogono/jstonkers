@@ -14,7 +14,10 @@ var app = require(appPath);
 
 
 describe('realtime', function(){
-
+    after(function(){
+        for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
+    });
+    
     beforeEach( function(done){
         // app = require(appPath);
         // app.start( null, done );
