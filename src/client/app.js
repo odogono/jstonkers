@@ -28,15 +28,17 @@ jstonkers.client.App = Backbone.Router.extend({
 
         this.createDefaultModels( options );
 
-        jstonkers.client.bitmapFontCanvas = new jstonkers.client.BitmapFontCanvas({ 
+        JSTC.bitmapFontCanvas = jstonkers.client.bitmapFontCanvas = new jstonkers.client.BitmapFontCanvas({ 
             chars:",/0123456789:'(=)? ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
             image:$('#font2x').get(0)
         });
+
         jstonkers.client.bitmapFontCanvasSml = new jstonkers.client.BitmapFontCanvas({ 
             chars:",/0123456789:'(=)? ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
             image:$('#font').get(0), charWidth:8, charHeight:8, kern:0
         });
 
+        // attach the global nav view to the existing dom structure
         this.views.global = new jstonkers.client.view.Global({id:'global', model:this.model,el:$('.navbar')});
 
         this.models.home = new Backbone.Model();

@@ -89,6 +89,9 @@ _.extend(BitmapFontCanvas.prototype, {
         var col = options.col || "#FFF";
         str = str.toUpperCase();
 
+        if( this.strings[key] )
+            return this.strings[key];
+
         // clear our scratchpad canvas
         this.comCtx.clearRect ( 0, 0, this.width , this.height );
 
@@ -102,7 +105,11 @@ _.extend(BitmapFontCanvas.prototype, {
                 resultBounds = resultBounds[0];
         }
         
-        this.strings[key] = {bounds:resultBounds, str:str};
+        return this.strings[key] = {bounds:resultBounds, str:str};
+    },
+
+    getBounds: function(str){
+        return this.strings[str] ? this.strings[str].bounds : null;
     },
 
     drawString: function( str, ctx, x, y, options ){
@@ -111,6 +118,7 @@ _.extend(BitmapFontCanvas.prototype, {
         var entry = this.strings[key];
         var bounds = entry.bounds;
 
+        // console.log('entry for ' + str + ' ' + JSON.stringify(entry) );
         if( _.isArray(bounds[0]) ){
             bounds = options.index ? bounds[options.index] : bounds[0];
         }

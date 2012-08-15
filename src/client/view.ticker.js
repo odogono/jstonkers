@@ -27,7 +27,7 @@ jstonkers.client.view.Ticker = Backbone.View.extend({
         this.ctx = this.canvas.getContext('2d');
         // this.bounds = [0,0,0,0];
         // 
-        this.fontCache = jstonkers.client.bitmapFontCanvas;
+        this.fontCache = JSTC.bitmapFontCanvas;
         this.fontCache.add( "stonkers", {col:[["#FFF","#F00"]] } );
         this.fontCache.add( "press any key to start", {key:'descr', col:['#4F4','#FF4']} );
 

@@ -3,8 +3,12 @@ var Common = require( '../src/common' ),
     http = require('http');
 var express = require('express');
 var RedisStore = require('connect-redis')(express);
-
 var app = module.exports = express();
+var config = app.config = Common.config;
+
+app.path = Common.paths;
+app.store = new RedisStore({prefix:app.config.session.prefix+':'});
+app.gameManager = Server.gameManager;
 
 var middleware = {
     templates: require('./middleware/templates'),
@@ -12,22 +16,12 @@ var middleware = {
 };
 
 var handlers = {
+    main: require('./handlers/main'),
     home: require('./handlers/home'),
     game: require('./handlers/game_manager'),
     user: require('./handlers/user')
 };
 
-
-var config = app.config = Common.config;
-app.path = Common.paths;
-
-app.store = new RedisStore({prefix:app.config.session.prefix+':'});
-
-program
-    .version( Common.version )
-    .option('-p, --port <n>', 'port', parseInt)
-    .option('-e, --env', 'environment')
-    .parse(process.argv);
 
 
 app.configure( function(){
@@ -56,12 +50,6 @@ app.configure( function(){
     app.use( express.session({ key:config.session.id, secret:config.session.secret, store:app.store }) );
     app.use( express.bodyParser());
     app.use( express.logger({ format: ":date :response-time\t:method :status\t\t:url" }) );
-    // app.use( middleware.user.loadOrCreate );
-    // app.use( function(req,res,next){
-    //     app.locals.sio_enabled = false;
-    //     next();
-    // });
-
     app.use( app.router );
 });
 
@@ -84,35 +72,17 @@ app.configure('production', function(){
 });
 
 
-app.gameManager = Server.gameManager;
+
 
 // 
 // Set up basic appParams for all routes
 // 
-app.all('*', middleware.user.loadOrCreate, function(req,res,next){
-    app.locals.appParams = {
-        url:{
-            root:'/',
-            games:'/games'
-        },
-        user:{
-            id:req.user.id,
-            name:req.user.get('name')
-        },
-        server:{
-            url:'http://localhost',
-            port:app.config.server.port,
-            siotoken: req.siotoken
-        }};
-    next();
-});
-
+app.all('*', middleware.user.loadOrCreate, handlers.main.all );
 
 // 
 // Handlers - Home
 // 
 app.get('/',  handlers.home.index );
-
 
 // 
 // Handlers - Game
@@ -132,11 +102,7 @@ app.post('/games/new',  handlers.game.create );
 // app.get('/users/invite', handlers.user.invite );
 
 
-// require('./handlers/main');
-require('./handlers/game_manager');
-
-
-var port = program.port || config.server.port;
+var port = config.server.port;
 var portInc = 0;
 
 app.start = function(options,callback){
@@ -177,16 +143,15 @@ app.stop = function(callback){
 }
 
 // log('app server connected');
-// print_ins( app.server );
-app.on('listening', function(){
-    log('app server is listening');
-});
-app.on('error', function(e){
-    log('app server error ' + e );
-});
-app.on('close', function(){
-    log('app server closed');
-});
+// app.on('listening', function(){
+//     log('app server is listening');
+// });
+// app.on('error', function(e){
+//     log('app server error ' + e );
+// });
+// app.on('close', function(){
+//     log('app server closed');
+// });
 
 app.server = http.createServer(app);
 
@@ -196,6 +161,3 @@ require('./repl');
 
 if( !config.server.manualStart )
     app.start();
-
-
-

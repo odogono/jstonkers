@@ -1,3 +1,4 @@
+JSTC = {};
 jstonkers = window.jstonkers || {};
 jstonkers.client = jstonkers.client || {util:{}, model:{}, collection:{}, view:{ games:{} }};
 
@@ -20,12 +21,11 @@ var client = _.extend( jstonkers.client, {
 });
 
 
-jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'eventBus'});
+JSTC.events = jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'eventBus'});
 // jstonkers.eventBus.bind( 'all', function(){
     // console.log( JSON.stringify(arguments) );
 // });
 jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
-
 
 
 _.extend( client.entity, {
