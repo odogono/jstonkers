@@ -1,12 +1,15 @@
 
 exports.index = function(req, res){
-    var app = req.app;
-    app.locals.appParams.active = 'home';
-    if( req.accepts('html') ){
-        app.locals.container = app.partial('home', app.locals.appParams );
-        res.render( 'main', {appParams:JSON.stringify(app.locals.appParams)} );
+    var app = req.app,
+        appParams = app.locals.appParams;
+
+    appParams.active = 'home';
+
+    if( req.format == 'html' ){
+        app.locals.container = app.partial('home', appParams );
+        res.render( 'main', {appParams:JSON.stringify(appParams)} );
     }
-    else if( req.accepts('json') ){
+    else{ // if( req.accepts('json') ){
         res.json( appParams );
     }
 };

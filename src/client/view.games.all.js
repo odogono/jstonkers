@@ -12,6 +12,30 @@ jstonkers.client.view.games.All = Backbone.View.extend({
     },
 
     render: function(){
+        var self = this,
+            game, games = this.model.get('games'),
+            view, $previews = this.$el.find('.previews'),
+            Preview = jstonkers.client.view.games.Preview;
+
+        // console.log( this.$el );
+        $previews.hide().empty();
+        // games.each( function(model){
+        for( var i in games ){
+            game = new Backbone.Model(games[i]);
+            view = new Preview({model:game});
+            $previews.append( view.render().el );
+        }
+
+        $previews.show();
+
+        // var data = this.model.toJSON();
+        
+        // the template will include our own element...
+        // var $content = $(Mustache.render( Templates.games.all, data ));
+        // ... so we remove our root elements children and re-add
+        // the rendered templates children
+        // this.$el.empty().append( $content.children() );
+
         return this;
     },
 
@@ -26,10 +50,8 @@ jstonkers.client.view.games.All = Backbone.View.extend({
         return $(content).get(0);
     },
 
-
     onAdd: function(evt){
         evt.preventDefault();
-
         log('adding game');
     },
 
@@ -39,7 +61,9 @@ jstonkers.client.view.games.All = Backbone.View.extend({
             $link = $target.parents('a'),
             gameId = $link.data('game_id');
 
-        jstonkers.eventBus.trigger('navigate', 'games/'+gameId );
+        // this.model.get('urls')
+        // log('going to preview ' + )
+        JSTC.events.trigger('navigate', 'games.view', gameId );
     },
 
 });

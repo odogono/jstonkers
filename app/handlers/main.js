@@ -1,19 +1,29 @@
 
-
 exports.all = function(req,res,next){
+    var app = req.app,
+        config = app.config,
+        user = req.user;
+
     app.locals.appParams = {
         url:{
-            root:'/',
-            games:'/games'
+            'home':'/',
+            'root':'/',
+            'games.all':'games',
+            'games.view':'/games',
         },
         user:{
-            id:req.user.id,
-            name:req.user.get('name')
+            id:user.id,
+            name:user.get('name')
         },
         server:{
             url:'http://localhost',
-            port:app.config.server.port,
+            port:config.server.port,
             siotoken: req.siotoken
         }};
+    if( req.param('format') ){
+        req.format = req.param('format');
+    } else {
+        req.format = req.accepts(['html','json']);    
+    }
     next();
-});
+}

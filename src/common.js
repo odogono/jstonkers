@@ -59,7 +59,7 @@ require('./common.utils');
 
 // include libs
 debug = require('debug');
-program = require('commander');
+// program = require('commander');
 Step = require('step/lib/step');
 express = require('express');
 

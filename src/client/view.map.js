@@ -124,7 +124,7 @@ L.JStonkersMap = L.Map.extend({
         } else {
             block = new L.Point(block.x >> (zoom * -1), block.y >> (zoom * -1));
         }
-        log('layerPointToBlock ' + zoom + ' ' + oblock + ' ' + block  + ' ' + origin );
+        // log('layerPointToBlock ' + zoom + ' ' + oblock + ' ' + block  + ' ' + origin );
         return block;
     },
 

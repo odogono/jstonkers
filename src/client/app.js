@@ -17,14 +17,14 @@ jstonkers.client.App = Backbone.Router.extend({
         this.params = jstonkers.params = options;
         this.urlRoot = jstonkers.params.url.root;
 
-        // console.log( this.params );
-
         // contains state information about the app itself
-        this.model = new Backbone.Model( options );
+        this.model = new jstonkers.client.model.App();
+        this.model.set( this.model.parse(options) );
+        // console.log( this.model );
+        
         this.model.on('change:active', function(model,active,changes){
-            // log( 'MAIN MODEL changed active to ' + active );
-            // console.log( arguments );
-        })
+            // log( 'MAIN MODEL ' + model.cid + ' changed active to ' + active );
+        });
 
         this.createDefaultModels( options );
 
@@ -41,14 +41,14 @@ jstonkers.client.App = Backbone.Router.extend({
         // attach the global nav view to the existing dom structure
         this.views.global = new jstonkers.client.view.Global({id:'global', model:this.model,el:$('.navbar')});
 
-        this.models.home = new Backbone.Model();
-        this.views.home = new jstonkers.client.view.Home({id:'home',model:this.models.home});
+        // this.models.home = new Backbone.Model();
+        this.views.home = new jstonkers.client.view.Home({id:'home',model:this.model});
 
-        this.models.games = new Backbone.Model();
-        this.views['games.all'] = new jstonkers.client.view.games.All({id:'games.all',model:this.models.games});
+        // this.models.games = new Backbone.Model();
+        this.views['games.all'] = new jstonkers.client.view.games.All({id:'games.all',model:this.model});
 
-        this.models.game = new Backbone.Model();
-        this.views['games.view'] = new jstonkers.client.view.games.View({id:'games.view',model:this.models.game});
+        // this.models.game = new Backbone.Model();
+        this.views['games.view'] = new jstonkers.client.view.games.View({id:'games.view',model:this.model});
 
     
         // define app routes - doing this here (as opposed to in this.routes) means we can use regex
@@ -57,14 +57,13 @@ jstonkers.client.App = Backbone.Router.extend({
         this.route(/^\/?games\/([\w]+)/, 'games.view', this.routeGame);
         // this.route(/^\/?upload\/?\??([\&\w=]+)?$/, 'upload', this.routeImageUpload);
 
-        jstonkers.eventBus.bind('navigate', function(target){
+        JSTC.events.bind('navigate', function(target, param){
+
             switch(target){
-                case 'games.all':
-                    self.navigate('games', true);
+                case 'games.view':
+                    self.model.set({'active':target, 'game_id':param});
+                    self.navigate( self.model.url(), true );
                     break;
-                // case 'games.view':
-                    // self.navigate('games', true);
-                    // break;
                 default:
                     self.navigate(target, true);
                     // log('unknown target ' + target);
@@ -92,45 +91,68 @@ jstonkers.client.App = Backbone.Router.extend({
         this.socket = new jstonkers.client.ServerComms( this.params.server );
     },
 
-    setContentView: function(name, view){
+    setContentView: function(name, view, options){
+        var self = this;
         view = view || this.views[name];
 
         var $viewEl = $('#content div[data-view]');
         var viewElName = $viewEl.data('view');
 
-        // log('page view ' + viewElName + ' new view ' + name);
+        log('page view ' + viewElName + ' new view ' + name);
 
-        if( this.contentView && this.contentView.cid === view.cid ){
-            log('already set view ' + view.id + '(' + view.cid + ')' );
-            this.contentView.render();
-            return this.contentView;
+
+        if( viewElName == name ){
+            var wasPresent = true;
+            // log('already set view ' + view.id + '(' + view.cid + ')' );
+            
+            if( !self.contentView ){
+                log('contentView was present but not attached')
+                wasPresent = false;
+                self.contentView = view;
+                self.contentView.setElement($viewEl);
+            }
+
+            if( !wasPresent ){
+                self.contentView.trigger('show');
+                JSTC.events.trigger('view:show', name);
+                // self.contentView.delegateEvents(); 
+                return this.contentView;
+            } else {
+                this.contentView.render();
+            }
+            
         }
-
-        if( this.contentView ){
+        else if( this.contentView ){
             log('disposing of ' + this.contentView.id + ' (' + this.contentView.cid + ')');
-            log( this.contentView );
             this.contentView.trigger('hide');
         }
 
         log('set view ' + name + '(' + view.cid + ')' );
         this.model.set('active', name);
-
         this.contentView = view;
 
-        if( viewElName === name ){
-            log('attaching to existing ' + name );
-            this.contentView.setElement( $viewEl );
-            this.contentView.render( this );
-            // console.log( this.contentView.el );
-        } else {
-            log('rendering new');
-            var el = this.contentView.render( this ).el;
-            $('#content').empty().append( el );
-        }
+        // refresh the model from the server
+        this.model.fetch({success:function(model,resp){
 
-        this.contentView.trigger('show');
-        jstonkers.eventBus.trigger('view:show', name);
-        this.contentView.delegateEvents();
+            if( this.contentView && viewElName == name ){
+                self.contentView.render();
+            }
+            else if( viewElName === name ){
+                log('attaching to existing ' + name );
+                self.contentView.setElement( $viewEl );
+                self.contentView.render( this );
+                // console.log( this.contentView.el );
+            } else {
+                log('rendering new');
+                var el = self.contentView.render( this ).el;
+                $('#content').empty().append( el );
+            }
+
+            self.contentView.trigger('show');
+            JSTC.events.trigger('view:show', name);
+            self.contentView.delegateEvents();
+        }});
+
         return this.contentView;
     },
 

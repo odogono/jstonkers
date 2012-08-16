@@ -16,7 +16,7 @@ var BitmapFontCanvas = module.exports = function(options){
     this.comCanvas = createCanvas();
     this.canvas.width = this.comCanvas.width = this.width;
     this.canvas.height = this.comCanvas.height = this.height;
-    console.log('sized at ' + this.width + ',' + this.height );
+    // console.log('sized at ' + this.width + ',' + this.height );
     this.ctx = this.canvas.getContext('2d');
     this.comCtx = this.comCanvas.getContext('2d');
     this.bounds = [0,0,0,0];

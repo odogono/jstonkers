@@ -1,5 +1,5 @@
 JSTC = {};
-jstonkers = window.jstonkers || {};
+jstonkers = {};
 jstonkers.client = jstonkers.client || {util:{}, model:{}, collection:{}, view:{ games:{} }};
 
 jstonkers.Status = {
@@ -27,24 +27,26 @@ JSTC.events = jstonkers.eventBus = _.extend({}, Backbone.Events,{cid : 'eventBus
 // });
 jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
 
+JSTC.EntityCollection = require('./entity/entity_collection').EntityCollection;
 
 _.extend( client.entity, {
-    EntityCollection: require('./entity/entity_collection').EntityCollection,
+    EntityCollection: JSTC.EntityCollection,
     createCollection: require('./entity/entity_collection').create,
 });
 
 var entity = _.extend( client.entity, require('./entity/entity_relationship') );
 
 
-// jstonkers.entity.CommandQueue = require('./command_queue');
+entity.registerEntity( require('./entity/unit') );
+entity.registerEntity( require('./entity/unit_tank') );
+entity.registerEntity( require('./entity/unit_ship') );
 
-entity.registerEntity( _.extend({type:'unit'}, require('./entity/unit')) );
-entity.registerEntity( _.extend({type:'map'}, require('./entity/map')) );
+entity.registerEntity( require('./entity/map') );
 require('./entity/map.path_finding')( entity.Map );
 
-entity.registerEntity( _.extend({type:'team'}, require('./entity/team')) );
-entity.registerEntity( _.extend({type:'game'}, require('./entity/game')) );
-entity.registerEntity( _.extend({type:'user'}, require('./entity/user')) );
+entity.registerEntity( require('./entity/team') );
+entity.registerEntity( require('./entity/game') );
+entity.registerEntity( require('./entity/user') );
 
 
 client.sprites = {
@@ -103,14 +105,16 @@ client.sprites = {
     ]
 };
 
-jstonkers.client.BitmapFontCanvas = require('../bitmap_font_canvas');
+jstonkers.client.BitmapFontCanvas = require('./bitmap_font_canvas');
 
+require('./client/models');
 require('./client/baseview');
 require('./client/server_comms');
 require('./client/app');
 
 require('./client/view.ticker');
 require('./client/view.games.all');
+require('./client/view.games.preview');
 require('./client/view.games.view');
 require('./client/view.home');
 require('./client/view.map');

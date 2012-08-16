@@ -1,7 +1,7 @@
 var fs = require('fs');
 var entity = require('./entity');
 var CommandQueue = require( '../command_queue' );
-
+var EntityCollection = require('./entity_collection');
 
 // exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#game';
 exports.type = 'game';
@@ -53,6 +53,14 @@ exports.entity = entity.Entity.extend({
         var existing = this.users();
         return !!_.find( existing, function(u){ return u.equals(user); } );
     },
+
+    /**
+     * Returns all the units in the game
+     * @return {Array}
+     */
+    units: function(){
+        return this.teams.at(0).units.models().concat( this.teams.at(1).units.models() );
+    }
 });
 
 exports.create = function(attrs, options){

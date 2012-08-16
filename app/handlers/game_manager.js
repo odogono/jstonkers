@@ -26,15 +26,21 @@ exports.create = function( req,res ){
 exports.view = function(req,res){
     var app = req.app,
         gameManager = app.gameManager,
+        appParams = app.locals.appParams,
         gameId = req.param('game_id');
-    // res.render('error', { status: 404, message: 'Game' + gameId + ' Not Found' });
-    app.locals.appParams.active = 'games.view';
-    appParams.result = gameManager.getSummary( req.user, gameId );
-    appParams.entities = gameManager.getState( req.user, gameId );
 
-    if( req.accepts('html') ){
-        app.locals.container = app.partial('games/view', app.locals.appParams );
-        res.render( 'main', {appParams:JSON.stringify(app.locals.appParams)} );
+    // res.render('error', { status: 404, message: 'Game' + gameId + ' Not Found' });
+
+    _.extend( app.locals.appParams, {
+        active: 'games.view',
+        game_id: gameId,
+        game: gameManager.getSummary( req.user, gameId ),
+        entities: gameManager.getState( req.user, gameId )
+    });
+
+    if( req.format == 'html' ){
+        app.locals.container = app.partial('games/view', appParams );
+        res.render( 'main', {appParams:JSON.stringify(appParams)} );
     } else {
         res.json( appParams );
     }
@@ -43,19 +49,24 @@ exports.view = function(req,res){
 
 exports.viewAll = function(req,res){
     var app = req.app,
-        gameManager = app.gameManager;
+        gameManager = app.gameManager,
+        appParams = app.locals.appParams;
 
-    // gather details of available games
-    app.locals.appParams.active = 'games.all';
-    appParams.games = gameManager.getSummaries();
-
-    if( req.accepts('html') ){
-        app.locals.container = app.partial('games/all', app.locals.appParams );
-        res.render( 'main', {appParams:JSON.stringify(app.locals.appParams)} );
+    _.extend( app.locals.appParams, {
+        active: 'games.all',
+        // gather details of available games
+        games: gameManager.getSummaries()
+    });
+    
+    
+    if( req.format == 'html' ){
+        // appParams = _.extend( appParams, data );
+        app.locals.container = app.partial('games/all', appParams );
+        res.render( 'main', {appParams:JSON.stringify(appParams)} );
     }
-    else if( req.accepts('json') ){
+    else{
         res.json( appParams );
-    }  
+    }
 };
 
 exports.delete = function(req,res){

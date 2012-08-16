@@ -36,7 +36,6 @@ jstonkers.entity.registerEntity('unit');
 
 jstonkers.entity.registerEntity('map');
 require('./entity/map.path_finding')( jstonkers.entity.Map );
-// require('./entity/map.path_finding');
 require('./entity/map.server');
 
 jstonkers.entity.registerEntity('team');

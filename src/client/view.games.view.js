@@ -61,15 +61,17 @@ jstonkers.client.view.games.View = Backbone.View.extend({
         //     return this;
         // }
         
-        try{
-            map = new L.JStonkersMap('leaflet-map', {});
-            this.map = map;
-            this.created = true;
-        } catch( err ){
-            log( err );
-            return false;
+        if( !this.created ){
+            try{
+                map = new L.JStonkersMap('leaflet-map', {});
+                this.map = map;
+                this.created = true;
+            } catch( err ){
+                log( err );
+                return false;
+            }    
         }
-
+        
         var marker, markerLayer = new L.LayerGroup();
         
         // L.DivIcon
@@ -95,5 +97,8 @@ jstonkers.client.view.games.View = Backbone.View.extend({
         this.map.addLayer(markerLayer);
 
         log('created map');
+        var game = this.model.get('game');
+        console.log( game.units() );
+        // console.log( this.model.get('game') );
     }
 });
