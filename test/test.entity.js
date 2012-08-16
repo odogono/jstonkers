@@ -1,11 +1,12 @@
 var Common = require( '../src/common.js' );
 var MainServer = require( '../src/main.server' );
+var Entity = jstonkers.entity;
 
 describe('Entity', function(){
     
-    after(function(){
-        for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
-    });
+    // after(function(){
+    //     for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
+    // });
     
     var testEntities = [
         { type: 'test_a', ER:[ { oneToMany: 'test_b' } ] },
@@ -17,54 +18,54 @@ describe('Entity', function(){
     ];
 
     _.each( testEntities.reverse(), function(e){
-        jstonkers.entity.registerEntity(e);
+        Entity.registerEntity(e);
     });
     
     
     describe('create', function(){
 
         it('should create from a type', function(){
-            var inst = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A );
-            assert( inst instanceof jstonkers.entity.TestA.entity );
+            var inst = Entity.create( Entity.TYPE_TEST_A );
+            assert( inst instanceof Entity.TestA.entity );
         });
 
         it('should create from a hash', function(){
-            var inst = jstonkers.entity.create( { type:'test_a', id:'mail.001'} );
-            assert( inst instanceof jstonkers.entity.TestA.entity );
+            var inst = Entity.create( { type:'test_a', id:'mail.001'} );
+            assert( inst instanceof Entity.TestA.entity );
         });
 
         it('should create from an entity', function(){
-            var inst = jstonkers.entity.create( 'test_a', "mail.001" );
-            var oinst = jstonkers.entity.create( inst );
-            assert( oinst instanceof jstonkers.entity.TestA.entity );
+            var inst = Entity.create( 'test_a', "mail.001" );
+            var oinst = Entity.create( inst );
+            assert( oinst instanceof Entity.TestA.entity );
         });
 
         it('should create with a valid id', function(){
-            var inst = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, '001' );
+            var inst = Entity.create( Entity.TYPE_TEST_A, '001' );
             assert.equal( inst.id, '001');
-            assert( inst instanceof jstonkers.entity.TestA.entity);
-            inst = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {id:'002'} );
+            assert( inst instanceof Entity.TestA.entity);
+            inst = Entity.create( Entity.TYPE_TEST_A, {id:'002'} );
             assert.equal( inst.id, '002');
         });
 
         it('should create from attr', function(){
-            var inst = jstonkers.entity.create( {id:'001', type:jstonkers.entity.TYPE_TEST_A} );
+            var inst = Entity.create( {id:'001', type:Entity.TYPE_TEST_A} );
             assert.equal( inst.id, '001');
         });
 
         it('should create from a def and attr', function(){
-            var inst = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {name:'pink', id:'001'} );
+            var inst = Entity.create( Entity.TYPE_TEST_A, {name:'pink', id:'001'} );
             assert.equal( inst.id, '001');
             assert.equal( inst.get('name'), 'pink');
         });
 
         it('should have a default status of active', function(){
-            var inst = jstonkers.entity.create( {type:'test_a', id:'101'} );
+            var inst = Entity.create( {type:'test_a', id:'101'} );
             assert.equal( inst.get('status'), jstonkers.Status.ACTIVE );
         });
 
         it('should set status', function(){
-            var inst = jstonkers.entity.create( {type:'test_a', status:jstonkers.Status.ACTIVE, id:'101'} );
+            var inst = Entity.create( {type:'test_a', status:jstonkers.Status.ACTIVE, id:'101'} );
             assert.equal( inst.get('status'), jstonkers.Status.ACTIVE );
         });
     });//*/
@@ -73,41 +74,41 @@ describe('Entity', function(){
     describe('registration', function(){
 
         it('can', function(){
-            jstonkers.entity.registerEntity( { type: 'test_a', ER:[ { oneToMany: 'test_b' } ] } );
+            Entity.registerEntity( { type: 'test_a', ER:[ { oneToMany: 'test_b' } ] } );
             // var myEntity = {
             //     type: 'test',
-            //     entity: jstonkers.entity.Entity.extend({})
+            //     entity: Entity.Entity.extend({})
             // };
 
-            // jstonkers.entity.registerEntity( myEntity );
+            // Entity.registerEntity( myEntity );
 
-            // var inst = jstonkers.entity.create( "test.001" );
-            // inst.should.be.an.instanceof( jstonkers.entity.Test.entity );
+            // var inst = Entity.create( "test.001" );
+            // inst.should.be.an.instanceof( Entity.Test.entity );
         });
     });//*/
 
     
     describe('reference counting', function(){
         it('increments the reference count when adding', function(){
-            var e = jstonkers.entity.create( {type:'test_e', id:'e.001'} );
-            var f = jstonkers.entity.create( {type:'test_f', id:'f.001'} );
+            var e = Entity.create( {type:'test_e', id:'e.001'} );
+            var f = Entity.create( {type:'test_f', id:'f.001'} );
             assert.equal( f.refCount, 0 );
             e.set('comrade', f );
             assert.equal( f.refCount, 1 );
         });
 
         it('decrements the reference count when removing', function(){
-            var e = jstonkers.entity.create( {type:'test_e', id:'e.001'} );
-            var f = jstonkers.entity.create( {type:'test_f', id:'f.001'} );
+            var e = Entity.create( {type:'test_e', id:'e.001'} );
+            var f = Entity.create( {type:'test_f', id:'f.001'} );
             e.set('comrade', f);
             e.set('comrade', null );
             assert.equal( f.refCount, 0 );
         });
 
         it('decrements the reference count when replacing', function(){
-            var e = jstonkers.entity.create( {type:'test_e', id:'e.001'} );
-            var f = jstonkers.entity.create( {type:'test_f', id:'f.001'} );
-            var f2 = jstonkers.entity.create( {type:'test_f', id:'f.002'} );
+            var e = Entity.create( {type:'test_e', id:'e.001'} );
+            var f = Entity.create( {type:'test_f', id:'f.001'} );
+            var f2 = Entity.create( {type:'test_f', id:'f.002'} );
             e.set('comrade', f);
             assert.equal( f.refCount, 1 );
             e.set({comrade:f2, seemsOK:true} );
@@ -115,9 +116,9 @@ describe('Entity', function(){
         });
 
         it('increments on o2m', function(){
-            var a = jstonkers.entity.create( {type:'test_a'} );
-            var a2 = jstonkers.entity.create( {type:'test_a'} );
-            var b = jstonkers.entity.create( {type:'test_b'} );
+            var a = Entity.create( {type:'test_a'} );
+            var a2 = Entity.create( {type:'test_a'} );
+            var b = Entity.create( {type:'test_b'} );
 
             a.test_b.add( b );
             a2.test_b.add( b );
@@ -129,7 +130,7 @@ describe('Entity', function(){
         });
 
         it('works with a o2o and o2m', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:"enigma_1",
                 type: "test_e",
                 comrade:{
@@ -154,12 +155,12 @@ describe('Entity', function(){
 
     describe('one to many', function(){
         it('returns details of o2m relationships', function(){
-            var a = jstonkers.entity.create({
-                id:"enigma_1",
-                type: "test_e",
+            var a = Entity.create({
+                id:'enigma_1',
+                type: 'test_e',
                 comrade:{
-                    id:"foxtrot_1",
-                    type:"test_f",
+                    id:'foxtrot_1',
+                    type:'test_f',
                     associate:{ id:'alpha_a', type:'test_a' }
                 },
                 others:[
@@ -168,17 +169,87 @@ describe('Entity', function(){
                 ]
             });
 
-            assert.deepEqual( a.getOneToMany(), { "others": { "oneToMany": "test_f", "name": "others", "type": "test_f" } } );
-            assert.deepEqual( a.getOneToMany('others'), { "oneToMany": "test_f", "name": "others", "type": "test_f" } );
+            assert.deepEqual( a.getOneToMany(), { 'others': { 'oneToMany': 'test_f', 'name': 'others', 'type': 'test_f' } } );
+            assert.deepEqual( a.getOneToMany('others'), { 'oneToMany': 'test_f', 'name': 'others', 'type': 'test_f' } );
         });
+    });
+
+    // o2o and o2m relations have an inverse property set pointing back to the 'owner'
+    describe('inverse references', function(){
+        var typeC = { type: 'inv_c' };
+        var typeB = { type: 'inv_b' };
+        var typeA = { type: 'inv_a', ER:[ 
+            {oneToOne:'inv_c',name:'chum'}, 
+            {oneToOne:'inv_c',name:'buddy', inverse:'master'}, 
+            {oneToMany: 'inv_b', name:'kids', inverse:'control' },
+            {oneToMany: 'inv_c', name:'friends' }
+        ]};
+
+        Entity.registerEntity(typeC);
+        Entity.registerEntity(typeB);
+        Entity.registerEntity(typeA);
+        
+        it('properly sets inverse references', function(){
+            var a = Entity.create({
+                id:'a.001',
+                type: 'inv_a',
+                kids:[
+                    { id:'b.001' },
+                    { id:'b.002' }
+                ],
+                friends:[ {id:'c.000'} ],
+                chum:{ id:'c.001' },
+                buddy:{ id:'c.002' }
+            });
+
+            assert.equal( a.kids.at(1).get('control').id, a.id );
+            assert.equal( a.kids.at(1).get('inv_a'), null );
+            assert.equal( a.get('chum').get('inv_a'), null );
+            assert.equal( a.get('buddy').get('master').id, a.id );
+            // print_var( a.flatten({toJSON:true}));
+        });//*/
+
+        
+        it('sets from o2o additions', function(){
+            var a = Entity.create({id:'a.001', type:'inv_a'});
+            var c = Entity.create({id:'c.001', type:'inv_c'});
+            var d = Entity.create({id:'c.002', type:'inv_c'});
+            
+            a.set('buddy', c );
+            
+            
+            assert.equal( c.get('master').id, a.id );
+
+            a.set('buddy', d );
+            
+            assert.equal( c.get('master'), null );
+            assert.equal( d.get('master').id, a.id );
+
+            // print_var( a.flatten({toJSON:true}));
+        });
+
+        
+        it('sets from o2m additions', function(){
+            var a = Entity.create({id:'a.001', type:'inv_a'});
+            var b = Entity.create({id:'b.001', type:'inv_b'});
+
+            a.kids.add( b );
+            assert.equal( a.kids.at(0).get('control').id, a.id );
+            assert.equal( b.get('control').id, a.id );
+            a.kids.remove( b );
+            assert.equal( b.get('control'), null );
+            // 
+        });//*/
+
+
     });
 
     
     describe('serialisation', function(){
 
         it('should persist to JSON without relations', function(){
-            var a = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_E, {name:'enigma'} );
-            var b = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_F, {name:'foxtrot'} );
+            var a = Entity.create( Entity.TYPE_TEST_E, {name:'enigma'} );
+            var b = Entity.create( Entity.TYPE_TEST_F, {name:'foxtrot'} );
             a.set( {comrade:b} );
             assert.deepEqual( a.toJSON({relations:false}), { "name": "enigma", "type":"test_e" } );
         });
@@ -197,7 +268,7 @@ describe('Entity', function(){
                 }
             };
 
-            var a = jstonkers.entity.create({type:'test_a'});
+            var a = Entity.create({type:'test_a'});
             var parsed = a.parse( data, null, {parseFor:'alpha_a'} );
 
             assert.equal( parsed.id, 'alpha_a' );
@@ -224,7 +295,7 @@ describe('Entity', function(){
                     name: 'arnold' } 
                 };
 
-            var a = jstonkers.entity.create({type:'test_e'});
+            var a = Entity.create({type:'test_e'});
             var parsed = a.parse( data, null, {parseFor:'enigma_1',removeId:true} );
             
             assert.equal( parsed.name, 'enigma' );
@@ -263,7 +334,7 @@ describe('Entity', function(){
                 }
             };
 
-            var a = jstonkers.entity.create({type:'test_a'});
+            var a = Entity.create({type:'test_a'});
             var parsed = a.parse( data, null, {parseFor:'alpha_1'} );
             // print_ins( parsed );
             assert.deepEqual( parsed, expected );
@@ -301,7 +372,7 @@ describe('Entity', function(){
                 }
             };
 
-            var a = jstonkers.entity.create({type:'test_a'});
+            var a = Entity.create({type:'test_a'});
             var parsed = a.parse( data, null, {parseFor:'alpha_1'} );
             assert.deepEqual( parsed, expected );
         });
@@ -327,7 +398,7 @@ describe('Entity', function(){
             "id": 1
         }
 
-        var a = jstonkers.entity.create({type:'test_e'});
+        var a = Entity.create({type:'test_e'});
         var parsed = a.parse( data, null, {debug:false,parseFor:'1'});
         assert.deepEqual( parsed, expected );
     });
@@ -335,7 +406,7 @@ describe('Entity', function(){
     
     describe('cloning', function(){
         it('should clone an entity', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:'euro',
                 name:'eurovision',
                 type:'test_e',
@@ -349,7 +420,7 @@ describe('Entity', function(){
         });
 
         it('should clone an entity with relation', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:'euro',
                 name:'eurovision',
                 type:'test_e',
@@ -368,7 +439,7 @@ describe('Entity', function(){
         });
 
         it('should clone an entity with a one2one relation', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:"enigma_1",
                 name: "enigma",
                 status: "atv",
@@ -403,7 +474,7 @@ describe('Entity', function(){
 
     describe('matching', function(){
         it('should match an entity', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:"enigma_1",
                 name:"enigma",
                 type:"test_e"
@@ -418,7 +489,7 @@ describe('Entity', function(){
 
     describe('flatten', function(){
         it('should produce a flattened map of a one2one relation', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:"enigma_1",
                 name: "enigma",
                 status: "atv",
@@ -444,11 +515,11 @@ describe('Entity', function(){
         });
 
         it('should ignore non-owned entities', function(){
-            var a = jstonkers.entity.create({type:'test_e', id:'e.001'} );
-            var b = jstonkers.entity.create({type:'test_e', id:'e.002'} );
-            var c = jstonkers.entity.create({type:'test_f', id:'f.001'} );
-            var d = jstonkers.entity.create({type:'test_f', id:'f.002'} );
-            var e = jstonkers.entity.create({type:'test_b', id:'b.001'} );
+            var a = Entity.create({type:'test_e', id:'e.001'} );
+            var b = Entity.create({type:'test_e', id:'e.002'} );
+            var c = Entity.create({type:'test_f', id:'f.001'} );
+            var d = Entity.create({type:'test_f', id:'f.002'} );
+            var e = Entity.create({type:'test_b', id:'b.001'} );
 
             a.set({comrade:c, friend:e});
             b.set({comrade:c});
@@ -463,7 +534,7 @@ describe('Entity', function(){
         });
 
         it('should exclude members on request', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:"enigma_1",
                 name: "enigma",
                 status: "atv",
@@ -493,7 +564,7 @@ describe('Entity', function(){
         });
 
         it('should exclude a one2many relation', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:'alpha_a', 
                 type:'test_a',
                 test_b:{
@@ -509,7 +580,7 @@ describe('Entity', function(){
         });
 
         it('should match using a function', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:'alpha_a', 
                 type:'test_a',
                 test_b:[
@@ -546,22 +617,22 @@ describe('Entity', function(){
                 }
             };
 
-            var a = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_E, {name:'enigma'} );
-            assert.equal( a.type, jstonkers.entity.TYPE_TEST_E );
+            var a = Entity.create( Entity.TYPE_TEST_E, {name:'enigma'} );
+            assert.equal( a.type, Entity.TYPE_TEST_E );
             a.set( ser );
 
             assert.equal( a.id, 'enigma_1');
 
             var b = a.get('comrade');
-            assert( b instanceof jstonkers.entity.Entity );
+            assert( b instanceof Entity.Entity );
             assert.equal( b.id, 'foxtrot_1');
-            assert.equal( b.type, jstonkers.entity.TYPE_TEST_F );
+            assert.equal( b.type, Entity.TYPE_TEST_F );
             assert.equal( b.get('name'), 'foxtrot' );
 
             var c = b.get('associate');
-            assert( c instanceof jstonkers.entity.Entity );
+            assert( c instanceof Entity.Entity );
             assert.equal( c.id, 'alfred_1');
-            assert.equal( c.type, jstonkers.entity.TYPE_TEST_A );
+            assert.equal( c.type, Entity.TYPE_TEST_A );
             assert.equal( c.get('name'), 'alfred' );            
         });
 
@@ -580,7 +651,7 @@ describe('Entity', function(){
                     }
                 ]
             };
-            var a = jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A );
+            var a = Entity.create( Entity.TYPE_TEST_A );
             a.set( json );
             assert.equal( a.id, "alpha_1" );
             var b = a.test_b.at(0);
@@ -589,7 +660,7 @@ describe('Entity', function(){
         });
 
         it('should set an attribute on relations', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:"enigma_1",
                 type: "test_e",
                 comrade:{
@@ -615,7 +686,7 @@ describe('Entity', function(){
         });
 
         it('should trigger events through all relations', function(){
-            var a = jstonkers.entity.create({
+            var a = Entity.create({
                 id:"enigma_1",
                 type: "test_e",
                 comrade:{

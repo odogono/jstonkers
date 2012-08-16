@@ -64,7 +64,6 @@ var initEntityER = function( entityDef, options ){
     // if( debug ) log('initEntityER');
     // if( Common.debug ) options.debug = true;
     // if( entityDef.type === 'user' ) options.debug = true;
-    // log('initialising ER for ' + entityDef.type );
 
     function resolveEntity( entityId ){
         var result = {};
@@ -82,6 +81,7 @@ var initEntityER = function( entityDef, options ){
 
         // resort to looking up entity from entity registry
         result = entity.getEntityFromType(entityId);
+
         if( result ){
             result = _.clone( result );
             result.name = result.name || result.type;
@@ -158,8 +158,6 @@ exports.oneToOne = function( entityDef, codomainType, options ){
     var debug = options && options.debug,
         codomainName = _.capitalize(entity.names[codomainType]);
 
-    // log( 'applying 1to1 from ' + entityDef.type + ' to ' + codomainType );
-
     // entityDef.entity.prototype[ 'set' + codomainName ] = function( otherEntity, options ){
     //     this.set( '_'+codomainType, otherEntity, options );
     // };
@@ -204,9 +202,11 @@ exports.oneToMany = function( entityDef, spec, options ){
         // if( debug ) log( entityDef );
         // log('creating with ' + spec.create );
         var self = this,
-            entityName = codomainName.toLowerCase(),
-            // collection = 
-            collection = spec.create ? spec.create({entity:codomainType}) : EntityCollection.create({entity:codomainType});
+            entityName = codomainName.toLowerCase();
+
+        // log('creating collection');
+        var collection = spec.create ? spec.create({entity:codomainType}) : EntityCollection.create({entity:codomainType});
+        // log('fin creating collection');
         // print_ins( module.parent.exports.getEntityFromType(codomainType) );
         // collection.model = module.parent.exports.getEntityFromType(codomainType).entity;
         // collection.entity = this;
@@ -219,7 +219,8 @@ exports.oneToMany = function( entityDef, spec, options ){
         // a reference from the collection to its owning entity
         collection.owner = this;
         collection.name = collectionName;
-        // log('initialised collection ' + collectionName );
+        collection.inverseKey = spec.inverse;
+        // log('initialised collection ' + collectionName + ' inverseKey: ' + collection.inverseKey );
 
         this[ codomainNameLower ] = collection;
         // if( debug ) log('added collection .' + codomainNameLower);

@@ -1,6 +1,7 @@
 var dlog = debug('entity');
 // var erFuncs = require('./entity_relationship');
 // exports.schema = 'urn:schemas-opendoorgonorth:heroes:entity#';
+// var EntityCollection = require('./entity_collection').EntityCollection;
 
 var Entity = exports.Entity = Backbone.Model.extend({
 
@@ -74,6 +75,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
     set: function(key, value, options) {
         var i, er, attrs, attr, val,entity,subEntity;
         var self = this, entityDef;
+        var EntityCollection = require('./entity_collection').EntityCollection;
 
         if (_.isObject(key) || key == null) {
             attrs = key;
@@ -108,6 +110,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         entityDef = exports.ids[this.type || attrs.type];
 
         // if( options && options.debug ) log('set ' + JSON.stringify(attrs));
+        // log('set ' + JSON.stringify(attrs));
 
         // if( this.id ) 
         // log('setting ' + this.id + ' ' + JSON.stringify(entityDef) );
@@ -120,42 +123,58 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 var erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 var erData = attrs[erName];
 
-                // log('set ' + erName );
+                var existing = this.attributes[erName];
 
-                // if( options && options.setRelated )  
-                // log( this.type + ' set ' + JSON.stringify(erData) + ' ' + erName);
-                // print_ins( erData );
-                if( !erData )
+                // remove inverse relationship on existing value if it exists
+                if( er.inverse && existing ){
+                    existing.set( er.inverse, null );
+                }
+
+                if( !erData ){
                     continue;
+                }
 
                 if( er.oneToOne ){
+                    // log( this.type + ' set ' + JSON.stringify(erData) + ' ' + erName);
                     if(!(erData instanceof Entity)){
                         // TODO AV : could maybe get this model reference from elsewhere?
+                        // log('setting ' + JSON.stringify(er) + ' as ' + erName + ' to ' + JSON.stringify(erData) + ' on ' + this.type );
+
                         try{
-                            subEntity = exports.create( erData );
+                            if( er.inverse )
+                                erData[ er.inverse ] = this;
+                            subEntity = exports.create( er.oneToOne, erData );
+                            // log('all right');
                         } catch( e ){
                             if( options.debug ) log('failed creating with ' + JSON.stringify(erData) + ' ' + JSON.stringify(options) );
                             // print_stack();
+                            // log('no good ' + e );
                         }
                         if( subEntity ) {
-                            // log('setting ' + erName + ' to ' + JSON.stringify(erData) );
                             attrs[erName] = subEntity;
                             subEntity.refCount++;
                         } else
                             delete attrs[erName];
+                    } else {
+                        if( er.inverse )
+                            erData.set( er.inverse, this );
                     }
                 }
-                else if( er.oneToMany && !(erData instanceof jstonkers.entity.EntityCollection)){
+                else if( er.oneToMany && !(erData instanceof EntityCollection)){
                     if( !self[erName] ){
-                        log('no existing EntityCollection for ' + erName );
+                        // log('no existing EntityCollection for ' + erName );
                         // self[erName] = jstonkers.entity.createEntityCollection();
                     }
                     if( self[erName] ){
-                        // log('setting ' + erName + ' ' + JSON.stringify(erData) );
+                        // if( options.trueDebug ) log('~setting ' + erName + ' ' + JSON.stringify(erData) );
                         self[erName].set( erData );
                     }
 
                     delete attrs[erName];
+                }
+                else{
+                    
+                    // print_ins( erData );
                 }
             }
         }
@@ -387,12 +406,18 @@ var Entity = exports.Entity = Backbone.Model.extend({
         var exclusions = options.exclude;
         
         // clone the attributes into the result objects
+        // log('toJSON ' + this.id );
         var attrs = this.attributes, result = {};
         for (var prop in attrs) {
             if( prop.charAt(0) === '_' )
                 continue;
+            // don't serialise inverse relations
+            if( prop == options.inverseKey )
+                continue;
+                // log('oh no! ' + JSON.stringify(options) );
             // TODO - rewrite ER checking inside this loop
             relation = attrs[prop];
+
             if( relation instanceof exports.Entity ){
                 // if( options.debug )log('checking ' + relation.id + ' for exclude');
                 if( !(exclusions && relation.match(exclusions)) ){
@@ -407,16 +432,18 @@ var Entity = exports.Entity = Backbone.Model.extend({
             else
                 result[prop] = relation;
         }
+
+        // if( options.debug ) log('entity.toJSON ' + this.cid );
         
         if( this.type ){
-            entityDef = jstonkers.entity.ids[this.type];
+            entityDef = exports.ids[this.type];
             // if( debug ) log( this.type + ' relations: ' + JSON.stringify(entityDef) );
 
             for( i in entityDef.ER ){
                 er = entityDef.ER[i];
                 erName = (er.name || er.oneToMany || er.oneToOne ).toLowerCase();
                 // def = jstonkers.entity.ids[ er.type ];
-                if( options.debug ) log('entity.toJSON: ' + erName + ' ' + JSON.stringify(er) );
+                // if( options.debug ) log('entity.toJSON: ' + erName + ' ' + JSON.stringify(er) );
 
                 // if( er.oneToOne ){
                 // } else if( er.oneToMany ){
@@ -433,6 +460,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
                     if( !relation.isNew() && relationsAsId )
                         result[erName] = relation.id;// || this[erName].cid;
                     else if( doRelations ) {
+                        // log('pre... ' + relation.cid);
                         if( (output = relation.toJSON()) ){
                             // log('export ' + erName + ' ' +  output);
                             result[erName] = output;
@@ -441,8 +469,6 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 }
             }
         }
-
-        
 
         if( !returnDefaults ){
             _.each( this.defaults, function(val,key){
@@ -525,7 +551,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
                 result[id] = outgoing = this;
 
 
-            var entityDef = jstonkers.entity.ids[this.type];
+            var entityDef = exports.ids[this.type];
 
             var o2oNames = {};
             var o2mNames = {};
@@ -657,6 +683,7 @@ exports.splitId = function( id ){
 */
 exports.create = function( type, attrs, options ) {
     var i,result;
+    var collectionName, props;
     var debug = options && options.debug;
 
     // TODO - this is a super-hateful mess, refactor
@@ -709,16 +736,18 @@ exports.create = function( type, attrs, options ) {
     
     // if there are any ER properties in the attrs, take them out
     // for application later on
-    _.each( entityDef.ER, function(er){
-        var collectionName;
+    for( i in entityDef.ER ){
+        er = entityDef.ER[i];
+    // _.each( entityDef.ER, function(er){
         if( er.oneToMany ){
             collectionName = (er.name || er.oneToMany).toLowerCase();
+            // log('consider ' + collectionName );
             if( attrs[collectionName] ){
-                erProperties[collectionName] = attrs[collectionName];
+                erProperties[collectionName] = {attrs:attrs[collectionName], type:er.oneToMany, inverse:(er.inverse||type)};
                 delete attrs[collectionName];
             }
         }
-    });
+    }
 
 
 
@@ -738,15 +767,17 @@ exports.create = function( type, attrs, options ) {
     result.refCount = 0;
     
     // apply any sub properties that were found earlier
-    _.each( erProperties, function(props,collectionName){
+    for( collectionName in erProperties ){
+        props = erProperties[collectionName];
+    // _.each( erProperties, function(props,collectionName){
         var setFn = 'set' + _.capitalize(collectionName); 
         if( result[setFn] ){
-            result[setFn]( props );
+            result[setFn]( props.attrs, props );
         }
         else if( result[collectionName] ){
-            result[collectionName].set( props );
+            result[collectionName].set( props.attrs, props );
         }
-    });
+    }
     return result;
 };
 

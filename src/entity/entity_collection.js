@@ -42,9 +42,12 @@ exports.EntityCollection = entity.Entity.extend({
             this.items.on('add', function(model){
                 model.entityCollection = self;
                 model.refCount++;
-                // log('added! ' + this.name );
-                // self.trigger.apply(self,arguments);
+                // log('adding ' + model.id );
+                // if( inverseKey ) model[inverseKey] = self.owner;
+                if( self.inverseKey )
+                    model.set( self.inverseKey, self.owner );
             }).on('remove', function(model){
+                model.set( self.inverseKey, null );
                 model.entityCollection = null;
                 model.refCount--;
             }).on('all', function(){
@@ -55,8 +58,12 @@ exports.EntityCollection = entity.Entity.extend({
                 for( var i in this.models ){
                     model = this.models[i];
                     if( model.collection == this ){
+                        // if( process.env.DEBUG ) log('hey inverse key ' + self.inverseKey + ' ' + model.type );
                         model.entityCollection = self;
                         model.refCount++;
+                        // model.inverseKey = self.owner;
+                        if( self.inverseKey )
+                            model.set( self.inverseKey, self.owner );
                     }
                 }
             });
@@ -91,6 +98,10 @@ exports.EntityCollection = entity.Entity.extend({
         return new Backbone.Model( attrs, options );
     },
 
+    models: function(){
+        return this.items.models;
+    },
+
     getEntityType: function(){
         return this.entityType || this.get('type');
     },
@@ -123,13 +134,8 @@ exports.EntityCollection = entity.Entity.extend({
         var self=this, attrs, attr, val;
         if( key === this )
             return this;
-        // Handle both `"key", value` and `{key: value}` -style arguments.
-        if( _.isArray(key) ){
-            // setting collection values directly
-            this.reset( key );
-            return this;
-        }
-        if( _.isObject(key) || key == null) {
+
+        if( _.isArray(key) || _.isObject(key) || key == null ){
             attrs = key;
             options = value;
         } else {
@@ -137,6 +143,22 @@ exports.EntityCollection = entity.Entity.extend({
             attrs[key] = value;
         }
         if (!attrs) return this;
+
+        // Handle both `"key", value` and `{key: value}` -style arguments.
+        if( _.isArray(attrs) ){
+            // setting collection values directly
+            // log('resetting with ' + JSON.stringify(attrs) );
+            this.reset( attrs, options );
+            return this;
+        }
+        // if( _.isObject(key) || key == null) {
+        //     attrs = key;
+        //     options = value;
+        // } else {
+        //     attrs = {};
+        //     attrs[key] = value;
+        // }
+        // if (!attrs) return this;
 
 
         if( attrs.items ){
@@ -196,12 +218,17 @@ exports.EntityCollection = entity.Entity.extend({
         return resp;
     },
 
-    reset: function( models,options ){
+    reset: function( models, options ){
         var self = this;
         this.items.reset( models, options );
         this.items.each( function(i){
             if( i.type === undefined )
                 i.type = self.getEntityType();
+            // if( options.inverse ){
+                // log('setting ' + options.inverse + ' to ' + self.owner.id);
+            //     print_ins(i);
+            //     i.set( options.inverse, self.owner );
+            // }
         });
     },
 
@@ -258,16 +285,19 @@ exports.EntityCollection = entity.Entity.extend({
 
     toJSON: function( options ){
         options || (options = {});
-        var result,
+        var self = this,
+            result,
             refItems = options.referenceItems,
             includeCounts = options.includeCounts,
             fullItems = options.fullItems,
             returnDefaults = options.returnDefaults,
-            doRelations = _.isUndefined(options.relations) ? true : options.relations;
+            doRelations = _.isUndefined(options.relations) ? true : options.relations,
+            itemOptions;
 
         if( options.collectionAsIdList ){
             return this.items.map( function(it){ return it.id || it.cid });
         }
+
 
         result = entity.Entity.prototype.toJSON.apply(this,arguments);
         // print_ins( result );
@@ -282,10 +312,19 @@ exports.EntityCollection = entity.Entity.extend({
         }
 
         if( doRelations && this.items.length > 0 ){
+
             if( refItems )
                 result.items = this.items.map( function(it){ return it.id || it.cid });
-            else
-                result.items = this.items.map( function(it){ return it.toJSON(options); });
+            else{
+                // log('1 ec toJSON ' + self.name + ' ' + self.inverseKey ); //JSON.stringify(options) );
+                // itemOptions = _.extend( options, {inverseKey:self.inverseKey} );
+                options.inverseKey = self.inverseKey;
+                result.items = this.items.map( function(it){ 
+                    // log('2 ec toJSON ' + self.name + ' ' + JSON.stringify(options) );
+                    return it.toJSON(options); 
+                });
+            }
+
             // if( result.items.length )
             // log( result.items.length );
         }
