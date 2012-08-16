@@ -1,5 +1,6 @@
 require( '../src/common' );
 require( '../src/main.server' );
+var Entity = jstonkers.entity;
 
 describe('Sync.Redis', function(){
 

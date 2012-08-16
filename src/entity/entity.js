@@ -136,28 +136,33 @@ var Entity = exports.Entity = Backbone.Model.extend({
 
                 if( er.oneToOne ){
                     // log( this.type + ' set ' + JSON.stringify(erData) + ' ' + erName);
-                    if(!(erData instanceof Entity)){
-                        // TODO AV : could maybe get this model reference from elsewhere?
-                        // log('setting ' + JSON.stringify(er) + ' as ' + erName + ' to ' + JSON.stringify(erData) + ' on ' + this.type );
+                    if( _.isObject(erData) ){
+                        if( !(erData instanceof Entity) ){
+                            // TODO AV : could maybe get this model reference from elsewhere?
+                            // log('setting ' + JSON.stringify(er) + ' as ' + erName + ' to ' + JSON.stringify(erData) + ' on ' + this.type );
 
-                        try{
+                            try{
+                                if( er.inverse )
+                                    erData[ er.inverse ] = this;
+                                subEntity = exports.create( er.oneToOne, erData );
+                                // log('all right');
+                            } catch( e ){
+                                if( options.debug ) log('failed creating with ' + JSON.stringify(erData) + ' ' + JSON.stringify(options) );
+                                // print_stack();
+                                // log('no good ' + e );
+                            }
+                            if( subEntity ) {
+                                attrs[erName] = subEntity;
+                                subEntity.refCount++;
+                            } else
+                                delete attrs[erName];
+                        } else {
                             if( er.inverse )
-                                erData[ er.inverse ] = this;
-                            subEntity = exports.create( er.oneToOne, erData );
-                            // log('all right');
-                        } catch( e ){
-                            if( options.debug ) log('failed creating with ' + JSON.stringify(erData) + ' ' + JSON.stringify(options) );
-                            // print_stack();
-                            // log('no good ' + e );
+                                erData.set( er.inverse, this );
                         }
-                        if( subEntity ) {
-                            attrs[erName] = subEntity;
-                            subEntity.refCount++;
-                        } else
-                            delete attrs[erName];
-                    } else {
-                        if( er.inverse )
-                            erData.set( er.inverse, this );
+                    } else{
+                        // the thing being set is probably an entity id?
+                        delete attrs[erName];
                     }
                 }
                 else if( er.oneToMany && !(erData instanceof EntityCollection)){
@@ -192,6 +197,7 @@ var Entity = exports.Entity = Backbone.Model.extend({
         var i, er, key, self = this,
             targetId = this.id,
             origResp = resp;
+
         var debug = options && options.debug;
         // var removeId = options && !_.isUndefined(options.removeId) ? options.removeId : false;
         var removeId = options && options.removeId;
