@@ -7,8 +7,8 @@ var EntityCollection = require('./entity_collection');
 exports.type = 'game';
 
 exports.ER = [
-    { oneToMany:"team", name:"teams" },
-    { type:'cmd_queue', name:"cmds" },
+    { oneToMany:'team', name:'teams', inverse:'game' },
+    { type:'cmd_queue', name:'cmds', inverse:'game' },
     // { oneToMany:"user", name:"players" },
     // { oneToMany:"user", name:"spectators" }
     // { oneToOne:"map" }
@@ -17,17 +17,27 @@ exports.ER = [
 exports.entity = entity.Entity.extend({
     initialize: function(){
         var self = this;
+
         this.teams.on('add', function(team){
-            team.game = self;
+            if( _.isUndefined(team.get('teamIndex')) ){
+                team.set('teamIndex', self.teams.length );
+                log('added teamIndex ' + team.get('teamIndex') );
+            }
+        })
+        .on('reset', function(evt){
+            var teams = this.models();
+            for( var i in teams ){
+                teams[i].set('teamIndex', i);
+            }
         });
-        this.cmds.on('add', function(cmd){
-            cmd.game = self;
-        });
+
         this.teams.on('change:user', function(team){
             // log('team evt ' + JSON.stringify(arguments) );
         });
-        // add the default game command
-        // this.cmds.add( {type:'cmd_init_game'} );
+    },
+
+    onAddTeam: function(team){
+        log('added team ' + team.id );
     },
 
     isAGame: function(){

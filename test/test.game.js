@@ -1,11 +1,11 @@
 require( '../src/common' );
 require( '../src/main.server' );
 
+
+var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
+
 describe('Game', function(){
 
-    after(function(){
-        for (var key in Object.keys(require.cache)){ delete require.cache[key]; }
-    });
     
     beforeEach( function(done){
         jstonkers.sync.clear( function(err){
@@ -15,6 +15,15 @@ describe('Game', function(){
     });
 
     describe('create', function(){
+
+        it('should create teams with indexes set', function(){
+            var game = jstonkers.entity.Game.create(null,{statePath:statePath});
+            assert.equal( game.teams.at(0).get('game').id, game.id );
+            assert.equal( game.teams.at(0).get('teamIndex'), 0 );
+            assert.equal( game.teams.at(1).get('teamIndex'), 1 );
+            log('ok')
+        })
+
         /*it('should create a new game', function(done){
             var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
             var game = jstonkers.entity.Game.create(null,{statePath:statePath});
@@ -79,6 +88,10 @@ describe('Game', function(){
             var game = jstonkers.entity.Game.create(null,{statePath:statePath});
 
             var user = jstonkers.entity.User.create({id:'user.001'});
+
+            // game.on('all',function(){
+            //     log('game evt ' + JSON.stringify(arguments) );
+            // });
 
             game.addUser(user);
             assert( !game.teams.at(0).isAI() );

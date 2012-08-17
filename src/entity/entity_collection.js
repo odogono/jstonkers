@@ -39,14 +39,17 @@ exports.EntityCollection = entity.Entity.extend({
             // in order to handle resets and refCounts, we must override an internal function
             this.items._removeReference = this.removeReferenceFromItems;
 
-            this.items.on('add', function(model){
+            var onAdd = function(model){
                 model.entityCollection = self;
                 model.refCount++;
                 // log('adding ' + model.id );
                 // if( inverseKey ) model[inverseKey] = self.owner;
                 if( self.inverseKey )
                     model.set( self.inverseKey, self.owner );
-            }).on('remove', function(model){
+            };
+
+            this.items.on('add', onAdd )
+            .on('remove', function(model){
                 model.set( self.inverseKey, null );
                 model.entityCollection = null;
                 model.refCount--;
@@ -58,12 +61,7 @@ exports.EntityCollection = entity.Entity.extend({
                 for( var i in this.models ){
                     model = this.models[i];
                     if( model.collection == this ){
-                        // if( process.env.DEBUG ) log('hey inverse key ' + self.inverseKey + ' ' + model.type );
-                        model.entityCollection = self;
-                        model.refCount++;
-                        // model.inverseKey = self.owner;
-                        if( self.inverseKey )
-                            model.set( self.inverseKey, self.owner );
+                        onAdd( model );
                     }
                 }
             });
