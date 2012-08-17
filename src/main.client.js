@@ -16,7 +16,6 @@ var log = debug('client:main');
 var client = _.extend( jstonkers.client, {
     Vector2f: require('./vector2f'),
     PriorityQueue: require('./priority_queue'),
-
     entity: require('./entity/entity'),
 });
 
@@ -40,6 +39,7 @@ var entity = _.extend( client.entity, require('./entity/entity_relationship') );
 entity.registerEntity( require('./entity/unit') );
 entity.registerEntity( require('./entity/unit_tank') );
 entity.registerEntity( require('./entity/unit_ship') );
+entity.registerEntity( require('./entity/unit_supply') );
 
 entity.registerEntity( require('./entity/map') );
 require('./entity/map.path_finding')( entity.Map );

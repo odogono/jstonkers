@@ -132,7 +132,7 @@ jstonkers.client.App = Backbone.Router.extend({
         this.contentView = view;
 
         // refresh the model from the server
-        this.model.fetch({success:function(model,resp){
+        view.model.fetch({success:function(model,resp){
 
             if( this.contentView && viewElName == name ){
                 self.contentView.render();

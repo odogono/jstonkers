@@ -18,7 +18,7 @@ jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
 
 
 
-jstonkers.entity = require('./entity/entity');
+var Entity = jstonkers.entity = require('./entity/entity');
 jstonkers.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
 jstonkers.entity.createCollection = require('./entity/entity_collection').create;
 
@@ -41,6 +41,7 @@ require('./entity/map.server');
 jstonkers.entity.registerEntity('team');
 jstonkers.entity.registerEntity( require('./entity/unit_tank') );
 jstonkers.entity.registerEntity( require('./entity/unit_ship') );
+Entity.registerEntity( require('./entity/unit_supply') );
 
 var Game = jstonkers.entity.registerEntity('game');
 require('./entity/game.server');

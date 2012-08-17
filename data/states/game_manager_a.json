@@ -12,10 +12,20 @@
         "type": "team",
         "user": "user.admin",
         "id": "team.001",
-        "units": [ "tank.001" ]
+        "units": [ "ship.001", "supply.001", "tank.001" ]
+    },
+    "ship.001": {
+        "position": [ 978, 16 ],
+        "type": "ship",
+        "id": "ship.001"
+    },
+    "supply.001": {
+        "position": [ 360, 366 ],
+        "type": "supply",
+        "id": "supply.001"
     },
     "tank.001": {
-        "position": [ 272, 336 ],
+        "position": [ 172, 336 ],
         "type": "tank",
         "id": "tank.001"
     },
@@ -27,12 +37,17 @@
     "team.002": {
         "type": "team",
         "id": "team.002",
-        "units": [ "unit.002" ]
+        "units": [ "ship.002", "tank.002" ]
     },
-    "unit.002": {
-        "position": [ 1996, 340 ],
-        "type": "unit",
-        "id": "unit.002"
+    "ship.002": {
+        "position": [ 1136, 16 ],
+        "type": "ship",
+        "id": "ship.002"
+    },
+    "tank.002": {
+        "position": [ 1908, 412 ],
+        "type": "tank",
+        "id": "tank.002"
     },
     "gm.001": {
         "type": "game_manager",

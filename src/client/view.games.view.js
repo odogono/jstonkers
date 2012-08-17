@@ -1,12 +1,58 @@
 var log = debug('client:view:games:view');
 
+jstonkers.client.view.Unit = Backbone.View.extend({
+    initialize: function(){
+        this.map = this.options.map;
+        this.team = this.model.get('team');
+
+        var spriteData = jstonkers.client.sprites;
+        var zoom = this.map.getZoom()-2;
+        zoom = 0;
+        var teamIndex = this.team.get('index') || 1;
+        // this.zoom = this.view.zoom;
+        var offset = spriteData.offsets[ teamIndex ][ zoom ];
+        var uvs = spriteData.uvs[ zoom ][ this.model.type ];
+
+        // L.DivIcon
+        var TestIcon = L.DivIcon.extend({
+            options: {
+                className: 'test-icon sprite zoom_' + (zoom+1),
+                iconSize:[uvs[2],uvs[3]],
+                bgPos:{x:(uvs[0]+offset[0]), y:(uvs[1]+offset[1]) }
+            }
+        });
+        var icon = new TestIcon();
+        var position = this.map.worldToMap( this.model.get('position') );
+        this.marker = new L.Marker( position, {draggable:true,icon:new TestIcon()} );
+
+        console.log( this.marker );
+        // this.el.style.backgroundPosition = -(this.uvs[0]+this.offset[0]) + 'px ' + -(this.uvs[1]+this.offset[1]) + 'px';
+        // $(this.el).css({width:this.uvs[2], height:this.uvs[3]});
+    },
+
+    render: function(){
+        // log('unit render');
+        return this;
+    },
+
+    make: function(tagName, attributes, content) {
+        // log('unit make');
+        return null;
+    }
+});
+
+
+
 jstonkers.client.view.games.View = Backbone.View.extend({
 
     created: false,
 
     initialize: function(){
-        
         _.bindAll( this, 'createMap' );
+
+        // a map of unit ids to view.Unit instances
+        this.units = {};
+
         // map = new L.JStonkersMap('map',{});
         // map.on('click', function(e){
             // console.log(e);
@@ -44,12 +90,11 @@ jstonkers.client.view.games.View = Backbone.View.extend({
     },
 
     createMap: function(){
-        // if( this.created )
-        //     return this;
-        var map;
+        var self = this;
+        if( this.created )
+            return this;
+        // var map;
         var $map = $('#leaflet-map');
-        console.log( $map );
-        log( 'this.created? ' + this.created );
         
         if( $.contains(document.body, $map.get(0)) ){
             log('map is in the body');
@@ -63,42 +108,32 @@ jstonkers.client.view.games.View = Backbone.View.extend({
         
         if( !this.created ){
             try{
-                map = new L.JStonkersMap('leaflet-map', {});
-                this.map = map;
+                this.map = new L.JStonkersMap('leaflet-map', {});
+                this.unitLayer = new L.LayerGroup();
+                this.map.addLayer(this.unitLayer);
                 this.created = true;
             } catch( err ){
                 log( err );
                 return false;
             }    
         }
-        
-        var marker, markerLayer = new L.LayerGroup();
-        
-        // L.DivIcon
-        var TestIcon = L.DivIcon.extend({
-            options: {
-                className: 'test-icon tank sprite',
-                iconSize: new L.Point(32, 16)
-            }
+
+        this.map.on('zoomend', function(e){
+            console.log('map zoom finished at ' + this.getZoom() );
         });
-
-
-        // var MarkerIcon = L.Icon.Default.extend({
-        //     options: {
-        //         iconUrl: "../web/img/leaflet/marker.png",
-        //         shadowUrl: "../web/img/leaflet/marker-shadow.png"
-        //     }
-        // });
-
-        marker = new L.Marker( this.map.worldToMap([1200,1000]), {draggable:true,icon:new TestIcon()} );
-        markerLayer.addLayer(marker);
-        // marker = new L.Marker( map.worldToMap([1000,1000]), {icon:new MarkerIcon()} );
-        // markerLayer.addLayer(marker);
-        this.map.addLayer(markerLayer);
-
-        log('created map');
+        
+        log('created map ' + this.map.getZoom() );
         var game = this.model.get('game');
-        console.log( game.units() );
-        // console.log( this.model.get('game') );
-    }
+
+        game.units().forEach( function(unit){
+            self.createUnit( unit );
+        });
+    },
+
+    createUnit: function(model){
+        var view = new jstonkers.client.view.Unit({map:this.map,model:model});
+        this.unitLayer.addLayer(view.marker);
+        // log('added view for ' + model.id );
+    },
+
 });

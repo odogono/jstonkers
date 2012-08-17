@@ -3,7 +3,7 @@ var entity = require('./entity');
 exports.type = 'team';
 
 exports.ER = [
-    { oneToMany:"unit", name:"units" },
+    { oneToMany:'unit', name:'units', inverse:'team' },
     { oneToOne:'user' }
 ];
 

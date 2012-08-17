@@ -202,13 +202,13 @@ L.Map.addInitHook(function () {
     var self = this;
     var coordinatesControl = new L.Control.Coordinates();
     this.addControl(coordinatesControl);
-    this.on('zoomend', function(e){
-        console.log('zoom finished at ' + self.getZoom() );
+    // this.on('zoomend', function(e){
+        // console.log('zoom finished at ' + self.getZoom() );
     //     // map.setView( this.getCenter(), map.getZoom(),true );
     //     // if (options.maxBounds) {
     //         // TODO predrag validation instead of animation
     //         // L.Util.requestAnimFrame(map._panInsideMaxBounds, map, true, map._container);
     //     // }
-    });
+    // });
 });
 
