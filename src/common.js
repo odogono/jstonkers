@@ -63,7 +63,7 @@ debug = require('debug');
 Step = require('step/lib/step');
 express = require('express');
 
-_ =  exports.underscore = require( path.join( Common.paths.jslib, 'underscore-min' ) );
+_ =  exports.underscore = require( path.join( Common.paths.jslib, 'underscore' ) );
 _.str = require( path.join( Common.paths.jslib, 'underscore.string.min' ) );
 _.mixin(_.str.exports());
 

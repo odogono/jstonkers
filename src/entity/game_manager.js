@@ -128,9 +128,9 @@ exports.entity = entity.Entity.extend({
     },
 
     // the main event loop
-    process: function( options, callback ){
+    process: function( dt, startTime, now, options, callback ){
         var self = this;
-        // log('gameManager.process');
+        // log('gameManager.process ' + dt + ' ' + now );
         Step(
             function processGames(){
                 var group = this.group();

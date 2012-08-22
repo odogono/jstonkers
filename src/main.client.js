@@ -37,6 +37,7 @@ var entity = _.extend( client.entity, require('./entity/entity_relationship') );
 
 
 entity.registerEntity( require('./entity/unit') );
+require('./entity/unit.steering');
 entity.registerEntity( require('./entity/unit_tank') );
 entity.registerEntity( require('./entity/unit_ship') );
 entity.registerEntity( require('./entity/unit_supply') );

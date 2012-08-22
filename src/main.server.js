@@ -32,7 +32,8 @@ require('./entity/entity.server');
 
 jstonkers.entity.CommandQueue = require('./command_queue');
 
-jstonkers.entity.registerEntity('unit');
+jstonkers.entity.registerEntity( require('./entity/unit') );
+require('./entity/unit.steering');
 
 jstonkers.entity.registerEntity('map');
 require('./entity/map.path_finding')( jstonkers.entity.Map );
@@ -80,11 +81,19 @@ exports.initialize = function(options,callback){
 exports.start = function(options,callback){
     log('starting game manager');
 
+    var last = Date.now();
     var runLoopOptions = {};
+    var fps = Common.config.game_manager.fps || 30;
+    var intervalMs = (1/fps)*1000;
+    var startTime = 0;
 
     var runLoop = function(err){
         if( err ) throw err;
-        gameManager.process( runLoopOptions, processCallback );
+        var now = Date.now();
+        var dt = now - last;
+        last = now;
+        startTime += dt;
+        gameManager.process( (dt/intervalMs), startTime, now, runLoopOptions, processCallback );
     }
 
     var processCallback = function(err){
@@ -94,9 +103,8 @@ exports.start = function(options,callback){
 
     
     if( Common.config.game_manager.loop_active ){
-        var fps = Common.config.game_manager.fps || 30;
         log('game manager loop running at ' + fps + 'fps');
-        setInterval( runLoop, (1/fps)*1000 );    
+        setInterval( runLoop, intervalMs );    
     }
     
     // runLoop();

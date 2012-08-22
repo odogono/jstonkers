@@ -7,13 +7,23 @@ _.extend( game.entity.prototype, {
         log('game has started');
     },
 
-    process: function( options, callback ){
+    /**
+     * [process description]
+     * @param  {[type]}   dt       [description]
+     * @param  {[type]}   options  [description]
+     * @param  {Function} callback [description]
+     * @return {[type]}            [description]
+     */
+    process: function( dt, options, callback ){
         return this.cmds.process( options, callback );
     },
 
-    // 
-    // 
-    // 
+
+    /**
+     * [addUser description]
+     * @param {[type]} user [description]
+     * @param {[type]} team [description]
+     */
     addUser: function(user, team){
         // print_var( this );
         // check hasn't already been added
@@ -27,7 +37,7 @@ _.extend( game.entity.prototype, {
         }
 
         // log('adding to team ' + team.cid );
-        log('triggering user-joined');
+        // log('triggering user-joined');
         this.trigger('game.team:user-joined', this, team, user );
 
         return team.setUser( user );

@@ -4,7 +4,8 @@ var unit = require('./unit');
 exports.type = 'tank';
 
 exports.entity = unit.entity.extend({
-
+    defaults: _.extend(unit.entity.prototype.defaults,{
+    }),
 });
 
 
