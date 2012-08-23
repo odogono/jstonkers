@@ -51,6 +51,11 @@ exports.entity = entity.Entity.extend({
         return entity.Entity.prototype.set.call( this, attrs );
     },
 
+    /**
+     * Returns a heading vector
+     * @param  {angle} angle
+     * @return {Vector2f}
+     */
     heading: function(angle){
         var angle = _.isUndefined(angle) ? this.get('angle') : angle;
         var cos = Math.cos( angle );
@@ -58,23 +63,28 @@ exports.entity = entity.Entity.extend({
         return Vector2f.create( -(sin * -1), cos * -1 );
     },
 
+    /**
+     * Returns the heading 90 degrees to the right
+     * @param  {angle} angle
+     * @return {Vector2f}
+     */
     side: function(angle){
         var heading = this.heading(angle);
         return Vector2f.turnRight(null,heading);
     },
 
-    updateHeadingFromAngle: function( angle ){
-        var angle = _.isUndefined(angle) ? this.get('angle') : angle;
-        var cos = Math.cos( angle );
-        var sin = Math.sin( angle );
-        var heading = [ -(sin * -1), cos * -1 ];
-        var side = [ heading[1], -heading[0] ];
-        this.set({angle:angle, heading:heading, side:side});
-    },
+    // updateHeadingFromAngle: function( angle ){
+    //     var angle = _.isUndefined(angle) ? this.get('angle') : angle;
+    //     var cos = Math.cos( angle );
+    //     var sin = Math.sin( angle );
+    //     var heading = [ -(sin * -1), cos * -1 ];
+    //     var side = [ heading[1], -heading[0] ];
+    //     this.set({angle:angle, heading:heading, side:side});
+    // },
 
-    updateHeadingFromVelocity: function(){
+    // updateHeadingFromVelocity: function(){
 
-    }
+    // }
 });
 
 

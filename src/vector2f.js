@@ -12,8 +12,6 @@ var isNaN = function(obj) {
 };
 
 _.extend( exports, {
-
-
     isAtInfinity: function( v2f ){
         return v2f && isNaN(v2f[0]) && isNaN(v2f[1]);
     },
@@ -184,7 +182,11 @@ _.extend( exports, {
      */
     angle: function( a ){
         return Math.atan2( a[1], a[0] );
-    }
+    },
+
+    isEqual: function( a, b) {
+        return a && b && a[0] === b[0] && a[1] === b[1];
+    },
 });
 
 Vector2f.prototype = {
@@ -242,7 +244,7 @@ Vector2f.prototype = {
     },
     
     isEqual: function(other) {
-        return this && other && this[0] === other[0] && this[1] === other[1];
+        return exports.isEqual( this, other );
     },
     
     distance: function( other ) {

@@ -19,7 +19,7 @@ var constants = {
     FAST            : 50,
     SUPER_FAST      : 10,
 
-    N_DECELERATION_TWEAKER : 0.3
+    N_DECELERATION_TWEAKER : 0.05
 };
 
 _.extend( exports, constants );
@@ -33,21 +33,32 @@ _.extend( unit.entity.prototype, {
         mass: 1,
         interpose_distance: 0,
         braking_distance: 0,
-        braking_rate: 0.2,
-        force: [0,0],
-        result: [0,0],
-        accel:[0,0],
-        flag_stack: []
+        braking_rate: 0.5,
+        flag_stack: [],
+        tar_d: 0.5
     }),
 
 
+    /**
+     * 
+     * @param  {[type]} target  [description]
+     * @param  {[type]} options [description]
+     * @return {[type]}         [description]
+     */
     moveTo: function( target, options ){
         options = options || {};
         var params = {tar:target};
         params.tar_d = options.distance || null;
 
         this.set(params);
-        this.activate( constants.ARRIVE );    
+        this.activate( constants.ARRIVE );
+    },
+
+    halt: function(){
+        var velocity = this.get('vel');
+        Vector2f.zero( velocity );
+        this.set('vel', velocity );
+        this.deactivate( constants.ALL );
     },
 
     activate: function(flag){
@@ -58,7 +69,10 @@ _.extend( unit.entity.prototype, {
     },
     deactivate: function(flag){
         var flags = this.get('flags');
-        if( flag !== constants.NONE ){
+        if( flag === constants.ALL ){
+            this.set( 'flags', constants.NONE );
+        }
+        else if( flag !== constants.NONE ){
             this.set( 'flags', flags &= ~flag );
         }
     },
@@ -177,7 +191,7 @@ _.extend( unit.entity.prototype, {
         // log('targetDistance: ' + dist + ' / ' + targetDistance );
         
         if( dist <= targetDistance ){
-            this.trigger('target-arrive', this, targetDistance );
+            this.trigger('target:arrive', this, targetDistance );
             return;
         }
         

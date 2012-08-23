@@ -54,7 +54,7 @@ describe('Game', function(){
             );
         });//*/
 
-        /*
+        
         it('should execute a game function', function(done){
             var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
             var game = jstonkers.entity.Game.create(null,{statePath:statePath});
@@ -82,7 +82,7 @@ describe('Game', function(){
         });//*/
     });
 
-    describe('handling of teams', function(){
+    describe('user handling', function(){
         it('should add and remove a user from a team', function(done){
             var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
             var game = jstonkers.entity.Game.create(null,{statePath:statePath});
@@ -106,4 +106,25 @@ describe('Game', function(){
             done();
         });
     });
+
+    describe('lifecycle', function(){
+        // games don't begin with a single player
+        it('should start in a dormant state');
+        it('should start playing after an interval');
+        
+    });
+
+
+    describe('handling of orders', function(){
+        it('should reject an order with an invalid game id');
+        it('should reject an order with an invalid unit id')
+        it('should reject an order from a non-player');
+        it('should convert a move order into a command');
+        it('should return the order id on completion of a command');
+    });
+
+    describe('commands', function(){
+
+    });
+
 });
