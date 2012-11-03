@@ -55,10 +55,18 @@ if( Common.config.env && Common.config.env[env] ){
     Common.config.env.current = env;
 }
 
+winston = require('winston');
+// winston.setLevels(winston.config.syslog.levels);
+Common.log = new (winston.Logger)({
+    transports:[
+        new (winston.transports.Console)( Common.config.logging )
+    ]
+});
+
 require('./common.utils');
 
 // include libs
-debug = require('debug');
+// debug = require('debug');
 // program = require('commander');
 Step = require('step/lib/step');
 express = require('express');
@@ -78,11 +86,3 @@ var backboneContext = {
 };
 Common.vm.runInNewContext(Common.fs.readFileSync(path.join(Common.paths.jslib, 'backbone.js')), backboneContext);
 Backbone = backboneContext.Backbone;
-
-// Common.schema = require('./schema');
-// Common.schema.register( 
-//     'urn:schemas-opendoorgonorth:jstonkers:entity',
-//     Common.path.join(Common.paths.schema, 'entity.json') );
-
-// jstonkers.sync = require('./sync');
-// jstonkers.entity = entity = require('./entity');

@@ -18,7 +18,7 @@
             },
             
             "logging":{
-                "level":"debug"
+                "colorize":true,"prettyPrint":false,"timestamp":true, "silent":true
             },
 
             "sync":{

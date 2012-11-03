@@ -7,28 +7,33 @@ var fs = require('fs'),
 log = Common.log;
 inspect = Common.inspect;
 assert = Common.assert;
-println = log;
+println = Common.log.debug;
 
 print_var = function(arg, options){
-    if( !arg )
-        log( JSON.stringify({},null,'\t') );
-    else if( _.isObject(arg) ){
-        if(arg instanceof jstonkers.entity.Entity )
-            log( JSON.stringify(arg,null,'\t') );
-            // log( JSON.stringify(jstonkers.entity.Factory.toEntityJSON(arg,options),null,'\t') );
-        else if( arg instanceof jstonkers.entity.EntityCollection )
-            log( JSON.stringify(arg,null,'\t') );
-            // log( JSON.stringify(jstonkers.entity.Factory.collectionToJSON(arg, options),null,'\t') );
-        else
-            log( JSON.stringify(arg,null,'\t') );
-    }else    
-        log( JSON.stringify(arg,null,'\t') );
+    log.debug( JSON.stringify(arg,null,'\t') );
+    // if( !arg )
+    //     log( JSON.stringify({},null,'\t') );
+    // else if( _.isObject(arg) ){
+    //     if(arg instanceof jstonkers.entity.Entity )
+    //         log( JSON.stringify(arg,null,'\t') );
+    //         // log( JSON.stringify(jstonkers.entity.Factory.toEntityJSON(arg,options),null,'\t') );
+    //     else if( arg instanceof jstonkers.entity.EntityCollection )
+    //         log( JSON.stringify(arg,null,'\t') );
+    //         // log( JSON.stringify(jstonkers.entity.Factory.collectionToJSON(arg, options),null,'\t') );
+    //     else
+    //         log( JSON.stringify(arg,null,'\t') );
+    // }else    
+    //     log( JSON.stringify(arg,null,'\t') );
 }
+// print_ins = function(arg,showHidden,depth,colors){
+//     log( inspect(arg,showHidden,depth,colors) );
+// }
 print_ins = function(arg,showHidden,depth,colors){
-    log( inspect(arg,showHidden,depth,colors) );
+    if( _.isUndefined(depth) ) depth = 5;
+    log.debug( inspect(arg,showHidden,depth,colors) );
 }
 print_stack = function(){
-    log( new Error().stack );
+    console.log( new Error().stack );
 }
 
 

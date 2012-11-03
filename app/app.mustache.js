@@ -3,11 +3,13 @@ var path = require('path');
 var fs = require('fs');
 var Mustache = require( path.join( Common.paths.jslib, 'mustache' ) );
 
+print_ins( Mustache );
+
 app.set('view engine', 'mustache');
 
 // hack in partials support
-var existing = Mustache.Renderer.prototype._partial;
-Mustache.Renderer.prototype._partial = function(name,context){
+var existing = Mustache.Writer.prototype._partial;
+Mustache.Writer.prototype._partial = function(name,context){
     
     // load the partial from file if the partial doesn't exist or the view cache is disabled
     if( !this._partialCache[name] || !app.enabled('view cache') ){
@@ -34,6 +36,7 @@ app.engine('mustache', function(path, options, cb){
         fs.readFile(path, 'utf8', function(err, str){
             if (err) return fn(err);
             try {
+                log('compiling ' + str );
                 var renderFn = Mustache.compile(str,options);
                 Mustache.templateCache[path] = renderFn;
                 if( options.cb )

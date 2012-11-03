@@ -45,7 +45,7 @@ describe('EntityCollection', function(){
     it('should create from an array of entities', function(){
         var i,entities = [];
         for( i=0;i<10;i++ )
-            entities.push( jstonkers.entity.create( jstonkers.entity.TYPE_TEST_A, {
+            entities.push( jstonkers.Entity.create( jstonkers.entity.TYPE_TEST_A, {
                     id:_.sprintf('test.%03d', i+1),
                     name:'test entity ' + (i+1)}  ));
 
@@ -90,7 +90,7 @@ describe('EntityCollection', function(){
         /*it('should produce a map', function(){
             var i,entities = [];
             for( i=0;i<10;i++ )
-                entities.push( jstonkers.entity.create({
+                entities.push( jstonkers.Entity.create({
                         id:_.sprintf('test.%03d', i+1),
                         type:'test_a',
                         name:'test entity ' + (i+1)}  ));
@@ -103,7 +103,7 @@ describe('EntityCollection', function(){
         it('should produce a map', function(){
             var i,entities = [];
             for( i=0;i<10;i++ )
-                entities.push( jstonkers.entity.create({
+                entities.push( jstonkers.Entity.create({
                         id:_.sprintf('test.%03d', i+1),
                         type:'test_a',
                         name:'test entity ' + (i+1)}  ));
@@ -116,7 +116,7 @@ describe('EntityCollection', function(){
         it('should', function(){
             var i,entities = [];
             for( i=0;i<1;i++ )
-                entities.push( jstonkers.entity.create({
+                entities.push( jstonkers.Entity.create({
                         id:_.sprintf('test.%03d', i+1),
                         type:'test_a', name:'test entity ' + (i+1)}  ));
 

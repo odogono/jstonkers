@@ -1,8 +1,8 @@
-var entity = require('./entity');
+var JSTEntity = require_entity('jst_entity');
 // exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#map';
 exports.type = 'map';
 
-exports.entity = entity.Entity.extend({
+exports.Entity = JSTEntity.Entity.extend({
 });
 
 
@@ -10,6 +10,6 @@ exports.entity = entity.Entity.extend({
 
 exports.create = function(attrs, options){
     options = (options || {});
-    var result = entity.create( _.extend({type:'map'}, attrs) );
+    var result = Entity.create( _.extend({type:'map'}, attrs) );
     return result;
 }

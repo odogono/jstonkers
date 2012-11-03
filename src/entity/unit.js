@@ -1,9 +1,10 @@
-var entity = require('./entity');
+var Entity = require('odgn-entity');
+var JSTEntity = require_entity('jst_entity');
 var Vector2f = require('../vector2f');
-// exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#unit';
+
 exports.type = 'unit';
 
-exports.entity = entity.Entity.extend({
+exports.Entity = JSTEntity.Entity.extend({
 
     defaults:{
         // pos:Vector2f.create(),//[0,0],  // position
@@ -48,7 +49,7 @@ exports.entity = entity.Entity.extend({
             delete attrs.degrees;
         }
 
-        return entity.Entity.prototype.set.call( this, attrs );
+        return JSTEntity.Entity.prototype.set.call( this, attrs );
     },
 
     /**
@@ -88,8 +89,22 @@ exports.entity = entity.Entity.extend({
 });
 
 
-exports.create = function(attrs, options){
+exports.create = function(attrs, options,callback){
     options = (options || {});
-    var result = entity.create( _.extend({type:'unit'}, attrs) );
+
+    var result = Entity.create({
+        type:'unit',
+        status: JSTEntity.STATUS.ACTIVE
+    });
+
+    result.initialize();
+    if( attrs )
+        result.set( result.parse( attrs ) );
+
+    if( options.save && _.isFunction(callback) ){
+        result.saveCB( null, function(err,result){
+            callback(err,result);
+        });
+    }
     return result;
 }

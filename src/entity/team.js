@@ -1,4 +1,5 @@
-var entity = require('./entity');
+var Entity = require('odgn-entity');
+var JSTEntity = require_entity('jst_entity');
 // exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#team';
 exports.type = 'team';
 
@@ -7,7 +8,7 @@ exports.ER = [
     { oneToOne:'user' }
 ];
 
-exports.entity = entity.Entity.extend({
+exports.Entity = JSTEntity.Entity.extend({
     // defaults:function(){
     //     return _.defaults({
     //         'team_type': 'ai'

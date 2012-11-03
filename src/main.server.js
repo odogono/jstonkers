@@ -17,12 +17,9 @@ jstonkers.eventBus.bind( 'all', function(type){
 jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
 
 
-
-Entity = jstonkers.entity = require('./entity/entity');
-jstonkers.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
-jstonkers.entity.createCollection = require('./entity/entity_collection').create;
-
-_.extend(jstonkers.entity, require('./entity/entity_relationship') );
+require_entity = function(name){
+    return require( path.join(Common.paths.entity, name) );
+}
 
 jstonkers.sync = require('./sync');
 

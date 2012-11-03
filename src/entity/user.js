@@ -1,10 +1,10 @@
-var entity = require('./entity');
-var dlog = debug('entity:user');
+var Entity = require('odgn-entity');
+var JSTEntity = require_entity('jst_entity');
 
 exports.type = 'user';
 // exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#user';
 
-exports.entity = entity.Entity.extend({
+exports.Entity = JSTEntity.Entity.extend({
 
     storeKeys: function(){
         var keys = entity.Entity.prototype.storeKeys.apply(this,arguments);
@@ -15,7 +15,7 @@ exports.entity = entity.Entity.extend({
 
 exports.create = function(attrs, options){
     options = (options || {});
-    var result = entity.create( _.extend({type:'user',name:'guest'}, attrs) );
+    var result = Entity.create( _.extend({type:'user',name:'guest'}, attrs) );
     return result;
 }
 

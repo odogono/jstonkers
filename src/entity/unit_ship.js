@@ -1,15 +1,16 @@
-var entity = require('./entity');
-var unit = require('./unit');
+var Entity = require('odgn-entity');
+var JSTEntity = require_entity('jst_entity');
+var Unit = require('./unit');
 
 exports.type = 'ship';
 
-exports.entity = unit.entity.extend({
+exports.Entity = Unit.Entity.extend({
 
 });
 
 
 exports.create = function(attrs, options){
     options = (options || {});
-    var result = entity.create( _.extend({type:exports.type}, attrs) );
+    var result = Entity.create( _.extend({type:exports.type}, attrs) );
     return result;
 }

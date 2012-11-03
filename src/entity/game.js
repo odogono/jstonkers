@@ -1,7 +1,7 @@
+var Entity = require('odgn-entity');
+var JSTEntity = require_entity('jst_entity');
 var fs = require('fs');
-var entity = require('./entity');
 var CommandQueue = require( '../command_queue' );
-var EntityCollection = require('./entity_collection');
 
 // exports.schema = 'urn:schemas-opendoorgonorth:jstonkers:entity#game';
 exports.type = 'game';
@@ -14,7 +14,7 @@ exports.ER = [
     // { oneToOne:"map" }
 ];
 
-exports.entity = entity.Entity.extend({
+exports.Entity = JSTEntity.Entity.extend({
     initialize: function(){
         var self = this;
 
@@ -75,7 +75,7 @@ exports.entity = entity.Entity.extend({
 
 exports.create = function(attrs, options){
     options = (options || {});
-    var result = entity.create( _.extend({type:'game'}, attrs) );
+    var result = Entity.create( _.extend({type:'game'}, attrs) );
 
     if( options.statePath ){
         // log('loading state from ' + options.statePath );

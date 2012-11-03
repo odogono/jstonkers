@@ -3,7 +3,7 @@ var Unit = require('./unit');
 
 exports.type = 'supply';
 
-exports.entity = Unit.entity.extend({
+exports.Entity = Unit.Entity.extend({
 
 });
 

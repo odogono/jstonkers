@@ -191,7 +191,7 @@ exports.entity = entity.Entity.extend({
 
 exports.create = function(attrs, options){
     options = (options || {});
-    var result = entity.create( _.extend({type:'game_manager'}, attrs) );
+    var result = Entity.create( _.extend({type:'game_manager'}, attrs) );
     if( options.statePath ){
         result.loadState( options.statePath, options );
     }

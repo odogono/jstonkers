@@ -1,0 +1,8 @@
+{
+    "name":"odgn-entity",
+    "version":"0.0.1",
+    "main":"index.js",
+    
+    "author":"Alexander Veenendaal <alex@opendoorgonorth.com> http://opendoorgonorth.com",
+    "private":true
+}
