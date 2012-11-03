@@ -1,7 +1,6 @@
 require( '../src/common' );
 require( '../src/main.server' );
 
-
 var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
 
 describe('Game', function(){
@@ -54,9 +53,11 @@ describe('Game', function(){
             );
         });//*/
 
+    });
+
+    describe('commands', function(){
         
         it('should execute a game function', function(done){
-            var statePath = Common.path.join( Common.paths.data, 'states', 'game_a.json' );
             var game = jstonkers.entity.Game.create(null,{statePath:statePath});
             var processed = false;
 
@@ -70,7 +71,7 @@ describe('Game', function(){
             game.cmds.add( new SaveCommand() );
             Step(
                 function(){
-                    game.process(this);
+                    game.process(1,this);
                 },
                 function(err){
                     if(err) throw err;
@@ -80,6 +81,27 @@ describe('Game', function(){
                 }
             );
         });//*/
+
+        it.only('should execute a unit movement', function(done){
+            var finished = false;
+            var game = Entity.Game.create(null,{statePath:statePath});
+            var user = Entity.User.create({id:'user.test'});
+
+            game.moveUnit( user, 'ship_1', [20,10] );
+
+            assert.equal( game.cmds.length, 1, 'a move command should have been added' );
+
+            game.on('unit:arrive', function(game,){
+                finished = true;
+            });
+
+            while( !finished ){
+                game.process( 1 );
+            }
+
+            done();
+        });
+
     });
 
     describe('user handling', function(){

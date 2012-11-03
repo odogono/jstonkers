@@ -15,6 +15,9 @@ _.extend( game.entity.prototype, {
      * @return {[type]}            [description]
      */
     process: function( dt, options, callback ){
+        if( _.isFunction(options) ){
+            callback = options; options = {};
+        }
         return this.cmds.process( options, callback );
     },
 

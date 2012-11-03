@@ -1,6 +1,5 @@
 require( '../src/common' );
 var Server = require( '../src/main.server' );
-var Entity = jstonkers.entity;
 var Vector2f = jstonkers.Vector2f;
 var UnitPainter = require('./support/unit_painter');
 
@@ -60,7 +59,6 @@ describe('Unit', function(){
             });
             
             assert.deepEqual( unit.get('pos'), [0,0] );
-
 
             unit.moveTo( target, {distance:targetDistance} );
             

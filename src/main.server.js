@@ -18,7 +18,7 @@ jstonkers.eventBus.emit = jstonkers.eventBus.trigger;
 
 
 
-var Entity = jstonkers.entity = require('./entity/entity');
+Entity = jstonkers.entity = require('./entity/entity');
 jstonkers.entity.EntityCollection = require('./entity/entity_collection').EntityCollection;
 jstonkers.entity.createCollection = require('./entity/entity_collection').create;
 

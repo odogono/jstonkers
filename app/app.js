@@ -1,6 +1,5 @@
-
 var Common = require( '../src/common' ),
-    Server = require('../src/main.server');
+    Server = require('../src/main.server'),
     http = require('http');
 var express = require('express');
 var RedisStore = require('connect-redis')(express);
