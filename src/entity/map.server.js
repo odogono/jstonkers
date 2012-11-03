@@ -1,4 +1,4 @@
-var Entity = require('./entity');
+var Entity = require('odgn-entity');
 var Map = require('./map');
 var Canvas = require('canvas'), Image = Canvas.Image;
 
@@ -37,7 +37,7 @@ var getMapData = function( path, callback ){
 
 
 
-_.extend( Map.entity.prototype, {
+_.extend( Map.Entity.prototype, {
     
     loadData: function( path, callback ){
         var self = this;

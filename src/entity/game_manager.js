@@ -1,5 +1,6 @@
 var fs = require('fs');
-var entity = require('./entity');
+var Entity = require('odgn-entity');
+var JSTEntity = require_entity('jst_entity');
 
 exports.type = 'game_manager';
 exports.ER = [
@@ -8,7 +9,7 @@ exports.ER = [
     { oneToOne:'user' }
 ];
 
-exports.entity = entity.Entity.extend({
+exports.Entity = JSTEntity.Entity.extend({
 
     initialize: function(){
         var self = this;

@@ -1,4 +1,5 @@
-var Entity = require('./entity');
+var Entity = require('odgn-entity');
+var JSTEntity = require_entity('jst_entity');
 var Unit = require('./unit');
 
 exports.type = 'supply';

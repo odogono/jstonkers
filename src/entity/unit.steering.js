@@ -1,4 +1,4 @@
-var unit = require('./unit');
+var Unit = require('./unit');
 var Vector2f = require('../vector2f');
 
 var constants = {
@@ -24,8 +24,8 @@ var constants = {
 
 _.extend( exports, constants );
 
-_.extend( unit.entity.prototype, {
-    defaults: _.extend(unit.entity.prototype.defaults,{
+_.extend( Unit.Entity.prototype, {
+    defaults: _.extend(Unit.Entity.prototype.defaults,{
         flags: constants.NONE,
         max_turn_rate: 1,
         max_force: 0.25,

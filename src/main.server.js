@@ -1,3 +1,6 @@
+var Entity = require('odgn-entity');
+var path = require('path');
+
 jstonkers = {
     Status:{
         ACTIVE: 'atv',
@@ -24,29 +27,29 @@ require_entity = function(name){
 jstonkers.sync = require('./sync');
 
 // add server specific functions to entity
-require('./entity/entity.server');
+// require('./entity/entity.server');
 
 
-jstonkers.entity.CommandQueue = require('./command_queue');
+jstonkers.CommandQueue = require('./command_queue');
 
-jstonkers.entity.registerEntity( require('./entity/unit') );
-require('./entity/unit.steering');
+Entity.registerEntity( require_entity('unit') );
+require_entity('unit.steering');
 
-jstonkers.entity.registerEntity('map');
-require('./entity/map.path_finding')( jstonkers.entity.Map );
-require('./entity/map.server');
+var Map = Entity.registerEntity( require_entity('map') );
+require_entity('map.path_finding')( Map );
+require_entity('map.server');
 
-jstonkers.entity.registerEntity('team');
-jstonkers.entity.registerEntity( require('./entity/unit_tank') );
-jstonkers.entity.registerEntity( require('./entity/unit_ship') );
-Entity.registerEntity( require('./entity/unit_supply') );
+Entity.registerEntity( require_entity('team') );
+Entity.registerEntity( require_entity('unit_tank') );
+Entity.registerEntity( require_entity('unit_ship') );
+Entity.registerEntity( require_entity('unit_supply') );
 
-var Game = jstonkers.entity.registerEntity('game');
-require('./entity/game.server');
+var Game = Entity.registerEntity( require_entity('game')) ;
+require_entity('game.server');
 
-jstonkers.entity.registerEntity('user');
+Entity.registerEntity( require_entity('user'));
 
-var GameManager = jstonkers.entity.registerEntity('game_manager');
+var GameManager = Entity.registerEntity( require_entity('game_manager'));
 
 
 // load commands
@@ -55,7 +58,7 @@ require( Common.paths.commands );
 
 process.on('exit', function() {
   // Add shutdown logic here.
-  log('shutting down');
+  log.info('shutting down');
 });
 
 

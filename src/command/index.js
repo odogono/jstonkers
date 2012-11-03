@@ -1,4 +1,5 @@
-var Entity = require('../entity/entity');
+var Entity = require('odgn-entity');
+var JSTEntity = require_entity('jst_entity');
 // register all command entities in this dir
 
 // log('commands in ' + __dirname );// module.filename );

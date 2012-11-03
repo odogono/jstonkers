@@ -1,8 +1,7 @@
 // Adds functions to map to allow paths to be plotted
-
 var Vector2f = require('../vector2f');
 var PriorityQueue = require('../priority_queue');
-var Entity = require('./entity');
+var Entity = require('odgn-entity');
 // note - need to include Map from main namespace
 // var Map = jstonkers.entity.Map;
 
@@ -242,6 +241,6 @@ var createMapPathNode = function(options){
 }
 
 module.exports = function( Map ){
-    _.extend( Map.entity.prototype, MapFunctions );  
+    _.extend( Map.Entity.prototype, MapFunctions );  
     Map.simplifyPath = simplifyPath;
 };

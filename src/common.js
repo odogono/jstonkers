@@ -20,6 +20,7 @@ Common.paths = {
     etc: path.join( Common.root, 'etc' ),
     lib: path.join( Common.root, 'node_modules' ),
     src: path.join( Common.root, 'src' ),
+    entity: path.join( Common.root, 'src', 'entity' ),
     commands: path.join( Common.root, 'src', 'command' ),
     templates: {
         cms: path.join(Common.root, 'app', 'templates', 'cms'),

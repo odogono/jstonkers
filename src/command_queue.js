@@ -1,6 +1,5 @@
-var Entity = require('./entity/entity');
-var EntityCollection = require('./entity/entity_collection');
-
+var Entity = require('odgn-entity');
+var EntityCollection = Entity.Collection;
 
 exports.Command = Entity.Entity.extend({
     

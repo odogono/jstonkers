@@ -1,7 +1,7 @@
 // Server-side entity functions
-var game = require('./game');
+var Game = require('./game');
 
-_.extend( game.entity.prototype, {
+_.extend( Game.Entity.prototype, {
 
     onStart: function(){
         log('game has started');

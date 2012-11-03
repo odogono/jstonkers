@@ -1,8 +1,7 @@
 var redis = require("redis");
-var Entity = require('../entity/entity');
-var EntityCollection = require('../entity/entity_collection');
+var Entity = require('odgn-entity');
 var uuid = require('node-uuid');
-var debug = require('debug')('app:sync');
+var EntityCollection = Entity.Collection;
 
 exports.info = 'redis based sync';
 
@@ -537,7 +536,7 @@ _.extend( RedisStorage.prototype, {
     update: function(model, options, callback) {
         var self = this,i;
         var keyPrefix = self.options.key_prefix;
-        var entityDetails = jstonkers.entity.ids[model.type];        
+        var entityDetails = Entity.ids[model.type];        
         var collectionSetKey;
         var cidToModel,entity;
 
@@ -731,7 +730,7 @@ _.extend( RedisStorage.prototype, {
 
             type = entityAttr.type || (_.isObject(entity) ? entity.type : null);
             // delete entityAttr.type;
-            entityDef = jstonkers.entity.ids[type];
+            entityDef = Entity.ids[type];
 
             if( !options.fetchRelated ){
                 callback( null, entityAttr );
